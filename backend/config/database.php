@@ -99,6 +99,20 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'analytics' => [
+            'driver' => env('ANALYTICS_DB_CONNECTION', 'pgsql'),
+            'host' => env('ANALYTICS_DB_HOST', '127.0.0.1'),
+            'port' => env('ANALYTICS_DB_PORT', '5432'),
+            'database' => env('ANALYTICS_DB_DATABASE', 'projecti5'),
+            'username' => env('ANALYTICS_DB_USERNAME', 'projecti5'),
+            'password' => env('ANALYTICS_DB_PASSWORD', ''),
+            'charset' => env('ANALYTICS_DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => env('ANALYTICS_DB_SCHEMA', 'public'),
+            'sslmode' => env('ANALYTICS_DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
