@@ -166,7 +166,7 @@ async function handleLogout() {
       header: sidebarOpen
         ? 'px-4 py-4 border-b border-slate-200'
         : 'w-16 justify-center px-0 py-4 border-b border-slate-200',
-      body: 'app-sidebar-body px-0 py-3',
+      body: 'app-sidebar-body scrollbar-hidden px-0 py-3',
       footer: 'px-4 py-4 border-t border-slate-200',
     }"
   >
@@ -207,7 +207,7 @@ async function handleLogout() {
 
     <template #default="{ state }">
       <div
-        class="sidebar-sections"
+        class="sidebar-sections scrollbar-hidden"
         :class="{ collapsed: state === 'collapsed' }"
       >
         <section
@@ -255,7 +255,6 @@ async function handleLogout() {
 
     <template #footer="{ state }">
       <UDropdownMenu
-        v-if="state === 'expanded'"
         :items="userMenuItems"
         :content="{ align: 'start', collisionPadding: 12 }"
       >
@@ -263,7 +262,7 @@ async function handleLogout() {
           color="neutral"
           variant="ghost"
           block
-          class="justify-start overflow-hidden"
+          class="sidebar-user-button justify-start overflow-hidden"
           trailing-icon="i-lucide-chevrons-up-down"
           :avatar="{ text: auth.user?.name?.charAt(0) || 'A' }"
           :label="state === 'expanded' ? auth.user?.name : undefined"
@@ -276,6 +275,7 @@ async function handleLogout() {
 
 <style scoped>
 .app-sidebar {
+  height: 100vh;
   min-height: 100vh;
 }
 
@@ -295,6 +295,33 @@ async function handleLogout() {
 
 .app-sidebar.is-collapsed :deep([data-slot="header"]) {
   justify-content: center;
+}
+
+.app-sidebar :deep([data-slot="body"]) {
+  min-height: 0;
+}
+
+.app-sidebar :deep([data-slot="footer"]) {
+  flex-shrink: 0;
+}
+
+.app-sidebar.is-collapsed :deep([data-slot="body"]) {
+  overflow: hidden !important;
+}
+
+.app-sidebar.is-collapsed :deep([data-slot="footer"]) {
+  justify-content: center;
+}
+
+.app-sidebar.is-collapsed :deep(.sidebar-user-button) {
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+}
+
+.app-sidebar.is-collapsed :deep(.sidebar-user-button [data-slot="trailingIcon"]) {
+  display: none;
 }
 
 .sidebar-header {
@@ -375,7 +402,11 @@ async function handleLogout() {
   justify-items: stretch;
   gap: 18px;
   width: 64px;
-  padding: 0;
+  max-height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 2px 0 0;
 }
 
 .sidebar-section {
