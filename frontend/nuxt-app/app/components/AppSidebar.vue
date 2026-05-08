@@ -13,7 +13,7 @@ const visibleNavItems = computed(() =>
     <div class="sidebar-brand">
       <span class="brand-mark">A</span>
       <div>
-        <strong>Analytics</strong>
+        <strong class="font-helvetica">Analytics</strong>
         <span>Dashboard System</span>
       </div>
     </div>
