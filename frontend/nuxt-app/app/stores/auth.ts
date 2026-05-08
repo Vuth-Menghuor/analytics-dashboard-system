@@ -1,12 +1,6 @@
 import { AxiosError } from 'axios'
 import { api } from '~/services/api'
-
-type AuthUser = {
-  id: number
-  name: string
-  email: string
-  role: 'manager' | 'partner' | 'visitor'
-}
+import type { AuthUser } from '~/types/auth'
 
 type LoginPayload = {
   email: string

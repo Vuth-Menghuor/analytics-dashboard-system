@@ -1,68 +1,15 @@
 <script setup lang="ts">
-import { Eye, EyeOff } from "lucide-vue-next";
-
 definePageMeta({ layout: "auth" });
 
-const auth = useAuthStore();
-const router = useRouter();
-
-type LoginRole = "manager" | "partner" | "visitor";
-
-type RoleConfig = {
-  label: string;
-  value: LoginRole;
-  email: string;
-  password: string;
-};
-
-const roleConfigByValue: Record<LoginRole, RoleConfig> = {
-  manager: {
-    label: "Manager",
-    value: "manager",
-    email: "manager@example.com",
-    password: "password",
-  },
-  partner: {
-    label: "Partner",
-    value: "partner",
-    email: "partner@example.com",
-    password: "password",
-  },
-  visitor: {
-    label: "Visitor",
-    value: "visitor",
-    email: "visitor@example.com",
-    password: "password",
-  },
-};
-
-const roles = Object.values(roleConfigByValue);
-
-const selectedRole = ref<LoginRole>("manager");
-const showPassword = ref(false);
-const appName = "Analytics Dashboard System";
-
-const form = reactive({
-  email: roleConfigByValue.manager.email,
-  password: roleConfigByValue.manager.password,
-});
-
-const selectedRoleConfig = computed(() => roleConfigByValue[selectedRole.value]);
-
-const selectRole = (role: LoginRole) => {
-  selectedRole.value = role;
-  const nextRole = roleConfigByValue[role];
-  form.email = nextRole.email;
-  form.password = nextRole.password;
-
-  auth.error = "";
-};
-
-const handleLogin = async () => {
-  const user = await auth.login(form);
-
-  await router.replace(auth.dashboardPathFor(user));
-};
+const {
+  auth,
+  form,
+  handleLogin,
+  roles,
+  selectedRole,
+  selectedRoleConfig,
+  selectRole,
+} = useLoginForm();
 </script>
 
 <template>
@@ -83,18 +30,12 @@ const handleLogin = async () => {
         <p>Sign in with the account issued for your role.</p>
       </div>
 
-      <div class="role-switcher" aria-label="Select login role">
-        <button
-          v-for="role in roles"
-          :key="role.value"
-          class="role-button"
-          :class="{ active: selectedRole === role.value }"
-          type="button"
-          @click="selectRole(role.value)"
-        >
-          {{ role.label }}
-        </button>
-      </div>
+      <AuthRoleSwitcher
+        :model-value="selectedRole"
+        :roles="roles"
+        switcher-label="Select login role"
+        @update:model-value="selectRole"
+      />
 
       <form class="auth-form" @submit.prevent="handleLogin">
         <label class="field">
@@ -109,28 +50,13 @@ const handleLogin = async () => {
           />
         </label>
 
-        <label class="field">
-          <span>Password</span>
-          <span class="password-field">
-            <input
-              v-model="form.password"
-              class="input"
-              :type="showPassword ? 'text' : 'password'"
-              :placeholder="selectedRoleConfig.password"
-              autocomplete="current-password"
-              required
-            />
-            <button
-              class="password-toggle"
-              type="button"
-              :aria-label="showPassword ? 'Hide password' : 'Show password'"
-              @click="showPassword = !showPassword"
-            >
-              <EyeOff v-if="showPassword" :size="17" aria-hidden="true" />
-              <Eye v-else :size="17" aria-hidden="true" />
-            </button>
-          </span>
-        </label>
+        <AuthPasswordField
+          v-model="form.password"
+          label="Password"
+          :placeholder="selectedRoleConfig.password"
+          autocomplete="current-password"
+          required
+        />
 
         <div class="auth-form-row">
           <NuxtLink class="auth-link" to="/login">Forgot Password?</NuxtLink>
@@ -144,14 +70,13 @@ const handleLogin = async () => {
       </form>
 
       <p class="auth-switch-copy">
-        Need access? <NuxtLink to="/signup">Create an account or request partner access</NuxtLink>
+        Need access?
+        <NuxtLink to="/signup"
+          >Create an account or request partner access</NuxtLink
+        >
       </p>
 
-      <footer class="auth-footer">
-        <span>© 2026 {{ appName }}</span>
-        <NuxtLink to="/login">Privacy Policy</NuxtLink>
-        <NuxtLink to="/login">Terms &amp; Conditions</NuxtLink>
-      </footer>
+      <AuthFooter link-target="/login" />
     </section>
   </main>
 </template>
