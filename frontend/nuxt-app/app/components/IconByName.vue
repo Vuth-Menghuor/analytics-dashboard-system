@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import {
   Bell,
+  BookOpen,
   ChartNoAxesCombined,
   ChevronDown,
   CircleHelp,
   DollarSign,
   Download,
   FileBarChart,
+  FolderTree,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -25,12 +27,14 @@ const props = defineProps<{
 
 const icons = {
   Bell,
+  BookOpen,
   ChartNoAxesCombined,
   ChevronDown,
   CircleHelp,
   DollarSign,
   Download,
   FileBarChart,
+  FolderTree,
   LayoutDashboard,
   LogOut,
   Menu,

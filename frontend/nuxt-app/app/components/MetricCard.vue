@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Metric } from '~/types/dashboard'
+import type { Metric } from "~/types/dashboard";
 
 defineProps<{
-  metric: Metric
-}>()
+  metric: Metric;
+}>();
 </script>
 
 <template>
