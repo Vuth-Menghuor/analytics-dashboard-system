@@ -144,7 +144,7 @@ const handleLogin = async () => {
       </form>
 
       <p class="auth-switch-copy">
-        Visitors can create an account. <NuxtLink to="/signup">Register as Visitor</NuxtLink>
+        Need access? <NuxtLink to="/signup">Create an account or request partner access</NuxtLink>
       </p>
 
       <footer class="auth-footer">
