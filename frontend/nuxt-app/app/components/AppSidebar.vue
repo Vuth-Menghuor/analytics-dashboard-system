@@ -1,149 +1,157 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
-const route = useRoute()
-const auth = useAuthStore()
-const { navItems } = useDashboardData()
-const sidebarOpen = ref(true)
+const route = useRoute();
+const auth = useAuthStore();
+const { navItems } = useDashboardData();
+const sidebarOpen = ref(true);
 
 const iconMap: Record<string, string> = {
-  ChartNoAxesCombined: 'i-lucide-chart-no-axes-combined',
-  FileBarChart: 'i-lucide-file-bar-chart',
-  LayoutDashboard: 'i-lucide-layout-dashboard',
-  Settings: 'i-lucide-settings',
-  UserCircle: 'i-lucide-circle-user-round',
-  Users: 'i-lucide-users'
-}
+  ChartNoAxesCombined: "i-lucide-chart-no-axes-combined",
+  FileBarChart: "i-lucide-file-bar-chart",
+  LayoutDashboard: "i-lucide-layout-dashboard",
+  Settings: "i-lucide-settings",
+  UserCircle: "i-lucide-circle-user-round",
+  Users: "i-lucide-users",
+};
 
 const navigationItems = computed<NavigationMenuItem[]>(() =>
   navItems
     .filter((item) => auth.user && item.roles.includes(auth.user.role))
     .map((item) => {
-      const path = item.path === '/' ? auth.roleDashboardPath : item.path
+      const path = item.path === "/" ? auth.roleDashboardPath : item.path;
 
       return {
         label: item.label,
-        icon: iconMap[item.icon] ?? 'i-lucide-circle',
+        icon: iconMap[item.icon] ?? "i-lucide-circle",
         to: path,
         active: route.path === path,
-        tooltip: { text: item.label }
-      }
-    })
-)
+        tooltip: { text: item.label },
+      };
+    }),
+);
 
-const navigationGroups = computed(() => [
-  {
-    label: 'Manage',
-    items: navigationItems.value.filter((item) => ['Dashboard', 'Analytics', 'Reports'].includes(item.label || ''))
-  },
-  {
-    label: 'Manage Accounts',
-    items: navigationItems.value.filter((item) => ['User Profile', 'User Management'].includes(item.label || ''))
-  },
-  {
-    label: 'System',
-    items: navigationItems.value.filter((item) => ['Settings'].includes(item.label || ''))
-  },
-  {
-    label: 'Tools',
-    items: [
-      {
-        label: 'Data Display',
-        icon: 'i-lucide-list-tree',
-        to: '/reports',
-        active: route.path === '/reports',
-        tooltip: { text: 'Data Display' }
-      },
-      {
-        label: 'Feedback',
-        icon: 'i-lucide-message-circle',
-        to: '/reports',
-        active: false,
-        tooltip: { text: 'Feedback' }
-      },
-      {
-        label: 'Inputs',
-        icon: 'i-lucide-panels-left-bottom',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Inputs' }
-      },
-      {
-        label: 'Navigation',
-        icon: 'i-lucide-link',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Navigation' }
-      },
-      {
-        label: 'Surface',
-        icon: 'i-lucide-rectangle-horizontal',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Surface' }
-      },
-      {
-        label: 'Utils',
-        icon: 'i-lucide-pencil-ruler',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Utils' }
-      }
-    ]
-  },
-  {
-    label: 'Plugins',
-    items: [
-      {
-        label: 'Color Picker',
-        icon: 'i-lucide-paint-bucket',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Color Picker' }
-      },
-      {
-        label: 'Calendar',
-        icon: 'i-lucide-calendar-days',
-        to: '/settings',
-        active: false,
-        tooltip: { text: 'Calendar' }
-      },
-      {
-        label: 'Dropzone',
-        icon: 'i-lucide-upload',
-        to: '/reports',
-        active: false,
-        tooltip: { text: 'Dropzone' }
-      }
-    ]
-  }
-].filter((group) => group.items.length))
+const navigationGroups = computed(() =>
+  [
+    {
+      label: "Manage",
+      items: navigationItems.value.filter((item) =>
+        ["Dashboard", "Analytics", "Reports"].includes(item.label || ""),
+      ),
+    },
+    {
+      label: "Manage Accounts",
+      items: navigationItems.value.filter((item) =>
+        ["User Profile", "User Management"].includes(item.label || ""),
+      ),
+    },
+    {
+      label: "System",
+      items: navigationItems.value.filter((item) =>
+        ["Settings"].includes(item.label || ""),
+      ),
+    },
+    {
+      label: "Tools",
+      items: [
+        {
+          label: "Data Display",
+          icon: "i-lucide-list-tree",
+          to: "/reports",
+          active: route.path === "/reports",
+          tooltip: { text: "Data Display" },
+        },
+        {
+          label: "Feedback",
+          icon: "i-lucide-message-circle",
+          to: "/reports",
+          active: false,
+          tooltip: { text: "Feedback" },
+        },
+        {
+          label: "Inputs",
+          icon: "i-lucide-panels-left-bottom",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Inputs" },
+        },
+        {
+          label: "Navigation",
+          icon: "i-lucide-link",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Navigation" },
+        },
+        {
+          label: "Surface",
+          icon: "i-lucide-rectangle-horizontal",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Surface" },
+        },
+        {
+          label: "Utils",
+          icon: "i-lucide-pencil-ruler",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Utils" },
+        },
+      ],
+    },
+    {
+      label: "Plugins",
+      items: [
+        {
+          label: "Color Picker",
+          icon: "i-lucide-paint-bucket",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Color Picker" },
+        },
+        {
+          label: "Calendar",
+          icon: "i-lucide-calendar-days",
+          to: "/settings",
+          active: false,
+          tooltip: { text: "Calendar" },
+        },
+        {
+          label: "Dropzone",
+          icon: "i-lucide-upload",
+          to: "/reports",
+          active: false,
+          tooltip: { text: "Dropzone" },
+        },
+      ],
+    },
+  ].filter((group) => group.items.length),
+);
 
 const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
-      label: 'Profile',
-      icon: 'i-lucide-user',
-      to: '/profile'
+      label: "Profile",
+      icon: "i-lucide-user",
+      to: "/profile",
     },
     {
-      label: 'Settings',
-      icon: 'i-lucide-settings',
-      to: '/settings'
-    }
+      label: "Settings",
+      icon: "i-lucide-settings",
+      to: "/settings",
+    },
   ],
   [
     {
-      label: 'Log out',
-      icon: 'i-lucide-log-out',
-      onSelect: handleLogout
-    }
-  ]
-])
+      label: "Log out",
+      icon: "i-lucide-log-out",
+      onSelect: handleLogout,
+    },
+  ],
+]);
 
 async function handleLogout() {
-  await auth.logout()
-  await navigateTo('/login')
+  await auth.logout();
+  await navigateTo("/login");
 }
 </script>
 
@@ -159,17 +167,23 @@ async function handleLogout() {
         ? 'px-4 py-4 border-b border-slate-200'
         : 'w-16 justify-center px-0 py-4 border-b border-slate-200',
       body: 'px-0 py-3',
-      footer: 'px-4 py-4 border-t border-slate-200'
+      footer: 'px-4 py-4 border-t border-slate-200',
     }"
   >
     <template #header="{ state }">
       <div class="sidebar-header" :class="{ collapsed: state === 'collapsed' }">
-        <NuxtLink v-if="state === 'expanded'" class="sidebar-brand" :to="auth.roleDashboardPath">
-          <span class="sidebar-logo">
-            <UIcon name="i-lucide-send" />
-          </span>
+        <NuxtLink
+          v-if="state === 'expanded'"
+          class="sidebar-brand"
+          :to="auth.roleDashboardPath"
+        >
+          <img
+            class="sidebar-brand-image"
+            src="/ccun-logo.png"
+            alt=""
+          >
           <span class="sidebar-brand-copy">
-            <strong class="font-helvetica">Analytics</strong>
+            <strong class="font-helvetica">CCUN Insights</strong>
           </span>
         </NuxtLink>
 
@@ -180,7 +194,11 @@ async function handleLogout() {
           square
           class="sidebar-toggle"
           :class="{ active: !sidebarOpen }"
-          :icon="sidebarOpen ? 'i-lucide-panel-left-close' : 'i-lucide-panel-left-open'"
+          :icon="
+            sidebarOpen
+              ? 'i-lucide-panel-left-close'
+              : 'i-lucide-panel-left-open'
+          "
           :aria-label="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
           @click="sidebarOpen = !sidebarOpen"
         />
@@ -188,9 +206,18 @@ async function handleLogout() {
     </template>
 
     <template #default="{ state }">
-      <div class="sidebar-sections" :class="{ collapsed: state === 'collapsed' }">
-        <section v-for="group in navigationGroups" :key="group.label" class="sidebar-section">
-          <p v-if="state === 'expanded'" class="sidebar-section-label">{{ group.label }}</p>
+      <div
+        class="sidebar-sections"
+        :class="{ collapsed: state === 'collapsed' }"
+      >
+        <section
+          v-for="group in navigationGroups"
+          :key="group.label"
+          class="sidebar-section"
+        >
+          <p v-if="state === 'expanded'" class="sidebar-section-label">
+            {{ group.label }}
+          </p>
           <UNavigationMenu
             v-if="state === 'expanded'"
             :items="group.items"
@@ -200,8 +227,9 @@ async function handleLogout() {
             variant="pill"
             :ui="{
               list: 'gap-1',
-              link: 'min-h-10 rounded-md px-2.5 py-2 text-sm font-semibold text-slate-950 hover:bg-indigo-50 data-[active=true]:bg-indigo-100 data-[active=true]:text-indigo-700',
-              linkLeadingIcon: 'size-4 text-slate-950 data-[active=true]:text-indigo-700'
+              link: 'min-h-10 rounded-md px-2.5 py-2 text-sm font-medium text-slate-950 hover:bg-indigo-50 data-[active=true]:bg-indigo-100 data-[active=true]:text-indigo-700',
+              linkLeadingIcon:
+                'size-4 text-slate-950 data-[active=true]:text-indigo-700',
             }"
           />
           <nav v-else class="collapsed-nav" :aria-label="group.label">
@@ -257,15 +285,15 @@ async function handleLogout() {
   max-width: 64px !important;
 }
 
-.app-sidebar.is-collapsed :deep([data-slot='header']),
-.app-sidebar.is-collapsed :deep([data-slot='body']),
-.app-sidebar.is-collapsed :deep([data-slot='footer']) {
+.app-sidebar.is-collapsed :deep([data-slot="header"]),
+.app-sidebar.is-collapsed :deep([data-slot="body"]),
+.app-sidebar.is-collapsed :deep([data-slot="footer"]) {
   width: 64px;
   padding-right: 0;
   padding-left: 0;
 }
 
-.app-sidebar.is-collapsed :deep([data-slot='header']) {
+.app-sidebar.is-collapsed :deep([data-slot="header"]) {
   justify-content: center;
 }
 
@@ -289,17 +317,15 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
   min-width: 0;
 }
 
-.sidebar-logo {
-  display: inline-flex;
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  color: #6865ec;
-  font-size: 2rem;
+.sidebar-brand-image {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 .sidebar-brand-copy {
@@ -308,8 +334,8 @@ async function handleLogout() {
 
 .sidebar-brand-copy strong {
   display: block;
-  color: #6865ec;
-  font-size: 1.35rem;
+  color: #111827;
+  font-size: 1.15rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -326,7 +352,7 @@ async function handleLogout() {
   --tw-ring-offset-shadow: 0 0 #0000;
 }
 
-.sidebar-toggle :deep([data-slot='leadingIcon']) {
+.sidebar-toggle :deep([data-slot="leadingIcon"]) {
   margin: 0;
 }
 
@@ -381,7 +407,7 @@ async function handleLogout() {
   width: 42px;
   height: 1px;
   background: #e5e7eb;
-  content: '';
+  content: "";
   transform: translateX(-50%);
 }
 
