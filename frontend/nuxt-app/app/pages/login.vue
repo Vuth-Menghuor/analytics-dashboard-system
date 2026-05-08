@@ -36,6 +36,7 @@ const roles: Array<{
 
 const selectedRole = ref<LoginRole>("manager");
 const showPassword = ref(false);
+const appName = "Analytics Dashboard System";
 
 const form = reactive({
   email: roles[0].email,
@@ -67,10 +68,29 @@ const handleLogin = async () => {
 
 <template>
   <main class="login-page">
-    <section class="auth-panel">
+    <section class="login-hero" aria-labelledby="login-hero-title">
+      <div class="login-hero-content">
+        <h1 id="login-hero-title">Turn activity into clear decisions.</h1>
+        <p>
+          A focused workspace for managers, admins, and users to monitor
+          performance without the clutter.
+        </p>
+      </div>
+    </section>
+
+    <section class="auth-panel login-card">
+      <div class="auth-brand">
+        <img
+          class="brand-mark logo-mark"
+          src="/itc-logo.png"
+          alt="Institute of Technology of Cambodia logo"
+        />
+        <span>{{ appName }}</span>
+      </div>
+
       <div class="auth-header">
         <h2>Sign In</h2>
-        <p>Welcome back! Select the method of login.</p>
+        <p>Choose a role and sign in to continue.</p>
       </div>
 
       <div class="role-switcher" aria-label="Select login role">
@@ -138,7 +158,7 @@ const handleLogin = async () => {
       </p>
 
       <footer class="auth-footer">
-        <span>© 2026 SaasAble</span>
+        <span>© 2026 {{ appName }}</span>
         <NuxtLink to="/login">Privacy Policy</NuxtLink>
         <NuxtLink to="/login">Terms &amp; Conditions</NuxtLink>
       </footer>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EyeOff } from 'lucide-vue-next'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'auth' })
 
@@ -27,13 +27,16 @@ const roles: Array<{ label: string; value: SignupRole; emailPlaceholder: string;
 ]
 
 const selectedRole = ref<SignupRole>('manager')
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+const appName = 'Analytics Dashboard System'
+
 const form = reactive({
   firstName: '',
   lastName: '',
   email: '',
-  countryCode: 'US',
-  contact: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
 const selectedRoleConfig = computed(() => roles.find((role) => role.value === selectedRole.value) ?? roles[0])
@@ -41,10 +44,42 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
 
 <template>
   <main class="login-page">
-    <section class="auth-panel">
+    <section class="login-hero signup-hero" aria-labelledby="signup-hero-title">
+      <div class="login-hero-content">
+        <h1 id="signup-hero-title">Start with the right role from day one.</h1>
+        <p>
+          Set up a focused account for the exact workspace you need, from
+          operations oversight to day-to-day reporting.
+        </p>
+      </div>
+    </section>
+
+    <section class="auth-panel login-card">
+      <div class="auth-brand">
+        <img
+          class="brand-mark logo-mark"
+          src="/itc-logo.png"
+          alt="Institute of Technology of Cambodia logo"
+        />
+        <span>{{ appName }}</span>
+      </div>
+
       <div class="auth-header">
         <h2>Sign Up</h2>
-        <p>Sign Up for free. No credit card required.</p>
+        <p>Create your account and choose your access level.</p>
+      </div>
+
+      <div class="role-switcher" aria-label="Select account role">
+        <button
+          v-for="role in roles"
+          :key="role.value"
+          class="role-button"
+          :class="{ active: selectedRole === role.value }"
+          type="button"
+          @click="selectedRole = role.value"
+        >
+          {{ role.label }}
+        </button>
       </div>
 
       <form class="auth-form">
@@ -66,23 +101,23 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
         </label>
 
         <label class="field">
-          <span>Contact</span>
-          <span class="contact-field">
-            <select v-model="form.countryCode" class="country-select" aria-label="Country code">
-              <option value="US">US</option>
-              <option value="KH">KH</option>
-              <option value="GB">GB</option>
-            </select>
-            <input v-model="form.contact" class="input contact-input" type="tel" placeholder="ex. 9876x xxxxx" />
-          </span>
-        </label>
-
-        <label class="field">
           <span>Password</span>
           <span class="password-field">
-            <input v-model="form.password" class="input" type="password" placeholder="Enter password" />
-            <button class="password-toggle" type="button" aria-label="Password visibility">
-              <EyeOff :size="17" aria-hidden="true" />
+            <input
+              v-model="form.password"
+              class="input"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Enter password"
+              autocomplete="new-password"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              @click="showPassword = !showPassword"
+            >
+              <EyeOff v-if="showPassword" :size="17" aria-hidden="true" />
+              <Eye v-else :size="17" aria-hidden="true" />
             </button>
           </span>
         </label>
@@ -90,9 +125,21 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
         <label class="field">
           <span>Confirm Password</span>
           <span class="password-field">
-            <input class="input" type="password" placeholder="Enter confirm password" />
-            <button class="password-toggle" type="button" aria-label="Password visibility">
-              <EyeOff :size="17" aria-hidden="true" />
+            <input
+              v-model="form.confirmPassword"
+              class="input"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              placeholder="Enter confirm password"
+              autocomplete="new-password"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              :aria-label="showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'"
+              @click="showConfirmPassword = !showConfirmPassword"
+            >
+              <EyeOff v-if="showConfirmPassword" :size="17" aria-hidden="true" />
+              <Eye v-else :size="17" aria-hidden="true" />
             </button>
           </span>
         </label>
@@ -103,7 +150,7 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
       <p class="auth-switch-copy">Already have an account? <NuxtLink to="/login">Sign In</NuxtLink></p>
 
       <footer class="auth-footer">
-        <span>© 2026 SaasAble</span>
+        <span>© 2026 {{ appName }}</span>
         <NuxtLink to="/signup">Privacy Policy</NuxtLink>
         <NuxtLink to="/signup">Terms &amp; Conditions</NuxtLink>
       </footer>
