@@ -166,7 +166,7 @@ async function handleLogout() {
       header: sidebarOpen
         ? 'px-4 py-4 border-b border-slate-200'
         : 'w-16 justify-center px-0 py-4 border-b border-slate-200',
-      body: 'px-0 py-3',
+      body: 'app-sidebar-body px-0 py-3',
       footer: 'px-4 py-4 border-t border-slate-200',
     }"
   >
