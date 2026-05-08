@@ -1,29 +1,60 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
 const auth = useAuthStore()
 
 const handleLogout = async () => {
   await auth.logout()
   await navigateTo('/login')
 }
+
+const userItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      label: 'Profile',
+      icon: 'i-lucide-user',
+      to: '/profile'
+    },
+    {
+      label: 'Settings',
+      icon: 'i-lucide-settings',
+      to: '/settings'
+    }
+  ],
+  [
+    {
+      label: 'Log out',
+      icon: 'i-lucide-log-out',
+      onSelect: handleLogout
+    }
+  ]
+])
 </script>
 
 <template>
   <header class="topbar">
-    <div class="search-box">
-      <IconByName name="Search" />
-      <input aria-label="Search dashboard" placeholder="Search analytics, users, reports" />
-    </div>
+    <UInput
+      aria-label="Search dashboard"
+      class="topbar-search"
+      icon="i-lucide-search"
+      placeholder="Search analytics, users, reports"
+      size="lg"
+      variant="outline"
+    />
+
     <div class="toolbar">
-      <button class="btn icon" aria-label="Notifications" title="Notifications">
-        <IconByName name="Bell" />
-      </button>
-      <NuxtLink v-if="auth.user" class="user-chip" to="/profile">
-        <span>{{ auth.user.name.charAt(0) }}</span>
-        <strong>{{ auth.user.name }}</strong>
-      </NuxtLink>
-      <button class="btn icon" type="button" aria-label="Sign out" title="Sign out" @click="handleLogout">
-        <IconByName name="LogOut" />
-      </button>
+      <UButton icon="i-lucide-bell" color="neutral" variant="outline" aria-label="Notifications" />
+
+      <UDropdownMenu v-if="auth.user" :items="userItems" :content="{ align: 'end', collisionPadding: 12 }">
+        <UButton
+          color="neutral"
+          variant="outline"
+          trailing-icon="i-lucide-chevrons-up-down"
+          :avatar="{ text: auth.user.name.charAt(0) }"
+          :label="auth.user.name"
+          :ui="{ trailingIcon: 'text-slate-400' }"
+        />
+      </UDropdownMenu>
     </div>
   </header>
 </template>
@@ -37,47 +68,8 @@ const handleLogout = async () => {
   margin-bottom: 28px;
 }
 
-.search-box {
-  display: flex;
-  min-height: 44px;
+.topbar-search {
   width: min(520px, 100%);
-  align-items: center;
-  gap: 10px;
-  border: 1px solid #d8e0ec;
-  border-radius: 8px;
-  padding: 0 12px;
-  background: #fff;
-  color: #64748b;
-}
-
-.search-box input {
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  outline: 0;
-}
-
-.user-chip {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid #d8e0ec;
-  border-radius: 8px;
-  padding: 6px 12px 6px 7px;
-  background: #fff;
-}
-
-.user-chip span {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7px;
-  background: #14b8a6;
-  color: #fff;
-  font-weight: 900;
 }
 
 @media (max-width: 680px) {

@@ -15,6 +15,7 @@ const {
 <template>
   <main class="login-page">
     <section class="login-hero" aria-labelledby="login-hero-title">
+      <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
         <h1 id="login-hero-title">Turn activity into clear decisions.</h1>
         <p>

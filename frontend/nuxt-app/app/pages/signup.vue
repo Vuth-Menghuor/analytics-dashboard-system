@@ -21,11 +21,12 @@ const {
 <template>
   <main class="login-page">
     <section class="login-hero signup-hero" aria-labelledby="signup-hero-title">
+      <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
-        <h1 id="signup-hero-title">Create your account.</h1>
+        <h1 id="signup-hero-title">Turn activity into clear decisions.</h1>
         <p>
-          Visitor accounts open immediately. Partner accounts include institute
-          details and wait for manager approval.
+          A focused workspace for managers, admins, and users to monitor
+          performance without the clutter.
         </p>
       </div>
     </section>
