@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json'
@@ -9,6 +8,10 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  const runtimeConfig = useRuntimeConfig()
+
+  config.baseURL = runtimeConfig.public.apiBaseUrl
+
   if (import.meta.client) {
     const token = useCookie<string | null>('auth_token').value
 
