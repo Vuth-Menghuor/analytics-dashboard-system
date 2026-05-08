@@ -8,53 +8,52 @@ const router = useRouter();
 
 type LoginRole = "manager" | "partner" | "visitor";
 
-const roles: Array<{
+type RoleConfig = {
   label: string;
   value: LoginRole;
   email: string;
   password: string;
-}> = [
-  {
-    label: "Super Admin",
+};
+
+const roleConfigByValue: Record<LoginRole, RoleConfig> = {
+  manager: {
+    label: "Manager",
     value: "manager",
     email: "manager@example.com",
     password: "password",
   },
-  {
-    label: "Admin",
+  partner: {
+    label: "Partner",
     value: "partner",
     email: "partner@example.com",
     password: "password",
   },
-  {
-    label: "User",
+  visitor: {
+    label: "Visitor",
     value: "visitor",
     email: "visitor@example.com",
     password: "password",
   },
-];
+};
+
+const roles = Object.values(roleConfigByValue);
 
 const selectedRole = ref<LoginRole>("manager");
 const showPassword = ref(false);
 const appName = "Analytics Dashboard System";
 
 const form = reactive({
-  email: roles[0].email,
-  password: roles[0].password,
+  email: roleConfigByValue.manager.email,
+  password: roleConfigByValue.manager.password,
 });
 
-const selectedRoleConfig = computed(
-  () => roles.find((role) => role.value === selectedRole.value) ?? roles[0],
-);
+const selectedRoleConfig = computed(() => roleConfigByValue[selectedRole.value]);
 
 const selectRole = (role: LoginRole) => {
   selectedRole.value = role;
-  const nextRole = roles.find((item) => item.value === role);
-
-  if (nextRole) {
-    form.email = nextRole.email;
-    form.password = nextRole.password;
-  }
+  const nextRole = roleConfigByValue[role];
+  form.email = nextRole.email;
+  form.password = nextRole.password;
 
   auth.error = "";
 };
@@ -79,18 +78,9 @@ const handleLogin = async () => {
     </section>
 
     <section class="auth-panel login-card">
-      <div class="auth-brand">
-        <img
-          class="brand-mark logo-mark"
-          src="/itc-logo.png"
-          alt="Institute of Technology of Cambodia logo"
-        />
-        <span>{{ appName }}</span>
-      </div>
-
       <div class="auth-header">
         <h2>Sign In</h2>
-        <p>Choose a role and sign in to continue.</p>
+        <p>Sign in with the account issued for your role.</p>
       </div>
 
       <div class="role-switcher" aria-label="Select login role">
@@ -154,7 +144,7 @@ const handleLogin = async () => {
       </form>
 
       <p class="auth-switch-copy">
-        Don’t have an account? <NuxtLink to="/signup">Sign Up</NuxtLink>
+        Visitors can create an account. <NuxtLink to="/signup">Register as Visitor</NuxtLink>
       </p>
 
       <footer class="auth-footer">

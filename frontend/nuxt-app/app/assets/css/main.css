@@ -407,7 +407,7 @@ a {
   gap: 16px;
   min-height: 820px;
   justify-self: stretch;
-  padding: clamp(44px, 6vw, 72px) clamp(48px, 7vw, 84px) 22px;
+  padding: clamp(44px, 6vw, 72px) clamp(64px, 8vw, 112px) 22px;
   background: #fff;
   font-family: Helvetica, Arial, sans-serif;
 }
@@ -728,7 +728,7 @@ a {
 
   .auth-panel {
     width: 100%;
-    padding: 28px 22px;
+    padding: 28px 30px;
   }
 
   .role-switcher {
@@ -738,4 +738,5 @@ a {
   .auth-form-grid {
     grid-template-columns: 1fr;
   }
+
 }

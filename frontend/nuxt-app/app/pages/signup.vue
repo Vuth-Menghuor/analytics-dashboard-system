@@ -3,33 +3,10 @@ import { Eye, EyeOff } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'auth' })
 
-type SignupRole = 'manager' | 'partner' | 'visitor'
-
-const roles: Array<{ label: string; value: SignupRole; emailPlaceholder: string; namePlaceholder: string }> = [
-  {
-    label: 'Super Admin',
-    value: 'manager',
-    emailPlaceholder: 'Enter manager email',
-    namePlaceholder: 'Enter manager name'
-  },
-  {
-    label: 'Admin',
-    value: 'partner',
-    emailPlaceholder: 'Enter partner email',
-    namePlaceholder: 'Enter partner name'
-  },
-  {
-    label: 'User',
-    value: 'visitor',
-    emailPlaceholder: 'Enter visitor email',
-    namePlaceholder: 'Enter visitor name'
-  }
-]
-
-const selectedRole = ref<SignupRole>('manager')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const appName = 'Analytics Dashboard System'
+const visitorEmailPlaceholder = 'Enter visitor email'
 
 const form = reactive({
   firstName: '',
@@ -38,48 +15,24 @@ const form = reactive({
   password: '',
   confirmPassword: ''
 })
-
-const selectedRoleConfig = computed(() => roles.find((role) => role.value === selectedRole.value) ?? roles[0])
 </script>
 
 <template>
   <main class="login-page">
     <section class="login-hero signup-hero" aria-labelledby="signup-hero-title">
       <div class="login-hero-content">
-        <h1 id="signup-hero-title">Start with the right role from day one.</h1>
+        <h1 id="signup-hero-title">Create a visitor account.</h1>
         <p>
-          Set up a focused account for the exact workspace you need, from
-          operations oversight to day-to-day reporting.
+          Sign up to access your dashboard and start tracking the reports
+          available to your account.
         </p>
       </div>
     </section>
 
     <section class="auth-panel login-card">
-      <div class="auth-brand">
-        <img
-          class="brand-mark logo-mark"
-          src="/itc-logo.png"
-          alt="Institute of Technology of Cambodia logo"
-        />
-        <span>{{ appName }}</span>
-      </div>
-
       <div class="auth-header">
-        <h2>Sign Up</h2>
-        <p>Create your account and choose your access level.</p>
-      </div>
-
-      <div class="role-switcher" aria-label="Select account role">
-        <button
-          v-for="role in roles"
-          :key="role.value"
-          class="role-button"
-          :class="{ active: selectedRole === role.value }"
-          type="button"
-          @click="selectedRole = role.value"
-        >
-          {{ role.label }}
-        </button>
+        <h2>Visitor Sign Up</h2>
+        <p>Create your account to continue.</p>
       </div>
 
       <form class="auth-form">
@@ -97,7 +50,7 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
 
         <label class="field">
           <span>Email</span>
-          <input v-model="form.email" class="input" type="email" :placeholder="selectedRoleConfig.emailPlaceholder" />
+          <input v-model="form.email" class="input" type="email" :placeholder="visitorEmailPlaceholder" />
         </label>
 
         <label class="field">
@@ -144,7 +97,7 @@ const selectedRoleConfig = computed(() => roles.find((role) => role.value === se
           </span>
         </label>
 
-        <button class="btn primary" type="button">Sign Up</button>
+        <button class="btn primary" type="button">Create Visitor Account</button>
       </form>
 
       <p class="auth-switch-copy">Already have an account? <NuxtLink to="/login">Sign In</NuxtLink></p>
