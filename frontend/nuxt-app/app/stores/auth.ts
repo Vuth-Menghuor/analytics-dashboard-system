@@ -76,6 +76,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const createVisitorSession = (name: string, email: string) => {
+    setSession(`visitor-local-${Date.now()}`, {
+      id: Date.now(),
+      name,
+      email,
+      role: 'visitor'
+    })
+  }
+
   const logout = async () => {
     try {
       if (token.value) {
@@ -89,6 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
+    createVisitorSession,
     dashboardPathFor,
     error,
     isAuthenticated,

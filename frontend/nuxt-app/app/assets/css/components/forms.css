@@ -1,0 +1,130 @@
+.btn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d8e0ec;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: #fff;
+  color: #243041;
+  font-weight: 700;
+}
+
+.btn.primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn.danger {
+  border-color: #fecaca;
+  background: #fff;
+  color: #b91c1c;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.btn.icon {
+  width: 40px;
+  padding: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field > span:not(.password-field, .contact-field),
+.field label {
+  color: #05060f;
+  font-size: 0.87rem;
+  font-weight: 500;
+}
+
+.input {
+  min-height: 36px;
+  width: 100%;
+  border: 1px solid #e3e6ee;
+  border-radius: 8px;
+  padding: 8px 11px;
+  background: #fff;
+  color: #05060f;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
+  outline: none;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus,
+.country-select:focus,
+.password-toggle:focus-visible,
+.btn:focus-visible {
+  border-color: #9aa5ff;
+  box-shadow: 0 0 0 3px rgb(91 102 232 / 0.14);
+  outline: none;
+}
+
+.password-field,
+.contact-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field .input {
+  padding-right: 38px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 9px;
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #777c8d;
+}
+
+.country-select {
+  position: absolute;
+  left: 10px;
+  z-index: 1;
+  width: 40px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.contact-input {
+  padding-left: 54px;
+}
+
+.form-error {
+  margin: 0;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 700;
+}

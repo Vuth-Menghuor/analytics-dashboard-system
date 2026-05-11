@@ -3,6 +3,12 @@ definePageMeta({
   middleware: ["role"],
   roles: ["manager"],
 });
+
+const defaultCurrency = ref("USD");
+const emailSummariesEnabled = ref(true);
+const reportApprovalsEnabled = ref(false);
+const workspaceName = ref("Analytics Dashboard System");
+const currencyOptions = ["USD", "KHR", "EUR"];
 </script>
 
 <template>
@@ -14,39 +20,45 @@ definePageMeta({
     />
 
     <section class="grid two">
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Workspace</h2>
-        <label class="field">
-          <span>Workspace name</span>
-          <input class="input" value="Analytics Dashboard System" />
-        </label>
-        <label class="field">
-          <span>Default currency</span>
-          <select class="input">
-            <option>USD</option>
-            <option>KHR</option>
-            <option>EUR</option>
-          </select>
-        </label>
-      </article>
+        <div class="form-stack">
+          <UFormField label="Workspace name">
+            <UInput v-model="workspaceName" class="w-full" />
+          </UFormField>
+          <UFormField label="Default currency">
+            <USelect
+              v-model="defaultCurrency"
+              :items="currencyOptions"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+      </UCard>
 
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Preferences</h2>
         <div class="settings-row">
           <div>
             <strong>Email summaries</strong>
             <p>Daily digest for dashboard movement</p>
           </div>
-          <button class="toggle on" aria-label="Email summaries enabled" />
+          <USwitch
+            v-model="emailSummariesEnabled"
+            aria-label="Email summaries enabled"
+          />
         </div>
         <div class="settings-row">
           <div>
             <strong>Report approvals</strong>
             <p>Require approval before sharing</p>
           </div>
-          <button class="toggle" aria-label="Report approvals disabled" />
+          <USwitch
+            v-model="reportApprovalsEnabled"
+            aria-label="Report approvals disabled"
+          />
         </div>
-      </article>
+      </UCard>
     </section>
   </div>
 </template>

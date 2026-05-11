@@ -1,39 +1,13 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-
-const auth = useAuthStore()
-
-const handleLogout = async () => {
-  await auth.logout()
-  await navigateTo('/login')
-}
-
-const userItems = computed<DropdownMenuItem[][]>(() => [
-  [
-    {
-      label: 'Profile',
-      icon: 'i-lucide-user',
-      to: '/profile'
-    },
-    {
-      label: 'Settings',
-      icon: 'i-lucide-settings',
-      to: '/settings'
-    }
-  ],
-  [
-    {
-      label: 'Log out',
-      icon: 'i-lucide-log-out',
-      onSelect: handleLogout
-    }
-  ]
-])
+const auth = useAuthStore();
+const searchQuery = ref("");
+const { userMenuItems } = useUserMenuItems();
 </script>
 
 <template>
   <header class="topbar">
     <UInput
+      v-model="searchQuery"
       aria-label="Search dashboard"
       class="topbar-search"
       icon="i-lucide-search"
@@ -43,9 +17,18 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
     />
 
     <div class="toolbar">
-      <UButton icon="i-lucide-bell" color="neutral" variant="outline" aria-label="Notifications" />
+      <UButton
+        icon="i-lucide-bell"
+        color="neutral"
+        variant="outline"
+        aria-label="Notifications"
+      />
 
-      <UDropdownMenu v-if="auth.user" :items="userItems" :content="{ align: 'end', collisionPadding: 12 }">
+      <UDropdownMenu
+        v-if="auth.user"
+        :items="userMenuItems"
+        :content="{ align: 'end', collisionPadding: 12 }"
+      >
         <UButton
           color="neutral"
           variant="outline"

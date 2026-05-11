@@ -1,6 +1,7 @@
 <script setup lang="ts">
-const auth = useAuthStore()
-const profile = computed(() => auth.user)
+const auth = useAuthStore();
+const profile = computed(() => auth.user);
+const twoFactorEnabled = ref(true);
 </script>
 
 <template>
@@ -12,29 +13,25 @@ const profile = computed(() => auth.user)
     />
 
     <section class="grid two">
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Profile Details</h2>
         <div class="form-grid">
-          <label class="field">
-            <span>Full name</span>
-            <input class="input" :value="profile.name" />
-          </label>
-          <label class="field">
-            <span>Email</span>
-            <input class="input" :value="profile.email" />
-          </label>
-          <label class="field">
-            <span>Role</span>
-            <input class="input" :value="profile.role" />
-          </label>
-          <label class="field">
-            <span>Timezone</span>
-            <input class="input" value="Asia/Phnom Penh" />
-          </label>
+          <UFormField label="Full name">
+            <UInput :model-value="profile.name" class="w-full" readonly />
+          </UFormField>
+          <UFormField label="Email">
+            <UInput :model-value="profile.email" class="w-full" readonly />
+          </UFormField>
+          <UFormField label="Role">
+            <UInput :model-value="profile.role" class="w-full" readonly />
+          </UFormField>
+          <UFormField label="Timezone">
+            <UInput model-value="Asia/Phnom Penh" class="w-full" readonly />
+          </UFormField>
         </div>
-      </article>
+      </UCard>
 
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Access Summary</h2>
         <div class="settings-row">
           <div>
@@ -48,9 +45,12 @@ const profile = computed(() => auth.user)
             <strong>Two-factor authentication</strong>
             <p>Extra protection for account sign-in</p>
           </div>
-          <button class="toggle on" aria-label="Two-factor authentication enabled" />
+          <USwitch
+            v-model="twoFactorEnabled"
+            aria-label="Two-factor authentication enabled"
+          />
         </div>
-      </article>
+      </UCard>
     </section>
   </div>
 </template>

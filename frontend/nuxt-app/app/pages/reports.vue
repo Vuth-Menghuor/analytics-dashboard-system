@@ -14,13 +14,10 @@ const { reports } = useDashboardData()
       title="Reports"
       copy="Create, review, and distribute recurring reporting packages."
     >
-      <button class="btn primary">
-        <IconByName name="Plus" />
-        New report
-      </button>
+      <UButton icon="i-lucide-plus" label="New report" />
     </PageHeader>
 
-    <article class="card">
+    <UCard as="article" :ui="{ body: 'p-0' }">
       <div class="table-wrap">
         <table class="data-table">
           <thead>
@@ -39,15 +36,18 @@ const { reports } = useDashboardData()
               <td>{{ report.cadence }}</td>
               <td><span class="status" :class="{ warn: report.status === 'Draft' }">{{ report.status }}</span></td>
               <td>
-                <button class="btn">
-                  <IconByName name="Download" />
-                  Export
-                </button>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-download"
+                  label="Export"
+                />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-    </article>
+    </UCard>
   </div>
 </template>

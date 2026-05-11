@@ -29,3 +29,8 @@ export type Report = {
   cadence: string
   status: 'Ready' | 'Draft'
 }
+
+export type WeeklyTrafficPoint = {
+  label: string
+  value: number
+}

@@ -1,54 +1,14 @@
 <script setup lang="ts">
-import {
-  Bell,
-  BookOpen,
-  ChartNoAxesCombined,
-  ChevronDown,
-  CircleHelp,
-  DollarSign,
-  Download,
-  FileBarChart,
-  FolderTree,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Plus,
-  Search,
-  Settings,
-  TrendingUp,
-  UserCircle,
-  Users
-} from 'lucide-vue-next'
+import { resolveIconName } from "~/constants/icons";
 
 const props = defineProps<{
-  name: string
-  size?: number
-}>()
+  name: string;
+  size?: number | string;
+}>();
 
-const icons = {
-  Bell,
-  BookOpen,
-  ChartNoAxesCombined,
-  ChevronDown,
-  CircleHelp,
-  DollarSign,
-  Download,
-  FileBarChart,
-  FolderTree,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Plus,
-  Search,
-  Settings,
-  TrendingUp,
-  UserCircle,
-  Users
-}
-
-const icon = computed(() => icons[props.name as keyof typeof icons] ?? CircleHelp)
+const icon = computed(() => resolveIconName(props.name));
 </script>
 
 <template>
-  <component :is="icon" :size="size ?? 18" stroke-width="2" aria-hidden="true" />
+  <UIcon :name="icon" :size="size ?? 18" aria-hidden="true" />
 </template>

@@ -9,7 +9,8 @@ const {
   handlePrimaryAction,
   headerCopy,
   headerTitle,
-  institutionTypes,
+  idCardPreviewType,
+  idCardPreviewUrl,
   isPartner,
   isPartnerReviewStep,
   primaryButtonLabel,
@@ -19,6 +20,7 @@ const {
   stateProvinces,
   submitStatus,
   totalSteps,
+  updateIdCardFile,
 } = useSignupForm();
 </script>
 
@@ -112,16 +114,6 @@ const {
               required
             />
           </UFormField>
-
-          <UFormField label="Institution Type" class="field">
-            <USelect
-              v-model="form.institutionType"
-              :items="institutionTypes"
-              placeholder="Select institution type"
-              class="w-full"
-              required
-            />
-          </UFormField>
         </template>
 
         <template v-else-if="currentStep === 2">
@@ -197,15 +189,26 @@ const {
             />
           </UFormField>
 
-          <UFormField label="Address" class="field">
-            <UInput
-              v-model="form.address"
-              class="w-full"
-              type="text"
-              placeholder="Enter address"
-              required
-            />
-          </UFormField>
+          <div class="id-card-upload-group">
+            <UFormField
+              label="ID Card"
+              help="Used only for account verification."
+              class="field"
+            >
+              <input
+                class="file-input"
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+                @change="
+                  updateIdCardFile(($event.target as HTMLInputElement).files)
+                "
+              />
+              <span v-if="form.idCard" class="file-input-meta">
+                {{ form.idCard.name }}
+              </span>
+            </UFormField>
+          </div>
         </template>
 
         <template v-else-if="isPartnerReviewStep">
@@ -215,6 +218,33 @@ const {
               <strong>{{ item.value || "Not provided" }}</strong>
             </div>
           </div>
+
+          <section class="id-card-preview" aria-label="ID card preview">
+            <div class="id-card-preview-header">
+              <span>ID Card</span>
+              <strong>{{ form.idCard?.name || "Not uploaded" }}</strong>
+            </div>
+
+            <img
+              v-if="idCardPreviewUrl && idCardPreviewType === 'image'"
+              class="id-card-preview-media"
+              :src="idCardPreviewUrl"
+              alt="Uploaded ID card preview"
+            />
+            <object
+              v-else-if="idCardPreviewUrl"
+              class="id-card-preview-media"
+              :data="idCardPreviewUrl"
+              :type="form.idCard?.type || 'application/pdf'"
+            >
+              <a :href="idCardPreviewUrl" target="_blank" rel="noreferrer">
+                Open uploaded ID card
+              </a>
+            </object>
+            <div v-else class="id-card-preview-empty">
+              ID card preview unavailable
+            </div>
+          </section>
         </template>
 
         <p v-if="submitStatus" class="auth-success">{{ submitStatus }}</p>

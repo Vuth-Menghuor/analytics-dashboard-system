@@ -7,12 +7,23 @@ defineProps<{
 </script>
 
 <template>
-  <section class="page-header">
-    <div>
-      <p class="eyebrow">{{ eyebrow }}</p>
-      <h1 class="page-title">{{ title }}</h1>
-      <p v-if="copy" class="page-copy">{{ copy }}</p>
-    </div>
-    <slot />
-  </section>
+  <UPageHeader
+    as="section"
+    :headline="eyebrow"
+    :title="title"
+    :description="copy"
+    :ui="{
+      root: 'app-page-header',
+      container: 'grid gap-2',
+      wrapper: 'flex flex-col gap-4 md:flex-row md:items-start md:justify-between',
+      headline: 'eyebrow',
+      title: 'page-title',
+      description: 'page-copy',
+      links: 'toolbar shrink-0',
+    }"
+  >
+    <template #links>
+      <slot />
+    </template>
+  </UPageHeader>
 </template>

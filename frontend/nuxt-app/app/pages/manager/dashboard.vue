@@ -15,14 +15,14 @@ const { metrics, reports, users, weeklyTraffic } = useDashboardData()
       copy="A focused overview of revenue, audience, support workload, and report readiness."
     >
       <div class="toolbar">
-        <NuxtLink class="btn" to="/reports">
-          <IconByName name="FileBarChart" />
-          Reports
-        </NuxtLink>
-        <button class="btn primary">
-          <IconByName name="Download" />
-          Export
-        </button>
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-file-bar-chart"
+          label="Reports"
+          to="/reports"
+        />
+        <UButton icon="i-lucide-download" label="Export" />
       </div>
     </PageHeader>
 
@@ -31,7 +31,7 @@ const { metrics, reports, users, weeklyTraffic } = useDashboardData()
     </section>
 
     <section class="grid two">
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Weekly Traffic</h2>
         <div class="chart-bars">
           <div v-for="point in weeklyTraffic" :key="point.label" class="bar">
@@ -39,9 +39,9 @@ const { metrics, reports, users, weeklyTraffic } = useDashboardData()
             <span>{{ point.label }}</span>
           </div>
         </div>
-      </article>
+      </UCard>
 
-      <article class="card card-pad">
+      <UCard as="article" :ui="{ body: 'p-5' }">
         <h2 class="section-title">Recent Users</h2>
         <div class="table-wrap">
           <table class="data-table">
@@ -61,10 +61,10 @@ const { metrics, reports, users, weeklyTraffic } = useDashboardData()
             </tbody>
           </table>
         </div>
-      </article>
+      </UCard>
     </section>
 
-    <article class="card card-pad">
+    <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">Report Queue</h2>
       <div class="table-wrap">
         <table class="data-table">
@@ -88,6 +88,6 @@ const { metrics, reports, users, weeklyTraffic } = useDashboardData()
           </tbody>
         </table>
       </div>
-    </article>
+    </UCard>
   </div>
 </template>

@@ -1,8 +1,7 @@
 import type {
+  AccessRoleCard,
   LoginRole,
   LoginRoleConfig,
-  RegistrationRole,
-  RoleOption,
 } from "~/types/auth";
 
 export const APP_NAME = "Analytics Dashboard System";
@@ -28,29 +27,42 @@ export const loginRoleConfigByValue: Record<LoginRole, LoginRoleConfig> = {
   },
 };
 
-export const loginRoles = Object.values(loginRoleConfigByValue);
-
-export const registrationRoles: Array<RoleOption<RegistrationRole>> = [
-  { label: "Visitor", value: "visitor" },
-  { label: "Partner", value: "partner" },
+export const accessRoleCards: AccessRoleCard[] = [
+  {
+    label: "Manager",
+    value: "manager",
+    icon: "i-lucide-shield-check",
+    access: "System administrator access",
+    description: "Manage platform and review partners",
+  },
+  {
+    label: "Partner",
+    value: "partner",
+    icon: "i-lucide-school",
+    access: "School / institute representative",
+    description: "Submit and manage institute data",
+  },
+  {
+    label: "Visitor",
+    value: "visitor",
+    icon: "i-lucide-eye",
+    access: "Public or guest access",
+    description: "View limited dashboard information",
+  },
 ];
 
-export const partnerInstitutes = [
+export const stateProvinceOptions = [
+  "Phnom Penh",
+  "Kandal",
+  "Siem Reap",
+  "Battambang",
+  "Kampong Cham",
+];
+
+export const schoolInstituteOptions = [
   "Institute of Technology of Cambodia",
   "Royal University of Phnom Penh",
   "National University of Management",
-];
-
-export const partnerDepartments = [
-  "Computer Science",
-  "Information Technology",
-  "Data Analytics",
-  "Business Intelligence",
-];
-
-export const partnerPositions = [
-  "Lecturer",
-  "Researcher",
-  "Coordinator",
-  "Department Lead",
+  "Royal University of Law and Economics",
+  "Cambodia Academy of Digital Technology",
 ];

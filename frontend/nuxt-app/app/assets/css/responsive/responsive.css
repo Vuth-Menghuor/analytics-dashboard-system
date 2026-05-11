@@ -1,0 +1,100 @@
+@media (max-width: 1080px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-main {
+    padding: 20px;
+  }
+
+  .grid.metrics,
+  .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .approval-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .login-page {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .login-hero {
+    min-height: auto;
+    border-radius: 0;
+    gap: 34px;
+    padding: 42px 28px 52px;
+  }
+
+  .login-hero-logo {
+    width: min(380px, 100%);
+  }
+
+  .auth-panel {
+    min-height: auto;
+    border-radius: 0;
+    padding-block: 56px;
+  }
+
+  .showcase-context {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-header {
+    display: grid;
+  }
+
+  .grid.metrics,
+  .grid.two,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .approval-details,
+  .approval-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .approval-actions {
+    display: grid;
+  }
+
+  .login-hero {
+    gap: 28px;
+    padding: 34px 22px 42px;
+  }
+
+  .login-hero-logo {
+    width: min(300px, 100%);
+  }
+
+  .login-hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .showcase-context {
+    gap: 12px;
+  }
+
+  .showcase-context ul {
+    display: grid;
+    gap: 8px;
+  }
+
+  .auth-panel {
+    width: 100%;
+    padding: 28px 30px;
+  }
+
+  .role-switcher [data-slot="list"] {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

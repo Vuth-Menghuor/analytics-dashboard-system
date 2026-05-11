@@ -20,3 +20,9 @@ export type LoginRoleConfig = RoleOption<LoginRole> & {
   email: string;
   password: string;
 };
+
+export type AccessRoleCard = RoleOption<AuthRole> & {
+  access: string;
+  description: string;
+  icon: string;
+};

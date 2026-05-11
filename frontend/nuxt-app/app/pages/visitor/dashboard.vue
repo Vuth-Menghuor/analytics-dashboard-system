@@ -19,7 +19,7 @@ const { metrics, reports } = useDashboardData()
       <MetricCard v-for="metric in metrics.slice(1, 3)" :key="metric.label" :metric="metric" />
     </section>
 
-    <article class="card card-pad">
+    <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">Available Reports</h2>
       <div class="table-wrap">
         <table class="data-table">
@@ -39,6 +39,6 @@ const { metrics, reports } = useDashboardData()
           </tbody>
         </table>
       </div>
-    </article>
+    </UCard>
   </div>
 </template>

@@ -38,6 +38,8 @@ const topCategories = ref<TopCategory[]>([])
 const recentCourses = ref<RecentCourse[]>([])
 const isLoading = ref(true)
 const loadError = ref('')
+const analyticsPeriod = ref('Last 7 days')
+const analyticsPeriods = ['Last 7 days', 'Last 30 days', 'Quarter to date']
 
 onMounted(async () => {
   try {
@@ -61,20 +63,27 @@ onMounted(async () => {
       title="Analytics"
       copy="Compare product, acquisition, and customer health signals across the current reporting window."
     >
-      <select class="input" aria-label="Analytics period">
-        <option>Last 7 days</option>
-        <option>Last 30 days</option>
-        <option>Quarter to date</option>
-      </select>
+      <USelect
+        v-model="analyticsPeriod"
+        :items="analyticsPeriods"
+        aria-label="Analytics period"
+        class="w-44"
+      />
     </PageHeader>
 
-    <p v-if="loadError" class="form-error">{{ loadError }}</p>
+    <UAlert
+      v-if="loadError"
+      color="error"
+      variant="soft"
+      icon="i-lucide-circle-alert"
+      :description="loadError"
+    />
 
     <section class="grid metrics">
       <MetricCard v-for="metric in importedMetrics" :key="metric.label" :metric="metric" />
     </section>
 
-    <article class="card card-pad">
+    <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">{{ isLoading ? 'Loading Imported Data' : 'Imported Course Categories' }}</h2>
       <div class="table-wrap">
         <table class="data-table">
@@ -92,9 +101,9 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
-    </article>
+    </UCard>
 
-    <article class="card card-pad">
+    <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">Recently Updated Courses</h2>
       <div class="table-wrap">
         <table class="data-table">
@@ -120,9 +129,9 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
-    </article>
+    </UCard>
 
-    <article class="card card-pad">
+    <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">Weekly Activity Preview</h2>
       <div class="chart-bars">
         <div v-for="point in weeklyTraffic" :key="point.label" class="bar">
@@ -130,6 +139,6 @@ onMounted(async () => {
           <span>{{ point.label }}</span>
         </div>
       </div>
-    </article>
+    </UCard>
   </div>
 </template>

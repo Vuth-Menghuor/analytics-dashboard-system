@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Eye, EyeOff } from "lucide-vue-next";
-
 withDefaults(
   defineProps<{
     autocomplete?: string;
@@ -28,29 +26,31 @@ const showPassword = ref(false);
 </script>
 
 <template>
-  <label class="field">
-    <span>{{ label }}</span>
-    <span class="password-field">
-      <input
-        class="input"
-        :type="showPassword ? 'text' : 'password'"
-        :value="modelValue"
-        :placeholder="placeholder"
-        :autocomplete="autocomplete"
-        :required="required"
-        @input="
-          emit('update:modelValue', ($event.target as HTMLInputElement).value)
-        "
-      />
-      <button
-        class="password-toggle"
-        type="button"
-        :aria-label="showPassword ? hideLabel : showLabel"
-        @click="showPassword = !showPassword"
-      >
-        <EyeOff v-if="showPassword" :size="17" aria-hidden="true" />
-        <Eye v-else :size="17" aria-hidden="true" />
-      </button>
-    </span>
-  </label>
+  <UFormField :label="label" class="field auth-password-field">
+    <UInput
+      class="w-full"
+      :type="showPassword ? 'text' : 'password'"
+      :model-value="modelValue"
+      :placeholder="placeholder"
+      :autocomplete="autocomplete"
+      :required="required"
+      size="md"
+      variant="outline"
+      @update:model-value="emit('update:modelValue', String($event ?? ''))"
+    >
+      <template #trailing>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          square
+          type="button"
+          :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+          :aria-label="showPassword ? hideLabel : showLabel"
+          :ui="{ leadingIcon: 'size-4' }"
+          @click="showPassword = !showPassword"
+        />
+      </template>
+    </UInput>
+  </UFormField>
 </template>
