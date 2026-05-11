@@ -14,15 +14,20 @@ const trendTone = computed(() =>
   <UCard
     as="article"
     class="metric"
-    :ui="{ body: 'grid gap-3.5 p-5' }"
+    :ui="{ body: 'metric-body' }"
   >
-    <span class="metric-icon">
-      <IconByName :name="metric.icon" />
-    </span>
-    <div>
+    <div class="metric-head">
       <p class="metric-label">{{ metric.label }}</p>
+      <span class="metric-icon">
+        <IconByName :name="metric.icon" />
+      </span>
+    </div>
+    <div class="metric-content">
       <p class="metric-value">{{ metric.value }}</p>
-      <p class="metric-trend" :class="trendTone">{{ metric.trend }}</p>
+      <p class="metric-trend">
+        <span :class="trendTone">{{ metric.trend.split(" ")[0] }}</span>
+        {{ metric.trend.split(" ").slice(1).join(" ") }}
+      </p>
     </div>
   </UCard>
 </template>

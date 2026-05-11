@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { EChartsOption } from 'echarts'
 import { api } from '~/services/api'
 
 definePageMeta({
@@ -40,6 +41,60 @@ const isLoading = ref(true)
 const loadError = ref('')
 const analyticsPeriod = ref('Last 7 days')
 const analyticsPeriods = ['Last 7 days', 'Last 30 days', 'Quarter to date']
+
+const categoryOption = computed<EChartsOption>(() => ({
+  color: ['#064b82'],
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  grid: { top: 18, right: 18, bottom: 30, left: 42, containLabel: true },
+  xAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { color: '#edf1f6' } },
+  },
+  yAxis: {
+    type: 'category',
+    data: topCategories.value.map((category) => category.name),
+    axisTick: { show: false },
+    axisLabel: {
+      width: 130,
+      overflow: 'truncate',
+    },
+  },
+  series: [
+    {
+      name: 'Courses',
+      type: 'bar',
+      data: topCategories.value.map((category) => category.coursecount),
+      barMaxWidth: 24,
+      itemStyle: { borderRadius: [0, 5, 5, 0] },
+    },
+  ],
+}))
+
+const weeklyActivityOption = computed<EChartsOption>(() => ({
+  color: ['#0f8b57'],
+  tooltip: { trigger: 'axis' },
+  grid: { top: 18, right: 18, bottom: 28, left: 36, containLabel: true },
+  xAxis: {
+    type: 'category',
+    data: weeklyTraffic.map((point) => point.label),
+    axisTick: { show: false },
+  },
+  yAxis: {
+    type: 'value',
+    max: 100,
+    splitLine: { lineStyle: { color: '#edf1f6' } },
+  },
+  series: [
+    {
+      name: 'Activity',
+      type: 'line',
+      smooth: true,
+      symbolSize: 7,
+      areaStyle: { opacity: 0.16 },
+      data: weeklyTraffic.map((point) => point.value),
+    },
+  ],
+}))
 
 onMounted(async () => {
   try {
@@ -85,6 +140,13 @@ onMounted(async () => {
 
     <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">{{ isLoading ? 'Loading Imported Data' : 'Imported Course Categories' }}</h2>
+      <AppEChart
+        v-if="topCategories.length"
+        :option="categoryOption"
+        height="280px"
+        aria-label="Imported course categories by course count"
+        class="chart-spacer"
+      />
       <div class="table-wrap">
         <table class="data-table">
           <thead>
@@ -133,12 +195,11 @@ onMounted(async () => {
 
     <UCard as="article" :ui="{ body: 'p-5' }">
       <h2 class="section-title">Weekly Activity Preview</h2>
-      <div class="chart-bars">
-        <div v-for="point in weeklyTraffic" :key="point.label" class="bar">
-          <div class="bar-fill" :style="{ height: `${point.value}%` }" />
-          <span>{{ point.label }}</span>
-        </div>
-      </div>
+      <AppEChart
+        :option="weeklyActivityOption"
+        height="280px"
+        aria-label="Weekly activity preview"
+      />
     </UCard>
   </div>
 </template>

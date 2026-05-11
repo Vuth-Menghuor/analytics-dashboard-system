@@ -9,6 +9,8 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
+const brandLogoSrc = "/ccun-logo.png";
+
 const toggleIcon = computed(() =>
   props.open ? "i-lucide-panel-left-close" : "i-lucide-panel-left-open",
 );
@@ -20,16 +22,8 @@ const toggleLabel = computed(() =>
 
 <template>
   <div class="sidebar-header" :class="{ collapsed }">
-    <NuxtLink
-      v-if="!collapsed"
-      class="sidebar-brand"
-      :to="dashboardPath"
-    >
-      <img
-        class="sidebar-brand-image"
-        src="/ccun-logo.png"
-        alt=""
-      >
+    <NuxtLink v-if="!collapsed" class="sidebar-brand" :to="dashboardPath">
+      <img class="sidebar-brand-image" :src="brandLogoSrc" alt="" />
       <span class="sidebar-brand-copy">
         <strong class="font-helvetica">CCUN Insights</strong>
       </span>

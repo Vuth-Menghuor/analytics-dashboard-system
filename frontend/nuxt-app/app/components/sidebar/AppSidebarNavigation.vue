@@ -28,8 +28,8 @@ defineProps<{
         color="neutral"
         variant="pill"
         :ui="{
-          list: 'gap-1',
-          link: 'min-h-10 rounded-md px-2.5 py-2 text-sm font-medium text-slate-950 hover:bg-indigo-50 data-[active=true]:bg-indigo-100 data-[active=true]:text-indigo-700',
+          list: 'gap-0.5',
+          link: 'min-h-9 rounded-md px-3 py-2 text-sm font-medium text-slate-950 hover:bg-indigo-50 data-[active=true]:bg-indigo-100 data-[active=true]:text-indigo-700',
           linkLeadingIcon:
             'size-4 text-slate-950 data-[active=true]:text-indigo-700',
         }"
@@ -58,8 +58,8 @@ defineProps<{
 <style scoped>
 .sidebar-sections {
   display: grid;
-  gap: 16px;
-  padding: 0 16px;
+  gap: 12px;
+  padding: 0 10px;
 }
 
 .sidebar-sections.collapsed {
@@ -77,12 +77,12 @@ defineProps<{
   display: grid;
   position: relative;
   width: 100%;
-  gap: 6px;
+  gap: 4px;
 }
 
 .sidebar-section + .sidebar-section {
   border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
+  padding-top: 10px;
 }
 
 .sidebar-sections.collapsed .sidebar-section {

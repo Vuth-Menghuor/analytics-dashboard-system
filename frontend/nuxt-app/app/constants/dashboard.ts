@@ -46,10 +46,10 @@ export const dashboardNavItems: NavItem[] = [
 ];
 
 export const dashboardMetrics: Metric[] = [
-  { label: "Revenue", value: "$128.4K", trend: "+12.8% this month", icon: "DollarSign" },
-  { label: "Active Users", value: "24,891", trend: "+2,143 this week", icon: "Users" },
-  { label: "Conversion", value: "8.7%", trend: "+1.4 pts", icon: "TrendingUp" },
-  { label: "Open Tickets", value: "38", trend: "14 resolved today", icon: "CircleHelp" },
+  { label: "Total Students", value: "12,847", trend: "+12.5% from last month", icon: "Users" },
+  { label: "Total Institutions", value: "24", trend: "+2% new this year", icon: "Building2" },
+  { label: "Departments", value: "156", trend: "+8% across all institutions", icon: "BookOpen" },
+  { label: "Active Users", value: "1,283", trend: "+4.3% currently online", icon: "UserRoundCheck" },
 ];
 
 export const dashboardUsers: User[] = [
