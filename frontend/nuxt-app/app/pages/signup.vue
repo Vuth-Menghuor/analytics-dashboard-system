@@ -2,101 +2,93 @@
 definePageMeta({ layout: "auth" });
 
 const {
+  actionModeItems,
   currentStep,
-  departments,
   form,
   goToPreviousStep,
   handlePrimaryAction,
-  institutes,
-  isPartnerStepTwo,
-  positions,
+  headerCopy,
+  headerTitle,
+  institutionTypes,
+  isPartner,
+  isPartnerReviewStep,
   primaryButtonLabel,
-  roles,
+  reviewItems,
+  schoolInstitutes,
   selectedRole,
-  selectRole,
+  stateProvinces,
   submitStatus,
+  totalSteps,
 } = useSignupForm();
 </script>
 
 <template>
-  <main class="login-page">
+  <main class="login-page signup-page">
     <section class="login-hero signup-hero" aria-labelledby="signup-hero-title">
       <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
-        <h1 id="signup-hero-title">Turn activity into clear decisions.</h1>
-        <p>
-          A focused workspace for managers, admins, and users to monitor
-          performance without the clutter.
-        </p>
+        <h1 id="signup-hero-title">Start managing your analytics workspace</h1>
+        <p>Create your account and keep every dashboard workflow in one place.</p>
+      </div>
+
+      <div class="showcase-context">
+        <p>Create the right account for your workflow, then move into a guided dashboard experience designed for clean reporting.</p>
+        <ul>
+          <li>Visitor access setup</li>
+          <li>Partner review flow</li>
+          <li>Organized profile details</li>
+        </ul>
       </div>
     </section>
 
     <section class="auth-panel login-card">
       <div class="auth-header">
         <span class="auth-step-meta"
-          >Step {{ currentStep }} of
-          {{ selectedRole === "partner" ? 2 : 1 }}</span
+          >Step {{ currentStep }} of {{ totalSteps }}</span
         >
-        <h2>{{ isPartnerStepTwo ? "Basic Information" : "Create Account" }}</h2>
-        <p>
-          {{
-            selectedRole === "visitor"
-              ? "Create a read-only visitor account."
-              : "Request partner access for manager review."
-          }}
-        </p>
+        <h2>{{ headerTitle }}</h2>
+        <p>{{ headerCopy }}</p>
       </div>
 
       <form class="auth-form" @submit.prevent="handlePrimaryAction">
-        <div class="field">
-          <span>Register As</span>
-          <AuthRoleSwitcher
-            class="register-switcher"
-            :model-value="selectedRole"
-            :roles="roles"
-            switcher-label="Select registration role"
-            @update:model-value="selectRole"
-          />
+        <div class="auth-mode-links">
+          <NuxtLink
+            v-for="item in actionModeItems"
+            :key="item.to"
+            :to="item.to"
+            :class="{ active: item.to.includes('/signup') }"
+          >
+            {{ item.label }}
+          </NuxtLink>
         </div>
 
-        <template v-if="!isPartnerStepTwo">
-          <div class="auth-form-grid">
-            <label class="field">
-              <span>First Name</span>
-              <input
-                v-model="form.firstName"
-                class="input"
-                type="text"
-                placeholder="Enter first name"
-              />
-            </label>
+        <template v-if="selectedRole === 'visitor'">
+          <UFormField label="Full Name" class="field">
+            <UInput
+              v-model="form.fullName"
+              class="w-full"
+              type="text"
+              placeholder="Enter full name"
+              required
+            />
+          </UFormField>
 
-            <label class="field">
-              <span>Last Name</span>
-              <input
-                v-model="form.lastName"
-                class="input"
-                type="text"
-                placeholder="Enter last name"
-              />
-            </label>
-          </div>
-
-          <label class="field">
-            <span>Email Address</span>
-            <input
+          <UFormField label="Email" class="field">
+            <UInput
               v-model="form.email"
-              class="input"
+              class="w-full"
               type="email"
               placeholder="Enter email address"
+              required
             />
-          </label>
+          </UFormField>
 
           <AuthPasswordField
             v-model="form.password"
             label="Password"
             placeholder="Enter password"
             autocomplete="new-password"
+            required
           />
 
           <AuthPasswordField
@@ -106,84 +98,146 @@ const {
             autocomplete="new-password"
             hide-label="Hide password confirmation"
             show-label="Show password confirmation"
+            required
           />
         </template>
 
-        <template v-else>
-          <label class="field">
-            <span>Institute</span>
-            <select v-model="form.institute" class="input">
-              <option value="" disabled>Select institute</option>
-              <option
-                v-for="institute in institutes"
-                :key="institute"
-                :value="institute"
-              >
-                {{ institute }}
-              </option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Department</span>
-            <select v-model="form.department" class="input">
-              <option value="" disabled>Select department</option>
-              <option
-                v-for="department in departments"
-                :key="department"
-                :value="department"
-              >
-                {{ department }}
-              </option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Position</span>
-            <select v-model="form.position" class="input">
-              <option value="" disabled>Select position</option>
-              <option
-                v-for="position in positions"
-                :key="position"
-                :value="position"
-              >
-                {{ position }}
-              </option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Optional Message / Request</span>
-            <textarea
-              v-model="form.message"
-              class="input auth-textarea"
-              placeholder="Add a short request for the manager"
+        <template v-else-if="currentStep === 1">
+          <UFormField label="State / Province" class="field">
+            <USelect
+              v-model="form.stateProvince"
+              :items="stateProvinces"
+              placeholder="Select state / province"
+              class="w-full"
+              required
             />
-          </label>
+          </UFormField>
+
+          <UFormField label="Institution Type" class="field">
+            <USelect
+              v-model="form.institutionType"
+              :items="institutionTypes"
+              placeholder="Select institution type"
+              class="w-full"
+              required
+            />
+          </UFormField>
+        </template>
+
+        <template v-else-if="currentStep === 2">
+          <div class="auth-form-grid">
+            <UFormField label="First Name" class="field">
+              <UInput
+                v-model="form.firstName"
+                class="w-full"
+                type="text"
+                placeholder="Enter first name"
+                required
+              />
+            </UFormField>
+
+            <UFormField label="Last Name" class="field">
+              <UInput
+                v-model="form.lastName"
+                class="w-full"
+                type="text"
+                placeholder="Enter last name"
+                required
+              />
+            </UFormField>
+          </div>
+
+          <UFormField label="Email" class="field">
+            <UInput
+              v-model="form.email"
+              class="w-full"
+              type="email"
+              placeholder="Enter email address"
+              required
+            />
+          </UFormField>
+
+          <UFormField label="Phone Number" class="field">
+            <UInput
+              v-model="form.phoneNumber"
+              class="w-full"
+              type="tel"
+              placeholder="Enter phone number"
+              required
+            />
+          </UFormField>
+
+          <AuthPasswordField
+            v-model="form.password"
+            label="Password"
+            placeholder="Enter password"
+            autocomplete="new-password"
+            required
+          />
+
+          <AuthPasswordField
+            v-model="form.confirmPassword"
+            label="Confirm Password"
+            placeholder="Confirm password"
+            autocomplete="new-password"
+            hide-label="Hide password confirmation"
+            show-label="Show password confirmation"
+            required
+          />
+        </template>
+
+        <template v-else-if="currentStep === 3">
+          <UFormField label="School / Institute Name" class="field">
+            <USelect
+              v-model="form.institutionName"
+              :items="schoolInstitutes"
+              class="w-full"
+              placeholder="Select school / institute"
+              required
+            />
+          </UFormField>
+
+          <UFormField label="Address" class="field">
+            <UInput
+              v-model="form.address"
+              class="w-full"
+              type="text"
+              placeholder="Enter address"
+              required
+            />
+          </UFormField>
+        </template>
+
+        <template v-else-if="isPartnerReviewStep">
+          <div class="review-panel">
+            <div v-for="item in reviewItems" :key="item.label">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value || "Not provided" }}</strong>
+            </div>
+          </div>
         </template>
 
         <p v-if="submitStatus" class="auth-success">{{ submitStatus }}</p>
 
-        <div class="auth-actions" :class="{ split: isPartnerStepTwo }">
-          <button
-            v-if="isPartnerStepTwo"
-            class="btn"
+        <div class="auth-actions" :class="{ split: isPartner && currentStep > 1 }">
+          <UButton
+            v-if="isPartner && currentStep > 1"
+            block
+            color="neutral"
+            variant="outline"
             type="button"
+            label="Back"
             @click="goToPreviousStep"
-          >
-            Back
-          </button>
-          <button class="btn primary" type="submit">
-            {{ primaryButtonLabel }}
-          </button>
+          />
+          <UButton block class="auth-primary-button" type="submit" :label="primaryButtonLabel" />
         </div>
       </form>
 
       <p class="auth-switch-copy">
-        Already have an account? <NuxtLink to="/login">Sign In</NuxtLink>
+        <NuxtLink to="/login">Back to access type</NuxtLink>
       </p>
 
-      <AuthFooter link-target="/signup" />
+      <AuthFooter privacy-to="/privacy" terms-to="/terms" />
     </section>
   </main>
 </template>
