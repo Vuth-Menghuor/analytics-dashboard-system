@@ -50,6 +50,10 @@ const sidebarOpen = ref(true);
   min-height: 100vh;
 }
 
+.app-sidebar :deep([data-slot="inner"]) {
+  background: #0288c6;
+}
+
 .app-sidebar.is-collapsed {
   width: 64px !important;
   min-width: 64px !important;
