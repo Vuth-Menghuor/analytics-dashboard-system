@@ -5,6 +5,31 @@ definePageMeta({
 })
 
 const { reports } = useDashboardData()
+
+const reportColumns = [
+  { key: 'name', label: 'Report', width: '34%', rowHeader: true },
+  { key: 'owner', label: 'Owner', width: '20%', tone: 'muted' },
+  { key: 'cadence', label: 'Cadence', width: '16%' },
+  {
+    key: 'status',
+    label: 'Status',
+    width: '14%',
+    type: 'status',
+    warningValues: ['Draft'],
+  },
+  { key: 'action', label: 'Action', width: '16%', align: 'center', type: 'action' },
+] as const
+
+const reportRows = computed(() =>
+  reports.map((report) => ({
+    id: report.id,
+    name: report.name,
+    owner: report.owner,
+    cadence: report.cadence,
+    status: report.status,
+    action: report.id,
+  }))
+)
 </script>
 
 <template>
@@ -17,37 +42,24 @@ const { reports } = useDashboardData()
       <UButton icon="i-lucide-plus" label="New report" />
     </PageHeader>
 
-    <UCard as="article" :ui="{ body: 'p-0' }">
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Report</th>
-              <th>Owner</th>
-              <th>Cadence</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="report in reports" :key="report.id">
-              <td>{{ report.name }}</td>
-              <td>{{ report.owner }}</td>
-              <td>{{ report.cadence }}</td>
-              <td><span class="status" :class="{ warn: report.status === 'Draft' }">{{ report.status }}</span></td>
-              <td>
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-download"
-                  label="Export"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </UCard>
+    <DashboardDataTable
+      title="Reporting Packages"
+      icon="i-lucide-file-bar-chart"
+      description="Recurring reports by owner, cadence, and publishing status"
+      :columns="reportColumns"
+      :rows="reportRows"
+      row-key="id"
+      min-width="780px"
+    >
+      <template #cell-action>
+        <UButton
+          color="neutral"
+          variant="outline"
+          size="sm"
+          icon="i-lucide-download"
+          label="Export"
+        />
+      </template>
+    </DashboardDataTable>
   </div>
 </template>

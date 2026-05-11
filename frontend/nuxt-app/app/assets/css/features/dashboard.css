@@ -165,6 +165,23 @@
   margin: 14px 0 18px;
 }
 
+.category-data-details {
+  border-top: 1px solid #edf1f6;
+  padding-top: 12px;
+}
+
+.category-data-details summary {
+  width: fit-content;
+  cursor: pointer;
+  color: #075a9b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.category-data-details .table-wrap {
+  margin-top: 12px;
+}
+
 .dashboard-insights {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -240,6 +257,10 @@
   margin-top: 22px;
 }
 
+.dashboard-data-table-wrap {
+  overflow-x: auto;
+}
+
 .gender-institution-table {
   width: 100%;
   min-width: 840px;
@@ -277,7 +298,7 @@
   color: #020617;
   font-size: 0.84rem;
   font-weight: 800;
-  text-align: right;
+  text-align: left;
 }
 
 .gender-institution-table thead th:first-child,
@@ -301,7 +322,66 @@
 }
 
 .gender-institution-table .number {
-  text-align: right;
+  text-align: left;
+}
+
+.dashboard-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #020617;
+  font-size: 0.92rem;
+}
+
+.dashboard-data-table th,
+.dashboard-data-table td {
+  border-bottom: 1px solid #d9e1ec;
+  padding: 11px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.dashboard-data-table thead th {
+  color: #020617;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.dashboard-data-table thead th.is-left,
+.dashboard-data-table tbody th {
+  text-align: left;
+}
+
+.dashboard-data-table tbody th {
+  overflow: hidden;
+  color: #020617;
+  font-weight: 800;
+  text-overflow: ellipsis;
+}
+
+.dashboard-data-table tbody tr:last-child th,
+.dashboard-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard-data-table .number {
+  text-align: left;
+}
+
+.dashboard-data-table .is-center {
+  text-align: center;
+}
+
+.dashboard-data-table .muted-text {
+  overflow: hidden;
+  color: #64748b;
+  text-overflow: ellipsis;
+}
+
+.dashboard-data-table .strong-text {
+  color: #020617;
+  font-weight: 800;
 }
 
 .male-text {
@@ -433,6 +513,10 @@
   display: grid;
   gap: 8px;
   margin-bottom: 32px;
+}
+
+.section-heading.compact {
+  margin-bottom: 0;
 }
 
 .section-title.with-icon {

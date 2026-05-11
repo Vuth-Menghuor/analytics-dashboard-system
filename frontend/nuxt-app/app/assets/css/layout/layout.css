@@ -14,11 +14,21 @@
   gap: 24px;
 }
 
+.app-page-header,
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+}
+
+.app-page-header {
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5eaf1;
+}
+
+.page-header-main {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -42,6 +52,8 @@
   max-width: 720px;
   margin: 8px 0 0;
   color: #526070;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .toolbar {
@@ -49,6 +61,15 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.page-header-actions {
+  flex: 0 0 auto;
+  padding-top: 4px;
+}
+
+.analytics-period-select {
+  width: 176px;
 }
 
 .grid {
@@ -68,4 +89,16 @@
   margin: 0 0 14px;
   color: #1f2937;
   font-size: 1rem;
+}
+
+@media (max-width: 760px) {
+  .app-page-header,
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header-actions,
+  .page-header-actions > * {
+    width: 100%;
+  }
 }
