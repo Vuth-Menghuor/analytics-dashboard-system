@@ -59,14 +59,19 @@ const visitorTrafficOption = computed<EChartsOption>(() => ({
 const reportStatusOption = computed<EChartsOption>(() => ({
   color: ["#0f8b57", "#d97706"],
   tooltip: { trigger: "item", formatter: "{b}: {c}" },
-  legend: { bottom: 0, itemWidth: 14, itemHeight: 10 },
+  legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
   series: [
     {
       name: "Reports",
       type: "pie",
-      radius: ["48%", "70%"],
+      radius: ["52%", "74%"],
       center: ["50%", "42%"],
-      label: { formatter: "{b}", color: "#020617" },
+      avoidLabelOverlap: true,
+      label: {
+        formatter: "{b}\n{d}%",
+        color: "#020617",
+        fontWeight: 700,
+      },
       data: [
         { name: "Available", value: reportStatus.value.ready },
         { name: "Draft", value: reportStatus.value.draft },
@@ -101,23 +106,11 @@ const reportStatusOption = computed<EChartsOption>(() => ({
         :ui="{ body: 'analytics-card-body' }"
       >
         <h2 class="section-title">Available Report Access</h2>
-        <div class="report-split">
-          <div>
-            <strong class="report-value ready">{{ reportStatus.ready }}</strong>
-            <span>Available</span>
-          </div>
-          <div>
-            <strong class="report-value draft">{{ reportStatus.draft }}</strong>
-            <span>Draft</span>
-          </div>
-        </div>
-        <div class="report-meter" aria-label="Available and draft reports">
-          <span
-            class="report-meter-ready"
-            :style="{ width: `${(reportStatus.ready / reportStatus.total) * 100}%` }"
-          />
-          <span class="report-meter-draft" />
-        </div>
+        <AppEChart
+          :option="reportStatusOption"
+          height="246px"
+          aria-label="Available report access chart"
+        />
         <p class="chart-note">Total reports: {{ reportStatus.total }}</p>
       </UCard>
 
@@ -134,6 +127,8 @@ const reportStatusOption = computed<EChartsOption>(() => ({
         />
       </UCard>
     </section>
+
+    <GenderByInstitutionTable />
 
     <section class="grid dashboard-detail">
       <UCard
@@ -161,7 +156,9 @@ const reportStatusOption = computed<EChartsOption>(() => ({
               <tr v-for="report in availableReports" :key="report.id">
                 <td>{{ report.name }}</td>
                 <td>{{ report.cadence }}</td>
-                <td><span class="status">{{ report.status }}</span></td>
+                <td>
+                  <span class="status">{{ report.status }}</span>
+                </td>
               </tr>
             </tbody>
           </table>

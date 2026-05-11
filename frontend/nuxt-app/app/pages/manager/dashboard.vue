@@ -35,6 +35,30 @@ const departments = [
 
 const chartColors = ["#064b82", "#8847d8", "#0f8b57", "#d97706", "#475569"];
 
+const genderDistributionOption = computed<EChartsOption>(() => ({
+  color: ["#064b82", "#8847d8"],
+  tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
+  legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
+  series: [
+    {
+      name: "Gender",
+      type: "pie",
+      radius: ["52%", "74%"],
+      center: ["50%", "42%"],
+      avoidLabelOverlap: true,
+      label: {
+        formatter: "{b}\n{d}%",
+        color: "#020617",
+        fontWeight: 700,
+      },
+      data: [
+        { name: "Male", value: 7234 },
+        { name: "Female", value: 5613 },
+      ],
+    },
+  ],
+}));
+
 const genderRatioOption = computed<EChartsOption>(() => ({
   color: ["#064b82", "#8847d8"],
   tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
@@ -139,20 +163,11 @@ const departmentOption = computed<EChartsOption>(() => ({
         :ui="{ body: 'analytics-card-body' }"
       >
         <h2 class="section-title">Student Gender Distribution</h2>
-        <div class="gender-split">
-          <div>
-            <strong class="gender-value male">7,234</strong>
-            <span>Male (56%)</span>
-          </div>
-          <div>
-            <strong class="gender-value female">5,613</strong>
-            <span>Female (44%)</span>
-          </div>
-        </div>
-        <div class="gender-meter" aria-label="Male 56%, female 44%">
-          <span class="gender-meter-male" />
-          <span class="gender-meter-female" />
-        </div>
+        <AppEChart
+          :option="genderDistributionOption"
+          height="246px"
+          aria-label="Student gender distribution chart"
+        />
         <p class="chart-note">Total: 12,847</p>
       </UCard>
 
@@ -169,6 +184,8 @@ const departmentOption = computed<EChartsOption>(() => ({
         />
       </UCard>
     </section>
+
+    <GenderByInstitutionTable />
 
     <section class="grid dashboard-detail">
       <UCard

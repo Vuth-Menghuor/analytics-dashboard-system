@@ -10,39 +10,57 @@
 }
 
 .metric {
-  min-height: 166px;
+  min-height: 194px;
+  border-color: color-mix(in srgb, var(--metric-accent, #075a9b) 22%, #e1e7ef);
 }
 
 .metric-body {
   display: grid;
-  min-height: 166px;
+  min-height: 194px;
+  grid-template-rows: 1fr auto;
+  padding: 0;
+}
+
+.metric-layout {
+  display: grid;
+  min-height: 152px;
   align-content: space-between;
-  gap: 28px;
-  padding: 24px;
+  gap: 12px;
+  padding: 24px 24px 20px;
 }
 
 .metric-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
 }
 
 .metric-icon {
   display: inline-flex;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #eaf2fa;
-  color: #075a9b;
+  background: var(--metric-accent-soft, #eaf2fa);
+  color: var(--metric-accent, #075a9b);
 }
 
 .metric-content {
   display: grid;
-  gap: 2px;
+  min-width: 0;
+  flex: 0 0 92px;
+  gap: 3px;
+}
+
+.metric-main {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .metric-label {
@@ -55,7 +73,7 @@
 .metric-value {
   margin: 0;
   color: #020617;
-  font-size: 1.65rem;
+  font-size: 1.78rem;
   font-weight: 800;
   line-height: 1.12;
 }
@@ -67,6 +85,27 @@
   font-weight: 400;
 }
 
+.metric-trend span {
+  margin-right: 8px;
+}
+
+.metric-footer {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid #e5eaf1;
+  background: #fbfdff;
+  padding: 8px 24px;
+}
+
+.metric-footer .metric-trend {
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .metric-trend .positive {
   color: #0f8b57;
   font-weight: 800;
@@ -75,6 +114,14 @@
 .metric-trend .negative {
   color: #b91c1c;
   font-weight: 800;
+}
+
+.metric-sparkline {
+  width: 100%;
+  min-width: 180px;
+  height: 92px;
+  min-height: 92px;
+  flex: 1 1 210px;
 }
 
 .analytics-card {
@@ -180,6 +227,113 @@
 }
 
 .gender-meter-female {
+  flex: 1;
+  background: #8847d8;
+}
+
+.gender-institution-card {
+  min-width: 0;
+}
+
+.gender-table-wrap {
+  overflow-x: auto;
+  margin-top: 22px;
+}
+
+.gender-institution-table {
+  width: 100%;
+  min-width: 840px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #020617;
+  font-size: 0.92rem;
+}
+
+.gender-institution-table .institution-col {
+  width: 22%;
+}
+
+.gender-institution-table .count-col {
+  width: 11%;
+}
+
+.gender-institution-table .percent-col {
+  width: 14%;
+}
+
+.gender-institution-table .distribution-col {
+  width: 16%;
+}
+
+.gender-institution-table th,
+.gender-institution-table td {
+  border-bottom: 1px solid #d9e1ec;
+  padding: 11px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.gender-institution-table thead th {
+  color: #020617;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.gender-institution-table thead th:first-child,
+.gender-institution-table tbody th {
+  text-align: left;
+}
+
+.gender-institution-table .distribution-heading,
+.gender-institution-table .distribution-cell {
+  text-align: left;
+}
+
+.gender-institution-table tbody th {
+  color: #020617;
+  font-weight: 800;
+}
+
+.gender-institution-table tbody tr:last-child th,
+.gender-institution-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.gender-institution-table .number {
+  text-align: right;
+}
+
+.male-text {
+  color: #064b82;
+  font-weight: 700;
+}
+
+.female-text {
+  color: #8847d8;
+  font-weight: 700;
+}
+
+.total-text {
+  color: #020617;
+  font-weight: 800;
+}
+
+.distribution-bar {
+  display: flex;
+  width: 96px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef2f7;
+}
+
+.distribution-male {
+  flex: 0 0 auto;
+  background: #064b82;
+}
+
+.distribution-female {
   flex: 1;
   background: #8847d8;
 }

@@ -191,8 +191,8 @@ const {
 
           <div class="id-card-upload-group">
             <UFormField
-              label="ID Card"
-              help="Used only for account verification."
+              label="Institute Affiliation Document"
+              help="Upload proof that you work with or are connected to the selected institute."
               class="field"
             >
               <input
@@ -219,9 +219,12 @@ const {
             </div>
           </div>
 
-          <section class="id-card-preview" aria-label="ID card preview">
+          <section
+            class="id-card-preview"
+            aria-label="Institute affiliation document preview"
+          >
             <div class="id-card-preview-header">
-              <span>ID Card</span>
+              <span>Institute Affiliation Document</span>
               <strong>{{ form.idCard?.name || "Not uploaded" }}</strong>
             </div>
 
@@ -229,7 +232,7 @@ const {
               v-if="idCardPreviewUrl && idCardPreviewType === 'image'"
               class="id-card-preview-media"
               :src="idCardPreviewUrl"
-              alt="Uploaded ID card preview"
+              alt="Uploaded institute affiliation document preview"
             />
             <object
               v-else-if="idCardPreviewUrl"
@@ -238,11 +241,11 @@ const {
               :type="form.idCard?.type || 'application/pdf'"
             >
               <a :href="idCardPreviewUrl" target="_blank" rel="noreferrer">
-                Open uploaded ID card
+                Open uploaded affiliation document
               </a>
             </object>
             <div v-else class="id-card-preview-empty">
-              ID card preview unavailable
+              Affiliation document preview unavailable
             </div>
           </section>
         </template>

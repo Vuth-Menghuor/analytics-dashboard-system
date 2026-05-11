@@ -11,6 +11,8 @@ export type Metric = {
   value: string
   trend: string
   icon: string
+  color?: string
+  sparkline?: number[]
 }
 
 export type User = {
