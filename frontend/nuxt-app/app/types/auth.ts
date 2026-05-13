@@ -9,6 +9,8 @@ export type AuthUser = {
   name: string;
   email: string;
   role: AuthRole;
+  avatarUrl?: string | null;
+  avatar_url?: string | null;
 };
 
 export type RoleOption<TValue extends string> = {

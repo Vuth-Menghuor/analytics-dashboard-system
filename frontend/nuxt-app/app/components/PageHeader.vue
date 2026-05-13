@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  eyebrow?: string
-  title: string
-  copy?: string
-}>()
+  eyebrow?: string;
+  title: string;
+  copy?: string;
+}>();
 </script>
 
 <template>

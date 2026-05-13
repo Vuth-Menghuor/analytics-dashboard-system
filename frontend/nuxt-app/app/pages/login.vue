@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useLoginForm } from "~/composables/auth/useLoginForm";
+
 definePageMeta({ layout: "auth" });
 
 const {

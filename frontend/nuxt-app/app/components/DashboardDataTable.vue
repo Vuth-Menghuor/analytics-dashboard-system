@@ -13,7 +13,7 @@ type TableColumn = {
   type?: 'text' | 'status' | 'action'
   trueLabel?: string
   falseLabel?: string
-  warningValues?: TableValue[]
+  warningValues?: readonly TableValue[]
 }
 
 const props = withDefaults(defineProps<{
@@ -31,12 +31,12 @@ const props = withDefaults(defineProps<{
 
 const getRowKey = (row: TableRow, index: number) => String(row[props.rowKey] ?? index)
 
-const getCellClass = (column: TableColumn) => [
-  column.align === 'right' ? 'number' : '',
-  column.align === 'center' ? 'is-center' : '',
-  column.tone === 'muted' ? 'muted-text' : '',
-  column.tone === 'strong' ? 'strong-text' : '',
-]
+const getCellClass = (column: TableColumn) => ({
+  number: column.align === 'right',
+  'is-center': column.align === 'center',
+  'muted-text': column.tone === 'muted',
+  'strong-text': column.tone === 'strong',
+})
 
 const getStatusLabel = (column: TableColumn, value: TableValue) => {
   if (typeof value === 'boolean') {

@@ -1,24 +1,32 @@
 <script setup lang="ts">
-definePageMeta({
-  middleware: ['role'],
-  roles: ['manager', 'partner', 'visitor']
-})
+import { useDashboardData } from "~/composables/dashboard/useDashboardData";
 
-const { reports } = useDashboardData()
+definePageMeta({
+  middleware: ["role"],
+  roles: ["manager", "partner", "visitor"],
+});
+
+const { reports } = useDashboardData();
 
 const reportColumns = [
-  { key: 'name', label: 'Report', width: '34%', rowHeader: true },
-  { key: 'owner', label: 'Owner', width: '20%', tone: 'muted' },
-  { key: 'cadence', label: 'Cadence', width: '16%' },
+  { key: "name", label: "Report", width: "34%", rowHeader: true },
+  { key: "owner", label: "Owner", width: "20%", tone: "muted" },
+  { key: "cadence", label: "Cadence", width: "16%" },
   {
-    key: 'status',
-    label: 'Status',
-    width: '14%',
-    type: 'status',
-    warningValues: ['Draft'],
+    key: "status",
+    label: "Status",
+    width: "14%",
+    type: "status",
+    warningValues: ["Draft"],
   },
-  { key: 'action', label: 'Action', width: '16%', align: 'center', type: 'action' },
-] as const
+  {
+    key: "action",
+    label: "Action",
+    width: "16%",
+    align: "center",
+    type: "action",
+  },
+] as const;
 
 const reportRows = computed(() =>
   reports.map((report) => ({
@@ -28,8 +36,8 @@ const reportRows = computed(() =>
     cadence: report.cadence,
     status: report.status,
     action: report.id,
-  }))
-)
+  })),
+);
 </script>
 
 <template>

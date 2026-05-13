@@ -1,14 +1,9 @@
 <script setup lang="ts">
-const genderByInstitution = [
-  { institution: "ITC", male: 2520, female: 1680, total: 4200, malePercent: 60, femalePercent: 40 },
-  { institution: "RUPP", male: 2090, female: 1710, total: 3800, malePercent: 55, femalePercent: 45 },
-  { institution: "NUM", male: 1450, female: 1450, total: 2900, malePercent: 50, femalePercent: 50 },
-  { institution: "URDSE", male: 720, female: 480, total: 1200, malePercent: 60, femalePercent: 40 },
-  { institution: "NPIC", male: 454, female: 293, total: 747, malePercent: 60.8, femalePercent: 39.2 },
-];
+import { genderByInstitution } from "~/constants/dashboard";
 
-const formatNumber = (value: number) => new Intl.NumberFormat("en-US").format(value);
+const numberFormatter = new Intl.NumberFormat("en-US");
 
+const formatNumber = (value: number) => numberFormatter.format(value);
 const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 </script>
 

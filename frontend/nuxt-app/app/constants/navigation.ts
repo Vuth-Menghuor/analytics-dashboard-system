@@ -5,10 +5,6 @@ export const sidebarNavigationGroups = [
   },
   {
     label: "Manage Accounts",
-    itemLabels: ["User Profile", "User Management"],
-  },
-  {
-    label: "System",
-    itemLabels: ["Settings"],
+    itemLabels: ["User Management"],
   },
 ];

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDashboardData } from "~/composables/dashboard/useDashboardData";
+
 definePageMeta({
   middleware: ["role"],
   roles: ["manager"],

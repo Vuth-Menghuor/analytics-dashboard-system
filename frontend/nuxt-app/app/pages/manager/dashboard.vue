@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EChartsOption } from "echarts";
+import { useDashboardData } from "~/composables/dashboard/useDashboardData";
 
 definePageMeta({
   middleware: ["role"],

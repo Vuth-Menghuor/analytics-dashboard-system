@@ -41,6 +41,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateLocalUser = (payload: Partial<AuthUser>) => {
+    if (!user.value) {
+      return
+    }
+
+    const nextUser = {
+      ...user.value,
+      ...payload
+    }
+
+    user.value = nextUser
+    userCookie.value = nextUser
+  }
+
   const dashboardPathFor = (nextUser: AuthUser | null) => {
     if (nextUser?.role === 'manager') {
       return '/manager/dashboard'
@@ -107,6 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshSession,
     roleDashboardPath,
+    updateLocalUser,
     user
   }
 })

@@ -36,3 +36,12 @@ export type WeeklyTrafficPoint = {
   label: string
   value: number
 }
+
+export type GenderInstitution = {
+  institution: string
+  male: number
+  female: number
+  total: number
+  malePercent: number
+  femalePercent: number
+}

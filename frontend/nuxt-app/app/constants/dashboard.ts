@@ -1,17 +1,17 @@
-import type { Metric, NavItem, Report, User, WeeklyTrafficPoint } from "~/types/dashboard";
+import type {
+  GenderInstitution,
+  Metric,
+  NavItem,
+  Report,
+  User,
+  WeeklyTrafficPoint,
+} from "~/types/dashboard";
 
 export const dashboardNavItems: NavItem[] = [
   {
     label: "Dashboard",
     path: "/",
     icon: "LayoutDashboard",
-    priority: "high",
-    roles: ["manager", "partner", "visitor"],
-  },
-  {
-    label: "User Profile",
-    path: "/profile",
-    icon: "UserCircle",
     priority: "high",
     roles: ["manager", "partner", "visitor"],
   },
@@ -35,13 +35,6 @@ export const dashboardNavItems: NavItem[] = [
     icon: "FileBarChart",
     priority: "medium",
     roles: ["manager", "partner", "visitor"],
-  },
-  {
-    label: "Settings",
-    path: "/settings",
-    icon: "Settings",
-    priority: "medium",
-    roles: ["manager"],
   },
 ];
 
@@ -147,4 +140,47 @@ export const weeklyTraffic: WeeklyTrafficPoint[] = [
   { label: "Fri", value: 88 },
   { label: "Sat", value: 42 },
   { label: "Sun", value: 57 },
+];
+
+export const genderByInstitution: GenderInstitution[] = [
+  {
+    institution: "ITC",
+    male: 2520,
+    female: 1680,
+    total: 4200,
+    malePercent: 60,
+    femalePercent: 40,
+  },
+  {
+    institution: "RUPP",
+    male: 2090,
+    female: 1710,
+    total: 3800,
+    malePercent: 55,
+    femalePercent: 45,
+  },
+  {
+    institution: "NUM",
+    male: 1450,
+    female: 1450,
+    total: 2900,
+    malePercent: 50,
+    femalePercent: 50,
+  },
+  {
+    institution: "URDSE",
+    male: 720,
+    female: 480,
+    total: 1200,
+    malePercent: 60,
+    femalePercent: 40,
+  },
+  {
+    institution: "NPIC",
+    male: 454,
+    female: 293,
+    total: 747,
+    malePercent: 60.8,
+    femalePercent: 39.2,
+  },
 ];
