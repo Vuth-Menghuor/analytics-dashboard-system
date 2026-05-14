@@ -1,5 +1,4 @@
 import AccountSettingsModal from "~/components/account/AccountSettingsModal.vue";
-import UserProfileModal from "~/components/account/UserProfileModal.vue";
 import { useUserMenuItems } from "./useUserMenuItems";
 
 const accountMenuUi = {
@@ -18,14 +17,13 @@ const accountMenuUi = {
 
 export const useAccountMenu = () => {
   const overlay = useOverlay();
-  const profileOverlay = overlay.create(UserProfileModal);
   const accountSettingsOverlay = overlay.create(AccountSettingsModal);
   const { userMenuItems } = useUserMenuItems({
     onViewProfile: () => {
-      profileOverlay.open();
+      accountSettingsOverlay.open({ initialSection: "profile" });
     },
     onAccountSettings: () => {
-      accountSettingsOverlay.open();
+      accountSettingsOverlay.open({ initialSection: "account" });
     },
   });
 
