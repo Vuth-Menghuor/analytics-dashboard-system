@@ -9,6 +9,11 @@ definePageMeta({
 });
 
 const { metrics, reports, weeklyTraffic } = useDashboardData();
+const {
+  data: moodleDashboard,
+  error: moodleDashboardError,
+  isLoading: moodleDashboardLoading,
+} = useDashboard();
 
 const reportStatus = computed(() => {
   const ready = reports.filter((report) => report.status === "Ready").length;
@@ -168,5 +173,15 @@ const reportStatusOption = computed<EChartsOption>(() => ({
         />
       </UCard>
     </section>
+
+    <USeparator />
+
+    <StatePanel v-if="moodleDashboardLoading" state="loading" />
+    <StatePanel
+      v-else-if="moodleDashboardError || !moodleDashboard"
+      state="error"
+      :description="moodleDashboardError"
+    />
+    <DashboardOverview v-else :config="moodleDashboard" />
   </div>
 </template>

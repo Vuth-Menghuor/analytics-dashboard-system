@@ -9,6 +9,11 @@ definePageMeta({
 });
 
 const { metrics } = useDashboardData();
+const {
+  data: moodleDashboard,
+  error: moodleDashboardError,
+  isLoading: moodleDashboardLoading,
+} = useDashboard();
 
 const genderRatio = [
   { year: "2021", male: 56, female: 39 },
@@ -228,5 +233,15 @@ const departmentOption = computed<EChartsOption>(() => ({
         />
       </UCard>
     </section>
+
+    <USeparator />
+
+    <StatePanel v-if="moodleDashboardLoading" state="loading" />
+    <StatePanel
+      v-else-if="moodleDashboardError || !moodleDashboard"
+      state="error"
+      :description="moodleDashboardError"
+    />
+    <DashboardOverview v-else :config="moodleDashboard" />
   </div>
 </template>

@@ -6,7 +6,8 @@ defineProps<{
   collapsed: boolean;
 }>();
 
-const { avatarSrc, displayEmail, displayName, userInitial } = useAccountDisplay();
+const { avatarSrc, displayEmail, displayName, userInitial } =
+  useAccountDisplay();
 const { accountMenuUi, userMenuItems } = useAccountMenu();
 </script>
 
@@ -64,7 +65,6 @@ const { accountMenuUi, userMenuItems } = useAccountMenu();
       />
     </UButton>
   </UDropdownMenu>
-
 </template>
 
 <style scoped>

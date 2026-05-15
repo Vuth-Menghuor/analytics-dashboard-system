@@ -2,8 +2,8 @@
 @import "@nuxt/ui";
 
 @theme {
-  --color-primary: #075a9b;
-  --color-primary-hover: #064b82;
+  --color-primary: #0C447C;
+  --color-primary-hover: #0A3868;
   --color-primary-soft: #f3f8fc;
   --color-primary-muted: #e8f2fa;
   --color-secondary: #64748b;

@@ -337,5 +337,9 @@ onMounted(async () => {
         aria-label="Weekly activity preview"
       />
     </UCard>
+
+    <USeparator />
+
+    <AnalyticsWorkspacePage page-key="activity" />
   </div>
 </template>

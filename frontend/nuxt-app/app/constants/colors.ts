@@ -1,6 +1,6 @@
 export const appColors = {
-  primary: "#075a9b",
-  primaryHover: "#064b82",
+  primary: "#0C447C",
+  primaryHover: "#0A3868",
   primarySoft: "#f3f8fc",
   primaryMuted: "#e8f2fa",
   secondary: "#64748b",

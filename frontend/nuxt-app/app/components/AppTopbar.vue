@@ -33,6 +33,14 @@ const pageTitle = usePageTitle();
         class="topbar-icon-button"
       />
 
+      <UButton
+        icon="i-lucide-bell"
+        color="neutral"
+        variant="ghost"
+        aria-label="Notifications"
+        class="topbar-icon-button"
+      />
+
       <UDropdownMenu
         v-if="auth.user"
         :items="userMenuItems"

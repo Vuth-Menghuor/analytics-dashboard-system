@@ -1,10 +1,20 @@
 export const sidebarNavigationGroups = [
   {
-    label: "Manage",
-    itemLabels: ["Dashboard", "Analytics", "Reports"],
+    label: "Analytics",
+    itemLabels: [
+      "Dashboard",
+      "Analytics",
+      "Student Analytics",
+      "Course Analytics",
+      "Learning Activity",
+      "Assignment Analytics",
+      "Quiz Analytics",
+      "Grade Analytics",
+      "Attendance",
+    ],
   },
   {
-    label: "Manage Accounts",
-    itemLabels: ["User Management"],
+    label: "Workspace",
+    itemLabels: ["Reports", "User Management", "Settings"],
   },
 ];

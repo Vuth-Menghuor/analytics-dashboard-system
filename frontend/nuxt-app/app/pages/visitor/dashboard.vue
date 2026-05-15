@@ -9,6 +9,23 @@ definePageMeta({
 });
 
 const { metrics, reports, weeklyTraffic } = useDashboardData();
+const {
+  data: moodleDashboard,
+  error: moodleDashboardError,
+  isLoading: moodleDashboardLoading,
+} = useDashboard();
+
+const publicMoodleDashboard = computed(() =>
+  moodleDashboard.value
+    ? {
+        ...moodleDashboard.value,
+        title: "Public Moodle Analytics",
+        copy: "Limited public analytics for visitors. Manager and partner users can access deeper learning behavior, grade, quiz, assignment, and attendance data.",
+        metrics: moodleDashboard.value.metrics.slice(0, 4),
+        charts: moodleDashboard.value.charts.slice(0, 2),
+      }
+    : null,
+);
 
 const availableReports = computed(() =>
   reports.filter((report) => report.status === "Ready"),
@@ -187,5 +204,15 @@ const reportStatusOption = computed<EChartsOption>(() => ({
         />
       </UCard>
     </section>
+
+    <USeparator />
+
+    <StatePanel v-if="moodleDashboardLoading" state="loading" />
+    <StatePanel
+      v-else-if="moodleDashboardError || !publicMoodleDashboard"
+      state="error"
+      :description="moodleDashboardError"
+    />
+    <DashboardOverview v-else :config="publicMoodleDashboard" />
   </div>
 </template>
