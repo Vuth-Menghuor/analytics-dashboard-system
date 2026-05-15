@@ -11,7 +11,7 @@
 
 .metric {
   min-height: 194px;
-  border-color: color-mix(in srgb, var(--metric-accent, #075a9b) 22%, #e1e7ef);
+  border-color: color-mix(in srgb, var(--metric-accent, var(--color-primary)) 22%, #e1e7ef);
 }
 
 .metric-body {
@@ -45,7 +45,7 @@
   justify-content: center;
   border-radius: 8px;
   background: var(--metric-accent-soft, #eaf2fa);
-  color: var(--metric-accent, #075a9b);
+  color: var(--metric-accent, var(--color-primary));
 }
 
 .metric-content {
@@ -107,7 +107,7 @@
 }
 
 .metric-trend .positive {
-  color: #0f8b57;
+  color: var(--color-success);
   font-weight: 800;
 }
 
@@ -173,7 +173,7 @@
 .category-data-details summary {
   width: fit-content;
   cursor: pointer;
-  color: #075a9b;
+  color: var(--color-primary);
   font-size: 0.86rem;
   font-weight: 800;
 }
@@ -214,11 +214,11 @@
 }
 
 .gender-value.male {
-  color: #064b82;
+  color: var(--color-primary-hover);
 }
 
 .gender-value.female {
-  color: #8847d8;
+  color: var(--color-accent-purple);
 }
 
 .gender-split span,
@@ -240,12 +240,12 @@
 
 .gender-meter-male {
   width: 56%;
-  background: #064b82;
+  background: var(--color-primary-hover);
 }
 
 .gender-meter-female {
   flex: 1;
-  background: #8847d8;
+  background: var(--color-accent-purple);
 }
 
 .gender-institution-card {
@@ -385,12 +385,12 @@
 }
 
 .male-text {
-  color: #064b82;
+  color: var(--color-primary-hover);
   font-weight: 700;
 }
 
 .female-text {
-  color: #8847d8;
+  color: var(--color-accent-purple);
   font-weight: 700;
 }
 
@@ -410,12 +410,12 @@
 
 .distribution-male {
   flex: 0 0 auto;
-  background: #064b82;
+  background: var(--color-primary-hover);
 }
 
 .distribution-female {
   flex: 1;
-  background: #8847d8;
+  background: var(--color-accent-purple);
 }
 
 .chart-note {
@@ -452,11 +452,11 @@
 }
 
 .report-value.ready {
-  color: #0f8b57;
+  color: var(--color-success);
 }
 
 .report-value.draft {
-  color: #d97706;
+  color: var(--color-warning);
 }
 
 .report-meter {
@@ -469,12 +469,12 @@
 }
 
 .report-meter-ready {
-  background: #0f8b57;
+  background: var(--color-success);
 }
 
 .report-meter-draft {
   flex: 1;
-  background: #d97706;
+  background: var(--color-warning);
 }
 
 .year-bars {
@@ -530,7 +530,7 @@
 
 .section-title.with-icon [data-slot="icon"],
 .section-title.with-icon .iconify {
-  color: #064b82;
+  color: var(--color-primary-hover);
 }
 
 .area-chart {
@@ -668,7 +668,7 @@
   border-radius: 999px;
   padding: 4px 10px;
   background: #e8f7ef;
-  color: #0f8b57;
+  color: var(--color-success);
   font-size: 0.82rem;
   font-weight: 800;
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EChartsOption } from "echarts";
 import { useDashboardData } from "~/composables/dashboard/useDashboardData";
+import { appColors, chartColors } from "~/constants/colors";
 
 definePageMeta({
   middleware: ["role"],
@@ -34,10 +35,8 @@ const departments = [
   { name: "Arts", value: 10 },
 ];
 
-const chartColors = ["#064b82", "#8847d8", "#0f8b57", "#d97706", "#475569"];
-
 const genderDistributionOption = computed<EChartsOption>(() => ({
-  color: ["#064b82", "#8847d8"],
+  color: [appColors.primaryHover, appColors.purple],
   tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
   legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
   series: [
@@ -49,7 +48,7 @@ const genderDistributionOption = computed<EChartsOption>(() => ({
       avoidLabelOverlap: true,
       label: {
         formatter: "{b}\n{d}%",
-        color: "#020617",
+        color: appColors.ink,
         fontWeight: 700,
       },
       data: [
@@ -61,7 +60,7 @@ const genderDistributionOption = computed<EChartsOption>(() => ({
 }));
 
 const genderRatioOption = computed<EChartsOption>(() => ({
-  color: ["#064b82", "#8847d8"],
+  color: [appColors.primaryHover, appColors.purple],
   tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
   legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
   grid: { top: 18, right: 12, bottom: 48, left: 36, containLabel: true },
@@ -74,7 +73,7 @@ const genderRatioOption = computed<EChartsOption>(() => ({
     type: "value",
     max: 80,
     axisLabel: { formatter: "{value}%" },
-    splitLine: { lineStyle: { color: "#edf1f6" } },
+    splitLine: { lineStyle: { color: appColors.grid } },
   },
   series: [
     {
@@ -95,7 +94,7 @@ const genderRatioOption = computed<EChartsOption>(() => ({
 }));
 
 const enrollmentTrendOption = computed<EChartsOption>(() => ({
-  color: ["#064b82", "#0f8b57"],
+  color: [appColors.primaryHover, appColors.success],
   tooltip: { trigger: "axis" },
   legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
   grid: { top: 16, right: 18, bottom: 48, left: 44, containLabel: true },
@@ -107,7 +106,7 @@ const enrollmentTrendOption = computed<EChartsOption>(() => ({
   },
   yAxis: {
     type: "value",
-    splitLine: { lineStyle: { color: "#edf1f6" } },
+    splitLine: { lineStyle: { color: appColors.grid } },
   },
   series: [
     {

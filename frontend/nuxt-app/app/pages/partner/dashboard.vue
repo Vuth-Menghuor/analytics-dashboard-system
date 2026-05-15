@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EChartsOption } from "echarts";
 import { useDashboardData } from "~/composables/dashboard/useDashboardData";
+import { appColors } from "~/constants/colors";
 
 definePageMeta({
   middleware: ["role"],
@@ -17,7 +18,7 @@ const reportStatus = computed(() => {
 });
 
 const trafficOption = computed<EChartsOption>(() => ({
-  color: ["#064b82"],
+  color: [appColors.primaryHover],
   tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
   grid: { top: 16, right: 12, bottom: 28, left: 36, containLabel: true },
   xAxis: {
@@ -29,7 +30,7 @@ const trafficOption = computed<EChartsOption>(() => ({
     type: "value",
     max: 100,
     axisLabel: { formatter: "{value}%" },
-    splitLine: { lineStyle: { color: "#edf1f6" } },
+    splitLine: { lineStyle: { color: appColors.grid } },
   },
   series: [
     {
@@ -43,7 +44,7 @@ const trafficOption = computed<EChartsOption>(() => ({
 }));
 
 const reportStatusOption = computed<EChartsOption>(() => ({
-  color: ["#0f8b57", "#d97706"],
+  color: [appColors.success, appColors.warning],
   tooltip: { trigger: "item", formatter: "{b}: {c}" },
   legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
   series: [
@@ -55,7 +56,7 @@ const reportStatusOption = computed<EChartsOption>(() => ({
       avoidLabelOverlap: true,
       label: {
         formatter: "{b}\n{d}%",
-        color: "#020617",
+        color: appColors.ink,
         fontWeight: 700,
       },
       data: [

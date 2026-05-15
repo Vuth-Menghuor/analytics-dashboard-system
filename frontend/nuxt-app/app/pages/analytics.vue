@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
 import { useDashboardData } from '~/composables/dashboard/useDashboardData'
+import { appColors } from '~/constants/colors'
 import { api } from '~/services/api'
 
 definePageMeta({
@@ -42,9 +43,9 @@ const isLoading = ref(true)
 const loadError = ref('')
 const analyticsPeriod = ref('Last 7 days')
 const analyticsPeriods = ['Last 7 days', 'Last 30 days', 'Quarter to date']
-const axisLabelColor = '#64748b'
-const axisLineColor = '#d9e1ec'
-const gridLineColor = '#edf1f6'
+const axisLabelColor = appColors.secondary
+const axisLineColor = appColors.axis
+const gridLineColor = appColors.grid
 const tooltipShadow = '0 14px 34px rgba(15, 23, 42, 0.14)'
 const categoryPeakCourses = computed(() =>
   Math.max(...topCategories.value.map((category) => category.coursecount), 0)
@@ -92,19 +93,19 @@ const recentCourseRows = computed(() =>
 )
 
 const categoryOption = computed<EChartsOption>(() => ({
-  color: ['#064b82'],
+  color: [appColors.primaryHover],
   tooltip: {
     trigger: 'axis',
     axisPointer: {
       type: 'shadow',
       shadowStyle: { color: 'rgba(6, 75, 130, 0.08)' },
     },
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e1ec',
+    backgroundColor: appColors.white,
+    borderColor: appColors.axis,
     borderWidth: 1,
     borderRadius: 8,
     padding: [10, 12],
-    textStyle: { color: '#020617', fontSize: 12 },
+    textStyle: { color: appColors.ink, fontSize: 12 },
     extraCssText: `box-shadow: ${tooltipShadow};`,
   },
   grid: { top: 8, right: 52, bottom: 10, left: 8, containLabel: true },
@@ -151,8 +152,8 @@ const categoryOption = computed<EChartsOption>(() => ({
           x2: 1,
           y2: 0,
           colorStops: [
-            { offset: 0, color: '#064b82' },
-            { offset: 1, color: '#0f8b57' },
+            { offset: 0, color: appColors.primaryHover },
+            { offset: 1, color: appColors.success },
           ],
         },
       },
@@ -172,19 +173,19 @@ const categoryOption = computed<EChartsOption>(() => ({
 }))
 
 const weeklyActivityOption = computed<EChartsOption>(() => ({
-  color: ['#0f8b57'],
+  color: [appColors.success],
   tooltip: {
     trigger: 'axis',
     axisPointer: {
       type: 'line',
-      lineStyle: { color: '#0f8b57', width: 1, type: 'dashed' },
+      lineStyle: { color: appColors.success, width: 1, type: 'dashed' },
     },
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e1ec',
+    backgroundColor: appColors.white,
+    borderColor: appColors.axis,
     borderWidth: 1,
     borderRadius: 8,
     padding: [10, 12],
-    textStyle: { color: '#020617', fontSize: 12 },
+    textStyle: { color: appColors.ink, fontSize: 12 },
     extraCssText: `box-shadow: ${tooltipShadow};`,
   },
   grid: { top: 18, right: 18, bottom: 18, left: 12, containLabel: true },
@@ -212,10 +213,10 @@ const weeklyActivityOption = computed<EChartsOption>(() => ({
       showSymbol: true,
       symbol: 'circle',
       symbolSize: 7,
-      lineStyle: { width: 3, color: '#0f8b57' },
+      lineStyle: { width: 3, color: appColors.success },
       itemStyle: {
-        color: '#ffffff',
-        borderColor: '#0f8b57',
+        color: appColors.white,
+        borderColor: appColors.success,
         borderWidth: 2,
       },
       areaStyle: {
@@ -233,7 +234,7 @@ const weeklyActivityOption = computed<EChartsOption>(() => ({
       },
       emphasis: {
         focus: 'series',
-        itemStyle: { color: '#0f8b57' },
+        itemStyle: { color: appColors.success },
       },
       data: weeklyTraffic.map((point) => point.value),
     },

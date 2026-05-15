@@ -6,6 +6,7 @@ import type {
   User,
   WeeklyTrafficPoint,
 } from "~/types/dashboard";
+import { appColors } from "~/constants/colors";
 
 export const dashboardNavItems: NavItem[] = [
   {
@@ -44,7 +45,7 @@ export const dashboardMetrics: Metric[] = [
     value: "12,847",
     trend: "+12.5% from last month",
     icon: "Users",
-    color: "#064b82",
+    color: appColors.primaryHover,
     sparkline: [48, 52, 51, 57, 63, 68, 74, 81],
   },
   {
@@ -52,7 +53,7 @@ export const dashboardMetrics: Metric[] = [
     value: "24",
     trend: "+2% new this year",
     icon: "Building2",
-    color: "#8847d8",
+    color: appColors.purple,
     sparkline: [18, 18, 19, 20, 21, 21, 23, 24],
   },
   {
@@ -60,7 +61,7 @@ export const dashboardMetrics: Metric[] = [
     value: "156",
     trend: "+8% across all institutions",
     icon: "BookOpen",
-    color: "#0f8b57",
+    color: appColors.success,
     sparkline: [120, 126, 130, 128, 139, 145, 149, 156],
   },
   {
@@ -68,7 +69,7 @@ export const dashboardMetrics: Metric[] = [
     value: "1,283",
     trend: "+4.3% currently online",
     icon: "UserRoundCheck",
-    color: "#d97706",
+    color: appColors.warning,
     sparkline: [780, 860, 840, 930, 1020, 1085, 1160, 1283],
   },
 ];

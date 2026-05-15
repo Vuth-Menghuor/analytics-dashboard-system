@@ -1,9 +1,10 @@
 import type { EChartsOption } from "echarts";
 import type { Metric } from "~/types/dashboard";
 import type { Ref } from "vue";
+import { appColors } from "~/constants/colors";
 
 const DEFAULT_SPARKLINE = [42, 46, 44, 49, 52, 50, 56, 60];
-const DEFAULT_ACCENT_COLOR = "#075a9b";
+const DEFAULT_ACCENT_COLOR = appColors.primary;
 
 function hexToRgb(hex: string) {
   const value = hex.replace("#", "");

@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+@theme {
+  --color-primary: #075a9b;
+  --color-primary-hover: #064b82;
+  --color-primary-soft: #f3f8fc;
+  --color-primary-muted: #e8f2fa;
+  --color-secondary: #64748b;
+  --color-success: #0f8b57;
+  --color-warning: #d97706;
+  --color-accent-purple: #8847d8;
+}
+
 @import "./base/base.css";
 @import "./layout/layout.css";
 @import "./components/forms.css";
