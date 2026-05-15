@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAccountSettingsForm } from "~/composables/account/useAccountSettingsForm";
 import { useUserProfile } from "~/composables/account/useUserProfile";
+import { accessRoleCards } from "~/constants/auth";
 
 const open = defineModel<boolean>("open", { default: false });
 const props = withDefaults(
@@ -26,11 +27,23 @@ const formState = reactive({
   username: "moodle.analyst",
   email: "",
   phone: "+855 12 345 678",
-  role: "",
+  position: "",
   institution: "Institute of Technology of Cambodia",
   reportSignature: "",
   newPassword: "",
   confirmPassword: "",
+  language: "en",
+  chartType: "bar",
+  defaultFilter: "institute",
+  notifyEmail: true,
+  notifyApproval: true,
+  notifyReports: true,
+  notifySystem: true,
+  securityAlerts: true,
+  dataExports: true,
+  accessRequests: true,
+  sessionTimeout: "30",
+  twoFactor: false,
   theme: "system",
   density: "comfortable",
   accent: "dashboard",
@@ -56,16 +69,16 @@ const sections = [
     description: "Password access",
   },
   {
-    label: "Appearance",
-    value: "appearance",
-    icon: "i-lucide-palette",
-    description: "Theme display",
-  },
-  {
-    label: "Preferences",
+    label: "Preference",
     value: "preferences",
     icon: "i-lucide-sliders-horizontal",
-    description: "Interface defaults",
+    description: "UI defaults",
+  },
+  {
+    label: "Notifications",
+    value: "notifications",
+    icon: "i-lucide-bell-ring",
+    description: "Alert settings",
   },
 ];
 
@@ -95,11 +108,98 @@ const densityOptions = [
   { label: "Compact", value: "compact" },
 ];
 
+const languageOptions = [
+  { label: "English", value: "en" },
+  { label: "Khmer", value: "km" },
+];
+
+const chartTypeOptions = [
+  { label: "Bar", value: "bar" },
+  { label: "Line", value: "line" },
+  { label: "Pie", value: "pie" },
+];
+
+const defaultFilterOptions = [
+  { label: "Institute", value: "institute" },
+  { label: "Year", value: "year" },
+  { label: "Department", value: "department" },
+];
+
+const sessionTimeoutOptions = [
+  { label: "15 min", value: "15" },
+  { label: "30 min", value: "30" },
+  { label: "60 min", value: "60" },
+];
+
+const roleMetaByValue = Object.fromEntries(
+  accessRoleCards.map((role) => [role.value, role]),
+) as Record<string, (typeof accessRoleCards)[number]>;
+
+const activeRoleMeta = computed(() => {
+  return (
+    roleMetaByValue[displayRole.value] ?? {
+      label: displayRole.value,
+      access: "Account access",
+      description: "Role information unavailable",
+      icon: "i-lucide-shield",
+      value: displayRole.value,
+    }
+  );
+});
+
+const roleCapabilities = computed(() => {
+  switch (displayRole.value) {
+    case "manager":
+      return {
+        canEditInstitute: true,
+        canEditSecurity: true,
+        canDeleteAccount: false,
+        canSeeAdminAccess: true,
+        canEditPreferences: true,
+        canEditNotifications: true,
+      };
+    case "partner":
+      return {
+        canEditInstitute: true,
+        canEditSecurity: true,
+        canDeleteAccount: false,
+        canSeeAdminAccess: false,
+        canEditPreferences: true,
+        canEditNotifications: true,
+      };
+    default:
+      return {
+        canEditInstitute: false,
+        canEditSecurity: false,
+        canDeleteAccount: false,
+        canSeeAdminAccess: false,
+        canEditPreferences: true,
+        canEditNotifications: true,
+      };
+  }
+});
+
+const visibleSections = computed(() =>
+  sections.filter((section) => {
+    if (section.value === "security")
+      return roleCapabilities.value.canEditSecurity;
+    if (section.value === "preferences")
+      return roleCapabilities.value.canEditPreferences;
+    if (section.value === "notifications")
+      return roleCapabilities.value.canEditNotifications;
+    return true;
+  }),
+);
+
 function normalizeSection(section: string) {
   if (section === "account") return "overview";
   if (section === "personal-info") return "profile";
+  if (section === "appearance") return "preferences";
+  if (section === "role" || section === "role-access") return "overview";
 
-  return sections.some((item) => item.value === section) ? section : "overview";
+  return visibleSections.value.some((item) => item.value === section)
+    ? section
+    : "overview";
 }
 
 watch(
@@ -110,7 +210,9 @@ watch(
     activeSection.value = normalizeSection(props.initialSection);
     formState.displayName = name.value || displayName.value;
     formState.email = email.value || displayEmail.value;
-    formState.role = displayRole.value;
+    formState.position = activeRoleMeta.value.label;
+    formState.institution =
+      displayRole.value === "visitor" ? "Public access" : formState.institution;
     formState.reportSignature = name.value || displayName.value;
     formState.newPassword = "";
     formState.confirmPassword = "";
@@ -176,11 +278,11 @@ function saveAndClose(close: () => void) {
           </div>
 
           <nav
-            class="min-h-0 flex-1 overflow-y-auto p-3"
+            class="settings-scrollbar min-h-0 flex-1 overflow-y-auto p-3"
             aria-label="Account settings"
           >
             <button
-              v-for="section in sections"
+              v-for="section in visibleSections"
               :key="section.value"
               type="button"
               class="mb-1 flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition"
@@ -210,7 +312,10 @@ function saveAndClose(close: () => void) {
             </button>
           </nav>
 
-          <div class="border-t border-slate-200 p-3">
+          <div
+            v-if="roleCapabilities.canDeleteAccount"
+            class="border-t border-slate-200 p-3"
+          >
             <button
               type="button"
               class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-red-600"
@@ -223,7 +328,7 @@ function saveAndClose(close: () => void) {
         </aside>
 
         <main class="grid min-h-0 grid-rows-[minmax(0,1fr)_auto]">
-          <div class="min-h-0 overflow-y-auto">
+          <div class="settings-scrollbar min-h-0 overflow-y-auto">
             <Transition name="settings-fade" mode="out-in">
               <section
                 v-if="activeSection === 'overview'"
@@ -284,10 +389,47 @@ function saveAndClose(close: () => void) {
                         class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
                       >
                         <dt class="text-sm font-semibold text-slate-500">
-                          Dashboard role
+                          Email
                         </dt>
                         <dd class="text-sm font-bold text-slate-950">
-                          {{ formState.role || displayRole }}
+                          {{ formState.email || displayEmail }}
+                        </dd>
+                      </div>
+                      <div
+                        class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
+                      >
+                        <dt class="text-sm font-semibold text-slate-500">
+                          Phone number
+                        </dt>
+                        <dd class="text-sm font-bold text-slate-950">
+                          {{ formState.phone }}
+                        </dd>
+                      </div>
+                      <div
+                        class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
+                      >
+                        <dt class="text-sm font-semibold text-slate-500">
+                          Password
+                        </dt>
+                        <dd class="text-sm font-bold text-slate-950">
+                          Enabled
+                        </dd>
+                      </div>
+                      <div
+                        class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
+                      >
+                        <dt class="text-sm font-semibold text-slate-500">
+                          Dashboard role
+                        </dt>
+                        <dd
+                          class="flex items-center gap-2 text-sm font-bold text-slate-950"
+                        >
+                          <span
+                            class="grid size-7 place-items-center rounded-md bg-slate-100 text-slate-500 ring-1 ring-slate-200"
+                          >
+                            <UIcon :name="activeRoleMeta.icon" class="size-4" />
+                          </span>
+                          <span>{{ activeRoleMeta.label }}</span>
                         </dd>
                       </div>
                       <div
@@ -313,43 +455,330 @@ function saveAndClose(close: () => void) {
                     </div>
                   </div>
 
-                  <aside
-                    class="rounded-md border border-slate-200 bg-white p-5"
-                  >
-                    <div class="flex items-center justify-between gap-3">
-                      <h4 class="font-bold text-slate-950">Access status</h4>
+                  <div class="rounded-md border border-slate-200 bg-white p-5">
+                    <div
+                      class="flex flex-col gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                      <div class="flex items-start gap-3">
+                        <span
+                          class="grid size-10 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-500 ring-1 ring-slate-200"
+                        >
+                          <UIcon :name="activeRoleMeta.icon" class="size-5" />
+                        </span>
+                        <div>
+                          <h4 class="font-bold text-slate-950">
+                            Access summary
+                          </h4>
+                          <p class="mt-1 text-sm text-slate-500">
+                            {{ activeRoleMeta.label }} ·
+                            {{ activeRoleMeta.access }}
+                          </p>
+                        </div>
+                      </div>
                       <span
-                        class="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600"
+                        class="w-fit rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600"
                       >
-                        Good
+                        Read only
                       </span>
                     </div>
-                    <div class="mt-5 grid gap-3 text-sm">
+
+                    <div
+                      v-if="displayRole === 'partner'"
+                      class="mt-4 grid gap-4"
+                    >
                       <div
-                        class="flex items-center justify-between gap-4 border-b border-slate-100 pb-3"
+                        class="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                       >
-                        <span class="text-slate-500">Sessions</span>
-                        <strong class="text-slate-950">3 active</strong>
+                        <div>
+                          <p
+                            class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
+                          >
+                            Assigned institute
+                          </p>
+                          <p class="mt-1 text-sm font-semibold text-slate-950">
+                            {{ formState.institution }}
+                          </p>
+                        </div>
+                        <div
+                          class="flex w-fit items-center gap-2 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100"
+                        >
+                          <span class="size-2 rounded-full bg-emerald-500" />
+                          Active access
+                        </div>
                       </div>
+
+                      <div class="grid gap-2 text-sm md:grid-cols-2">
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-eye"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">View assigned institute data</span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-school"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Update institute profile</span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-file-check-2"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">
+                            Submit and review institute reports
+                          </span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-send"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">
+                            Request access changes from a manager
+                          </span>
+                        </div>
+                      </div>
+
                       <div
-                        class="flex items-center justify-between gap-4 border-b border-slate-100 pb-3"
+                        class="grid gap-2 border-t border-slate-100 pt-3 text-sm md:grid-cols-3"
                       >
-                        <span class="text-slate-500">Alerts</span>
-                        <strong class="text-slate-950">0 open</strong>
-                      </div>
-                      <div class="flex items-center justify-between gap-4">
-                        <span class="text-slate-500">Report exports</span>
-                        <strong class="text-slate-950">Enabled</strong>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-send"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Request access change</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-school"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">View institute profile</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-message-circle"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Contact manager</span>
+                        </button>
                       </div>
                     </div>
-                  </aside>
+
+                    <div
+                      v-else-if="displayRole === 'manager'"
+                      class="mt-4 grid gap-4"
+                    >
+                      <div
+                        class="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                      >
+                        <div>
+                          <p
+                            class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
+                          >
+                            Access scope
+                          </p>
+                          <p class="mt-1 text-sm font-semibold text-slate-950">
+                            All institutes and partner requests
+                          </p>
+                        </div>
+                        <div
+                          class="flex w-fit items-center gap-2 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100"
+                        >
+                          <span class="size-2 rounded-full bg-emerald-500" />
+                          Admin access
+                        </div>
+                      </div>
+
+                      <div class="grid gap-2 text-sm md:grid-cols-3">
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-building-2"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Manage all institutes</span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-user-plus"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Assign partner accounts</span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-clipboard-check"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">
+                            Approve or reject partner requests
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid gap-2 border-t border-slate-100 pt-3 text-sm md:grid-cols-3"
+                      >
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-building-2"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Manage institutes</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-user-plus"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Invite partner</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-inbox"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Review requests</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div v-else class="mt-4 grid gap-4">
+                      <div
+                        class="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                      >
+                        <div>
+                          <p
+                            class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
+                          >
+                            Access scope
+                          </p>
+                          <p class="mt-1 text-sm font-semibold text-slate-950">
+                            Public dashboard and basic profile
+                          </p>
+                        </div>
+                        <div
+                          class="flex w-fit items-center gap-2 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-600 ring-1 ring-slate-200"
+                        >
+                          <UIcon name="i-lucide-lock-keyhole" class="size-4" />
+                          Limited access
+                        </div>
+                      </div>
+
+                      <div class="grid gap-2 text-sm md:grid-cols-2">
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-layout-dashboard"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">
+                            View limited public dashboard data
+                          </span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-slate-700"
+                        >
+                          <UIcon
+                            name="i-lucide-user-pen"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Update basic profile only</span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-slate-500"
+                        >
+                          <UIcon
+                            name="i-lucide-lock"
+                            class="mt-0.5 size-4 shrink-0"
+                          />
+                          <span class="text-sm">
+                            Institute reports and private data are locked
+                          </span>
+                        </div>
+                        <div
+                          class="flex gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-slate-500"
+                        >
+                          <UIcon
+                            name="i-lucide-shield-x"
+                            class="mt-0.5 size-4 shrink-0"
+                          />
+                          <span class="text-sm">
+                            User management and approvals are locked
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid gap-2 border-t border-slate-100 pt-3 text-sm md:grid-cols-2"
+                      >
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-send"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">Request partner access</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-left text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                          <UIcon
+                            name="i-lucide-layout-dashboard"
+                            class="mt-0.5 size-4 shrink-0 text-slate-500"
+                          />
+                          <span class="text-sm">View public dashboard</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
 
               <section
                 v-else-if="activeSection === 'profile'"
                 key="profile"
-                class="grid gap-5 p-6"
+                class="mx-auto grid w-full max-w-[720px] gap-5 p-6"
               >
                 <div>
                   <h3 class="text-xl font-bold text-slate-950">User Profile</h3>
@@ -396,7 +825,25 @@ function saveAndClose(close: () => void) {
                         />
                       </UFormField>
                       <UFormField label="Dashboard role">
-                        <UInput v-model="formState.role" class="w-full" />
+                        <div
+                          class="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5"
+                        >
+                          <span
+                            class="grid size-8 shrink-0 place-items-center rounded-md bg-white text-slate-500 ring-1 ring-slate-200"
+                          >
+                            <UIcon :name="activeRoleMeta.icon" class="size-4" />
+                          </span>
+                          <span class="min-w-0">
+                            <span
+                              class="block text-sm font-bold text-slate-950"
+                            >
+                              {{ activeRoleMeta.label }}
+                            </span>
+                            <span class="block text-xs text-slate-500">
+                              {{ activeRoleMeta.access }}
+                            </span>
+                          </span>
+                        </div>
                       </UFormField>
                       <UFormField label="Institution">
                         <UInput
@@ -458,7 +905,7 @@ function saveAndClose(close: () => void) {
                           <span
                             class="rounded bg-[#E8F2FA] px-2 py-1 text-xs font-bold text-[#075A9B]"
                           >
-                            {{ formState.role || displayRole }}
+                            {{ activeRoleMeta.label }}
                           </span>
                         </div>
 
@@ -709,11 +1156,264 @@ function saveAndClose(close: () => void) {
                 </div>
               </section>
 
-              <section v-else key="preferences" class="grid gap-5 p-6">
+              <section
+                v-else-if="activeSection === 'preferences'"
+                key="preferences"
+                class="grid gap-5 p-6"
+              >
                 <div>
-                  <h3 class="text-xl font-bold text-slate-950">Preferences</h3>
+                  <h3 class="text-xl font-bold text-slate-950">Preference</h3>
                   <p class="mt-1 text-sm text-slate-500">
-                    Small interface defaults for repeated dashboard work.
+                    Set dashboard defaults based on how this role uses the
+                    system.
+                  </p>
+                </div>
+
+                <div class="grid gap-5">
+                  <div class="rounded-md border border-slate-200 bg-white p-5">
+                    <h4 class="font-bold text-slate-950">Display defaults</h4>
+
+                    <div class="mt-5 divide-y divide-slate-100">
+                      <div class="grid gap-3 py-4 first:pt-0">
+                        <div>
+                          <p class="text-sm font-semibold text-slate-950">
+                            Theme
+                          </p>
+                          <p class="mt-1 text-xs text-slate-500">
+                            Choose dashboard color mode.
+                          </p>
+                        </div>
+                        <div class="grid gap-3 sm:grid-cols-3">
+                          <button
+                            v-for="mode in themeModes"
+                            :key="mode.value"
+                            type="button"
+                            class="rounded-md border p-4 text-left transition"
+                            :class="
+                              formState.theme === mode.value
+                                ? 'border-[#075A9B] bg-[#F3F8FC] text-slate-950 ring-1 ring-[#075A9B]/20'
+                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            "
+                            @click="formState.theme = mode.value"
+                          >
+                            <span
+                              class="grid size-9 place-items-center rounded-md"
+                              :class="
+                                formState.theme === mode.value
+                                  ? 'bg-white text-[#075A9B] ring-1 ring-[#075A9B]/20'
+                                  : 'bg-slate-100 text-slate-500'
+                              "
+                            >
+                              <UIcon :name="mode.icon" class="size-4" />
+                            </span>
+                            <span class="mt-3 block text-sm font-bold">
+                              {{ mode.label }}
+                            </span>
+                            <span class="mt-1 block text-xs text-slate-500">
+                              {{ mode.description }}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid gap-3 py-4 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-center"
+                      >
+                        <div>
+                          <p class="text-sm font-semibold text-slate-950">
+                            Language
+                          </p>
+                          <p class="mt-1 text-xs text-slate-500">
+                            Interface language.
+                          </p>
+                        </div>
+                        <div
+                          class="inline-flex w-fit rounded-md border border-slate-200 bg-slate-50 p-1"
+                        >
+                          <button
+                            v-for="option in languageOptions"
+                            :key="option.value"
+                            type="button"
+                            class="rounded px-3 py-1.5 text-sm font-bold transition"
+                            :class="
+                              formState.language === option.value
+                                ? 'bg-white text-slate-950 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-950'
+                            "
+                            @click="formState.language = option.value"
+                          >
+                            {{ option.label }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid gap-3 py-4 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-center"
+                      >
+                        <div>
+                          <p class="text-sm font-semibold text-slate-950">
+                            Chart type
+                          </p>
+                          <p class="mt-1 text-xs text-slate-500">
+                            Default chart style.
+                          </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                          <button
+                            v-for="option in chartTypeOptions"
+                            :key="option.value"
+                            type="button"
+                            class="rounded-md border px-3 py-2 text-sm font-bold capitalize transition"
+                            :class="
+                              formState.chartType === option.value
+                                ? 'border-[#075A9B] bg-[#F3F8FC] text-[#075A9B]'
+                                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            "
+                            @click="formState.chartType = option.value"
+                          >
+                            {{ option.label }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid gap-3 py-4 last:pb-0 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-center"
+                      >
+                        <div>
+                          <p class="text-sm font-semibold text-slate-950">
+                            Table density
+                          </p>
+                          <p class="mt-1 text-xs text-slate-500">
+                            Table spacing.
+                          </p>
+                        </div>
+                        <div
+                          class="inline-flex w-fit rounded-md border border-slate-200 bg-slate-50 p-1"
+                        >
+                          <button
+                            v-for="option in densityOptions"
+                            :key="option.value"
+                            type="button"
+                            class="rounded px-3 py-1.5 text-sm font-bold transition"
+                            :class="
+                              formState.density === option.value
+                                ? 'bg-white text-slate-950 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-950'
+                            "
+                            @click="formState.density = option.value"
+                          >
+                            {{ option.label }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rounded-md border border-slate-200 bg-white p-5">
+                    <h4 class="font-bold text-slate-950">
+                      Role-specific defaults
+                    </h4>
+
+                    <div class="mt-5 grid gap-4">
+                      <div
+                        class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <p class="text-sm font-semibold text-slate-950">
+                          Default filter
+                        </p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                          <button
+                            v-for="option in defaultFilterOptions"
+                            :key="option.value"
+                            type="button"
+                            class="rounded-md border px-3 py-2 text-sm font-bold transition"
+                            :class="
+                              formState.defaultFilter === option.value
+                                ? 'border-[#075A9B] bg-white text-[#075A9B]'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                            "
+                            @click="formState.defaultFilter = option.value"
+                          >
+                            {{ option.label }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        v-if="displayRole === 'manager'"
+                        class="grid gap-3 md:grid-cols-2"
+                      >
+                        <div
+                          class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <p class="text-sm font-semibold text-slate-950">
+                            Default dashboard page
+                          </p>
+                          <p class="mt-1 text-sm text-slate-500">
+                            Manager dashboard
+                          </p>
+                        </div>
+                        <div
+                          class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <p class="text-sm font-semibold text-slate-950">
+                            Export format preference
+                          </p>
+                          <p class="mt-1 text-sm text-slate-500">
+                            XLSX reports
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        v-else-if="displayRole === 'partner'"
+                        class="grid gap-3 md:grid-cols-2"
+                      >
+                        <div
+                          class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <p class="text-sm font-semibold text-slate-950">
+                            Default institute
+                          </p>
+                          <p class="mt-1 text-sm text-slate-500">
+                            {{ formState.institution }}
+                          </p>
+                        </div>
+                        <div
+                          class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <p class="text-sm font-semibold text-slate-950">
+                            Report view preference
+                          </p>
+                          <p class="mt-1 text-sm text-slate-500">
+                            Institute reports
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        v-else
+                        class="rounded-md border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <p class="text-sm font-semibold text-slate-950">
+                          Visitor dashboard
+                        </p>
+                        <p class="mt-1 text-sm text-slate-500">
+                          Limited public charts with simple year-based filters.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section v-else key="notifications" class="grid gap-5 p-6">
+                <div>
+                  <h3 class="text-xl font-bold text-slate-950">
+                    Notifications
+                  </h3>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Choose which alerts are useful for this account role.
                   </p>
                 </div>
 
@@ -725,45 +1425,125 @@ function saveAndClose(close: () => void) {
                   >
                     <span>
                       <span class="block text-sm font-semibold text-slate-950">
-                        Compact dashboard tables
+                        Email notifications
                       </span>
                       <span class="block text-sm text-slate-500">
-                        Use tighter spacing for scanning cohorts.
+                        Receive important account updates by email.
                       </span>
                     </span>
                     <input
+                      v-model="formState.notifyEmail"
                       type="checkbox"
-                      checked
                       class="size-4 accent-[#075A9B]"
                     />
                   </label>
+
+                  <label
+                    v-if="displayRole === 'manager'"
+                    class="flex items-center justify-between gap-4 py-3"
+                  >
+                    <span>
+                      <span class="block text-sm font-semibold text-slate-950">
+                        Partner approval requests
+                      </span>
+                      <span class="block text-sm text-slate-500">
+                        Notify when a partner account needs review.
+                      </span>
+                    </span>
+                    <input
+                      v-model="formState.notifyApproval"
+                      type="checkbox"
+                      class="size-4 accent-[#075A9B]"
+                    />
+                  </label>
+
+                  <label
+                    v-if="displayRole !== 'visitor'"
+                    class="flex items-center justify-between gap-4 py-3"
+                  >
+                    <span>
+                      <span class="block text-sm font-semibold text-slate-950">
+                        Report update notification
+                      </span>
+                      <span class="block text-sm text-slate-500">
+                        Notify when dashboard or institute reports change.
+                      </span>
+                    </span>
+                    <input
+                      v-model="formState.notifyReports"
+                      type="checkbox"
+                      class="size-4 accent-[#075A9B]"
+                    />
+                  </label>
+
                   <label class="flex items-center justify-between gap-4 py-3">
                     <span>
                       <span class="block text-sm font-semibold text-slate-950">
-                        Email report alerts
+                        Access request status
                       </span>
                       <span class="block text-sm text-slate-500">
-                        Notify me when scheduled exports finish.
+                        Track partner access or role change requests.
                       </span>
                     </span>
                     <input
+                      v-model="formState.accessRequests"
                       type="checkbox"
-                      checked
                       class="size-4 accent-[#075A9B]"
                     />
                   </label>
+
                   <label
+                    v-if="displayRole !== 'visitor'"
+                    class="flex items-center justify-between gap-4 py-3"
+                  >
+                    <span>
+                      <span class="block text-sm font-semibold text-slate-950">
+                        Data export finished
+                      </span>
+                      <span class="block text-sm text-slate-500">
+                        Notify when report exports are ready.
+                      </span>
+                    </span>
+                    <input
+                      v-model="formState.dataExports"
+                      type="checkbox"
+                      class="size-4 accent-[#075A9B]"
+                    />
+                  </label>
+
+                  <label class="flex items-center justify-between gap-4 py-3">
+                    <span>
+                      <span class="block text-sm font-semibold text-slate-950">
+                        Security alerts
+                      </span>
+                      <span class="block text-sm text-slate-500">
+                        Warn me about sign-in and session changes.
+                      </span>
+                    </span>
+                    <input
+                      v-model="formState.securityAlerts"
+                      type="checkbox"
+                      class="size-4 accent-[#075A9B]"
+                    />
+                  </label>
+
+                  <label
+                    v-if="displayRole !== 'partner'"
                     class="flex items-center justify-between gap-4 py-3 last:pb-0"
                   >
                     <span>
                       <span class="block text-sm font-semibold text-slate-950">
-                        Reduce motion
+                        System alert notification
                       </span>
                       <span class="block text-sm text-slate-500">
-                        Keep modal transitions minimal.
+                        Receive platform announcements and system alerts.
                       </span>
                     </span>
-                    <input type="checkbox" class="size-4 accent-[#075A9B]" />
+                    <input
+                      v-model="formState.notifySystem"
+                      type="checkbox"
+                      class="size-4 accent-[#075A9B]"
+                    />
                   </label>
                 </div>
               </section>
@@ -868,5 +1648,28 @@ function saveAndClose(close: () => void) {
 .settings-fade-enter-from,
 .settings-fade-leave-to {
   opacity: 0;
+}
+
+.settings-scrollbar {
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+.settings-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.settings-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.settings-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style>
