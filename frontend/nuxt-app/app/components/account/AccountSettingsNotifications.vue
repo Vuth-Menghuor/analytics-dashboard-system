@@ -1,11 +1,30 @@
 <script setup lang="ts">
-import type { AccountSettingsFormState } from "~/constants/accountSettings";
+import {
+  accountNotificationOptions,
+  type AccountNotificationOption,
+  type AccountSettingsFormState,
+} from "~/constants/accountSettings";
 import type { AuthRole } from "~/types/auth";
 
-defineProps<{
+const props = defineProps<{
   formState: AccountSettingsFormState;
   role: AuthRole;
 }>();
+
+const visibleNotificationOptions = computed(() =>
+  accountNotificationOptions.filter((option) => {
+    if (option.visibleFor) return option.visibleFor.includes(props.role);
+    if (option.hiddenFor) return !option.hiddenFor.includes(props.role);
+
+    return true;
+  }),
+);
+
+const getOptionClass = (option: AccountNotificationOption, index: number) => ({
+  "py-3": true,
+  "first:pt-0": index === 0,
+  "last:pb-0": index === visibleNotificationOptions.value.length - 1,
+});
 </script>
 
 <template>
@@ -21,62 +40,12 @@ defineProps<{
       class="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white p-5"
     >
       <UCheckbox
-        v-model="formState.notifyEmail"
-        label="Email notifications"
-        description="Receive important account updates by email."
-        class="py-3 first:pt-0"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-if="role === 'manager'"
-        v-model="formState.notifyApproval"
-        label="Partner approval requests"
-        description="Notify when a partner account needs review."
-        class="py-3"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-if="role !== 'visitor'"
-        v-model="formState.notifyReports"
-        label="Report update notification"
-        description="Notify when dashboard or institute reports change."
-        class="py-3"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-model="formState.accessRequests"
-        label="Access request status"
-        description="Track partner access or role change requests."
-        class="py-3"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-if="role !== 'visitor'"
-        v-model="formState.dataExports"
-        label="Data export finished"
-        description="Notify when report exports are ready."
-        class="py-3"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-model="formState.securityAlerts"
-        label="Security alerts"
-        description="Warn me about sign-in and session changes."
-        class="py-3"
-        color="primary"
-      />
-
-      <UCheckbox
-        v-if="role !== 'partner'"
-        v-model="formState.notifySystem"
-        label="System alert notification"
-        description="Receive platform announcements and system alerts."
-        class="py-3 last:pb-0"
+        v-for="(option, index) in visibleNotificationOptions"
+        :key="option.key"
+        v-model="formState[option.key]"
+        :label="option.label"
+        :description="option.description"
+        :class="getOptionClass(option, index)"
         color="primary"
       />
     </div>

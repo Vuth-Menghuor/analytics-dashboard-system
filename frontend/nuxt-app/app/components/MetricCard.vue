@@ -29,7 +29,7 @@ const {
       <div class="metric-head">
         <p class="metric-label">{{ metric.label }}</p>
         <span class="metric-icon">
-          <IconByName :name="metric.icon" />
+          <IconByName :name="metric.icon" size="22" />
         </span>
       </div>
       <div class="metric-main">

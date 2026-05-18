@@ -9,7 +9,9 @@
 
   .grid.two,
   .dashboard-insights,
-  .dashboard-detail {
+  .dashboard-detail,
+  .course-overview-layout,
+  .course-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -53,6 +55,8 @@
   .grid.two,
   .dashboard-insights,
   .dashboard-detail,
+  .course-overview-layout,
+  .course-summary-grid,
   .form-grid {
     grid-template-columns: 1fr;
   }

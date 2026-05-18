@@ -78,7 +78,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     title: "Learning Activity",
     copy: "Monitor Moodle logs, views, attendance, assignment, quiz, SCORM, and resource access patterns.",
     endpoint: "GET /api/analytics/activity",
-    roles: ["manager", "partner"],
+    roles: ["manager", "partner", "visitor"],
     metrics: [metric("Daily Active Users", "3,204", "+8.2% today", "Activity"), metric("Weekly Events", "84,120", "+11.3% logs", "TrendingUp", appColors.success), metric("Learning Hours", "18,640", "+1,204 hours", "Clock", appColors.purple), metric("Resource Views", "62,950", "+9.1% views", "BookOpen")],
     filters: [{ key: "date", label: "Date range", type: "select", options: ["Today", "Last 7 days", "Last 30 days"] }, { key: "institute", label: "Institute", type: "select", options: ["All institutes", "ITC", "RUPP", "NUM", "NPIC"] }],
     charts: [
@@ -101,7 +101,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     title: "Assignment Analytics",
     copy: "Track submission status, grading progress, late submissions, and assignment grade patterns.",
     endpoint: "GET /api/analytics/assignments",
-    roles: ["manager", "partner"],
+    roles: ["manager", "partner", "visitor"],
     metrics: [metric("Total Assignments", "842", "+22 new", "FileBarChart"), metric("Total Submissions", "18,204", "+844 submitted", "Check", appColors.success), metric("Late Submissions", "1,284", "-3.1% late", "Clock", appColors.warning), metric("Ungraded", "2,146", "+320 pending", "CircleHelp", appColors.purple)],
     filters: [{ key: "course", label: "Course", type: "select", options: ["All courses", "DB-MDL-401", "LDA-210", "BUS-STATS"] }, { key: "status", label: "Status", type: "select", options: ["All", "Submitted", "Not submitted", "Late"] }],
     charts: [
@@ -116,7 +116,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     title: "Quiz Analytics",
     copy: "Review quiz attempts, scoring spread, highest and lowest performance, and pass/fail trends.",
     endpoint: "GET /api/analytics/quizzes",
-    roles: ["manager", "partner"],
+    roles: ["manager", "partner", "visitor"],
     metrics: [metric("Total Quizzes", "214", "+7 quizzes", "CircleHelp"), metric("Quiz Attempts", "28,491", "+1,282 attempts", "TrendingUp"), metric("Average Score", "76%", "+4.2 points", "Check", appColors.success), metric("Pass Rate", "81%", "+3.8 points", "UserRoundCheck", appColors.success)],
     filters: [{ key: "course", label: "Course", type: "select", options: ["All courses", "DB-MDL-401", "LDA-210"] }],
     charts: [
@@ -131,7 +131,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     title: "Grade Analytics",
     copy: "Compare grade distributions, average grade by course, student rankings, and low-performance signals.",
     endpoint: "GET /api/analytics/grades",
-    roles: ["manager", "partner"],
+    roles: ["manager", "partner", "visitor"],
     metrics: [metric("Average Student Grade", "78%", "+3.1 points", "GraduationCap"), metric("Top Performers", "1,204", "+96 students", "TrendingUp", appColors.success), metric("Low Performers", "842", "-44 students", "CircleHelp", appColors.warning), metric("Grade Items", "4,820", "+240 items", "FileBarChart")],
     filters: [{ key: "course", label: "Course", type: "select", options: ["All courses", "DB-MDL-401", "LDA-210"] }],
     charts: [
@@ -145,7 +145,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     title: "Attendance Analytics",
     copy: "Track Moodle attendance sessions, present, absent, late, and course-level attendance behavior.",
     endpoint: "GET /api/analytics/attendance",
-    roles: ["manager", "partner"],
+    roles: ["manager", "partner", "visitor"],
     metrics: [metric("Attendance Sessions", "3,420", "+180 sessions", "CalendarCheck"), metric("Present Count", "42,806", "+2,120 present", "Check", appColors.success), metric("Absent Count", "8,914", "-3.4% absent", "X", appColors.warning), metric("Late Count", "3,090", "+120 late", "Clock", appColors.purple)],
     filters: [{ key: "course", label: "Course", type: "select", options: ["All courses", "DB-MDL-401", "LDA-210"] }],
     charts: [

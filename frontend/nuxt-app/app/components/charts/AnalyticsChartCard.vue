@@ -9,7 +9,8 @@ const props = defineProps<{
 
 const option = computed<EChartsOption>(() => {
   const chart = props.chart;
-  const baseTooltip = {
+  const colors = [...chartColors];
+  const baseTooltip: EChartsOption["tooltip"] = {
     trigger: chart.type === "pie" || chart.type === "donut" ? "item" : "axis",
     backgroundColor: appColors.white,
     borderColor: appColors.axis,
@@ -20,7 +21,7 @@ const option = computed<EChartsOption>(() => {
 
   if (chart.type === "pie" || chart.type === "donut") {
     return {
-      color: chartColors,
+      color: colors,
       tooltip: baseTooltip,
       legend: { bottom: 0, itemWidth: 14, itemHeight: 10 },
       series: [
@@ -42,7 +43,7 @@ const option = computed<EChartsOption>(() => {
   const isHorizontal = chart.type === "horizontalBar";
 
   return {
-    color: chartColors,
+    color: colors,
     tooltip: baseTooltip,
     legend: chart.series.length > 1 ? { bottom: 0, itemWidth: 14, itemHeight: 10 } : undefined,
     grid: { top: 20, right: 18, bottom: chart.series.length > 1 ? 48 : 24, left: 28, containLabel: true },

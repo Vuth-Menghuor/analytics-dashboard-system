@@ -70,6 +70,77 @@ export type AccountSettingsFormState = {
   density: string;
 };
 
+export type AccountSettingsStringFieldKey = {
+  [Key in keyof AccountSettingsFormState]: AccountSettingsFormState[Key] extends string
+    ? Key
+    : never;
+}[keyof AccountSettingsFormState];
+
+export type AccountSettingsFormField = {
+  label: string;
+  key: AccountSettingsStringFieldKey;
+  type?: string;
+};
+
+export type AccountOverviewDetailItem =
+  | {
+      label: string;
+      key: keyof AccountSettingsFormState;
+    }
+  | {
+      label: string;
+      value: string;
+    };
+
+export type AccountNotificationOption = {
+  key: keyof Pick<
+    AccountSettingsFormState,
+    | "notifyEmail"
+    | "notifyApproval"
+    | "notifyReports"
+    | "notifySystem"
+    | "securityAlerts"
+    | "dataExports"
+    | "accessRequests"
+  >;
+  label: string;
+  description: string;
+  visibleFor?: AuthRole[];
+  hiddenFor?: AuthRole[];
+};
+
+export const accountSettingsInitialFormState: AccountSettingsFormState = {
+  displayName: "",
+  username: "moodle.analyst",
+  email: "",
+  phone: "+855 12 345 678",
+  position: "",
+  institution: "Institute of Technology of Cambodia",
+  reportSignature: "",
+  newPassword: "",
+  confirmPassword: "",
+  language: "en",
+  chartType: "bar",
+  defaultFilter: "institute",
+  notifyEmail: true,
+  notifyApproval: true,
+  notifyReports: true,
+  notifySystem: true,
+  securityAlerts: true,
+  dataExports: true,
+  accessRequests: true,
+  theme: "system",
+  density: "comfortable",
+};
+
+export const accountSettingsSectionAliases: Record<string, AccountSettingsSectionValue> = {
+  account: "overview",
+  "personal-info": "profile",
+  appearance: "preferences",
+  role: "overview",
+  "role-access": "overview",
+};
+
 export const accountSettingsSections: AccountSettingsSection[] = [
   {
     label: "Overview",
@@ -247,4 +318,68 @@ export const accountDefaultFilterOptions: AccountSettingsOption[] = [
   { label: "Institute", value: "institute" },
   { label: "Year", value: "year" },
   { label: "Department", value: "department" },
+];
+
+export const accountOverviewDetailItems: AccountOverviewDetailItem[] = [
+  { label: "Email", key: "email" },
+  { label: "Phone number", key: "phone" },
+  { label: "Password", value: "Enabled" },
+  { label: "Username", key: "username" },
+  { label: "Institution", key: "institution" },
+];
+
+export const accountProfileFields: AccountSettingsFormField[] = [
+  { label: "Display name", key: "displayName" },
+  { label: "Email", key: "email", type: "email" },
+  { label: "Username", key: "username" },
+  { label: "Phone", key: "phone", type: "tel" },
+  { label: "Institution", key: "institution" },
+  { label: "Report signature", key: "reportSignature" },
+];
+
+export const accountSecurityFields: AccountSettingsFormField[] = [
+  { label: "New password", key: "newPassword", type: "password" },
+  { label: "Confirm password", key: "confirmPassword", type: "password" },
+];
+
+export const accountNotificationOptions: AccountNotificationOption[] = [
+  {
+    key: "notifyEmail",
+    label: "Email notifications",
+    description: "Receive important account updates by email.",
+  },
+  {
+    key: "notifyApproval",
+    label: "Partner approval requests",
+    description: "Notify when a partner account needs review.",
+    visibleFor: ["manager"],
+  },
+  {
+    key: "notifyReports",
+    label: "Report update notification",
+    description: "Notify when dashboard or institute reports change.",
+    hiddenFor: ["visitor"],
+  },
+  {
+    key: "accessRequests",
+    label: "Access request status",
+    description: "Track partner access or role change requests.",
+  },
+  {
+    key: "dataExports",
+    label: "Data export finished",
+    description: "Notify when report exports are ready.",
+    hiddenFor: ["visitor"],
+  },
+  {
+    key: "securityAlerts",
+    label: "Security alerts",
+    description: "Warn me about sign-in and session changes.",
+  },
+  {
+    key: "notifySystem",
+    label: "System alert notification",
+    description: "Receive platform announcements and system alerts.",
+    hiddenFor: ["partner"],
+  },
 ];

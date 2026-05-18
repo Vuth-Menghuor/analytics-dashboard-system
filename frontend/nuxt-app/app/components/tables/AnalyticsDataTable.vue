@@ -7,15 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <DashboardDataTable
-    :title="table.title"
-    :icon="table.icon"
-    :description="table.description"
-    :columns="table.columns"
-    :rows="table.rows"
-    :row-key="table.rowKey"
-    min-width="920px"
-  >
+  <DashboardDataTable v-bind="table" min-width="920px">
     <template #cell-action>
       <UButton
         size="sm"

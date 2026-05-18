@@ -64,6 +64,31 @@ export type AnalyticsPageConfig = {
   emptyDescription?: string;
 };
 
+export type ImportedMetric = {
+  label: string;
+  value: string;
+  trend: string;
+  icon: string;
+};
+
+export type TopCategory = {
+  name: string;
+  coursecount: number;
+};
+
+export type RecentCourse = {
+  fullname: string;
+  shortname: string;
+  visible: boolean;
+  updated_at: string | null;
+};
+
+export type ImportedOverview = {
+  metrics: ImportedMetric[];
+  top_categories: TopCategory[];
+  recent_courses: RecentCourse[];
+};
+
 export type Student = {
   id: number;
   studentCode?: string;

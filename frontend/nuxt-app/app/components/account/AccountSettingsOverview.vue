@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { AccountSettingsFormState } from "~/constants/accountSettings";
+import {
+  accountOverviewDetailItems,
+  type AccountSettingsFormState,
+} from "~/constants/accountSettings";
 import type { AccessRoleCard, AuthRole } from "~/types/auth";
 
 defineProps<{
@@ -11,6 +14,17 @@ defineProps<{
   roleMeta: AccessRoleCard;
   userInitial: string;
 }>();
+
+const getDetailValue = (
+  item: (typeof accountOverviewDetailItems)[number],
+  formState: AccountSettingsFormState,
+  displayEmail: string,
+) => {
+  if ("value" in item) return item.value;
+  if (item.key === "email") return formState.email || displayEmail;
+
+  return formState[item.key];
+};
 </script>
 
 <template>
@@ -65,13 +79,7 @@ defineProps<{
           class="mt-5 divide-y divide-slate-100 border-t border-slate-100 pt-1"
         >
           <div
-            v-for="item in [
-              { label: 'Email', value: formState.email || displayEmail },
-              { label: 'Phone number', value: formState.phone },
-              { label: 'Password', value: 'Enabled' },
-              { label: 'Username', value: formState.username },
-              { label: 'Institution', value: formState.institution },
-            ]"
+            v-for="item in accountOverviewDetailItems"
             :key="item.label"
             class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
           >
@@ -79,7 +87,7 @@ defineProps<{
               {{ item.label }}
             </dt>
             <dd class="text-sm font-bold text-slate-950">
-              {{ item.value }}
+              {{ getDetailValue(item, formState, displayEmail) }}
             </dd>
           </div>
 

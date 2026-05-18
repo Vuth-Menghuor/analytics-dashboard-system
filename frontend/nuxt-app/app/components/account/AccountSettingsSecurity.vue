@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { AccountSettingsFormState } from "~/constants/accountSettings";
+import {
+  accountSecurityFields,
+  type AccountSettingsFormState,
+} from "~/constants/accountSettings";
 
 defineProps<{
   formState: AccountSettingsFormState;
@@ -22,14 +25,15 @@ defineProps<{
       </h4>
 
       <div class="mt-5 grid gap-4">
-        <UFormField label="New password">
-          <UInput v-model="formState.newPassword" class="w-full" type="password" />
-        </UFormField>
-        <UFormField label="Confirm password">
+        <UFormField
+          v-for="field in accountSecurityFields"
+          :key="field.key"
+          :label="field.label"
+        >
           <UInput
-            v-model="formState.confirmPassword"
+            v-model="formState[field.key]"
             class="w-full"
-            type="password"
+            :type="field.type || 'text'"
           />
         </UFormField>
       </div>

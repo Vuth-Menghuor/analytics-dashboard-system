@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import { useAccountSettingsForm } from "~/composables/account/useAccountSettingsForm";
-import { useUserProfile } from "~/composables/account/useUserProfile";
-import {
-  accountRoleCapabilities,
-  accountSettingsSections,
-  type AccountSettingsFormState,
-} from "~/constants/accountSettings";
-import { accessRoleCards } from "~/constants/auth";
-import type { AuthRole } from "~/types/auth";
+import { useAccountSettingsModal } from "~/composables/account/useAccountSettingsModal";
 
 const open = defineModel<boolean>("open", { default: false });
 const props = withDefaults(
@@ -19,119 +11,24 @@ const props = withDefaults(
   },
 );
 
-const { displayEmail, displayName, email, handleSave, name, userInitial } =
-  useAccountSettingsForm(open);
-const { avatarSrc, displayRole } = useUserProfile();
-const colorMode = useColorMode();
-
-const activeSection = ref("overview");
-const isDiscardOpen = ref(false);
-const isDeleteOpen = ref(false);
-
-const formState = reactive<AccountSettingsFormState>({
-  displayName: "",
-  username: "moodle.analyst",
-  email: "",
-  phone: "+855 12 345 678",
-  position: "",
-  institution: "Institute of Technology of Cambodia",
-  reportSignature: "",
-  newPassword: "",
-  confirmPassword: "",
-  language: "en",
-  chartType: "bar",
-  defaultFilter: "institute",
-  notifyEmail: true,
-  notifyApproval: true,
-  notifyReports: true,
-  notifySystem: true,
-  securityAlerts: true,
-  dataExports: true,
-  accessRequests: true,
-  theme: "system",
-  density: "comfortable",
+const {
+  activeRole,
+  activeRoleMeta,
+  activeSection,
+  avatarSrc,
+  displayEmail,
+  displayName,
+  formState,
+  isDeleteOpen,
+  isDiscardOpen,
+  roleCapabilities,
+  saveAndClose,
+  userInitial,
+  visibleSections,
+} = useAccountSettingsModal({
+  initialSection: toRef(props, "initialSection"),
+  open,
 });
-
-const roleMetaByValue = Object.fromEntries(
-  accessRoleCards.map((role) => [role.value, role]),
-) as Record<string, (typeof accessRoleCards)[number]>;
-
-const activeRole = computed<AuthRole>(() =>
-  ["manager", "partner", "visitor"].includes(displayRole.value)
-    ? (displayRole.value as AuthRole)
-    : "visitor",
-);
-
-const activeRoleMeta = computed(() => {
-  return (
-    roleMetaByValue[activeRole.value] ?? {
-      label: activeRole.value,
-      access: "Account access",
-      description: "Role information unavailable",
-      icon: "i-lucide-shield",
-      value: activeRole.value,
-    }
-  );
-});
-
-const roleCapabilities = computed(
-  () => accountRoleCapabilities[activeRole.value],
-);
-
-const visibleSections = computed(() =>
-  accountSettingsSections.filter((section) => {
-    if (section.value === "security")
-      return roleCapabilities.value.canEditSecurity;
-    if (section.value === "preferences")
-      return roleCapabilities.value.canEditPreferences;
-    if (section.value === "notifications")
-      return roleCapabilities.value.canEditNotifications;
-    return true;
-  }),
-);
-
-function normalizeSection(section: string) {
-  if (section === "account") return "overview";
-  if (section === "personal-info") return "profile";
-  if (section === "appearance") return "preferences";
-  if (section === "role" || section === "role-access") return "overview";
-
-  return visibleSections.value.some((item) => item.value === section)
-    ? section
-    : "overview";
-}
-
-watch(
-  () => open.value,
-  (isOpen) => {
-    if (!isOpen) return;
-
-    activeSection.value = normalizeSection(props.initialSection);
-    formState.displayName = name.value || displayName.value;
-    formState.email = email.value || displayEmail.value;
-    formState.position = activeRoleMeta.value.label;
-    formState.institution =
-      displayRole.value === "visitor" ? "Public access" : formState.institution;
-    formState.reportSignature = name.value || displayName.value;
-    formState.newPassword = "";
-    formState.confirmPassword = "";
-    formState.theme = colorMode.preference;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => formState.theme,
-  (theme) => {
-    colorMode.preference = theme;
-  },
-);
-
-function saveAndClose(close: () => void) {
-  name.value = formState.displayName.trim();
-  email.value = formState.email.trim();
-  handleSave(close);
-}
 </script>
 
 <template>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { AccountSettingsFormState } from "~/constants/accountSettings";
+import {
+  accountProfileFields,
+  type AccountSettingsFormState,
+} from "~/constants/accountSettings";
 import type { AccessRoleCard } from "~/types/auth";
 
 defineProps<{
@@ -31,17 +34,16 @@ defineProps<{
         </p>
 
         <div class="mt-5 grid gap-4">
-          <UFormField label="Display name">
-            <UInput v-model="formState.displayName" class="w-full" />
-          </UFormField>
-          <UFormField label="Email">
-            <UInput v-model="formState.email" class="w-full" type="email" />
-          </UFormField>
-          <UFormField label="Username">
-            <UInput v-model="formState.username" class="w-full" />
-          </UFormField>
-          <UFormField label="Phone">
-            <UInput v-model="formState.phone" class="w-full" type="tel" />
+          <UFormField
+            v-for="field in accountProfileFields.slice(0, 4)"
+            :key="field.key"
+            :label="field.label"
+          >
+            <UInput
+              v-model="formState[field.key]"
+              class="w-full"
+              :type="field.type || 'text'"
+            />
           </UFormField>
           <UFormField label="Dashboard role">
             <div
@@ -62,11 +64,16 @@ defineProps<{
               </span>
             </div>
           </UFormField>
-          <UFormField label="Institution">
-            <UInput v-model="formState.institution" class="w-full" />
-          </UFormField>
-          <UFormField label="Report signature">
-            <UInput v-model="formState.reportSignature" class="w-full" />
+          <UFormField
+            v-for="field in accountProfileFields.slice(4)"
+            :key="field.key"
+            :label="field.label"
+          >
+            <UInput
+              v-model="formState[field.key]"
+              class="w-full"
+              :type="field.type || 'text'"
+            />
           </UFormField>
         </div>
       </div>

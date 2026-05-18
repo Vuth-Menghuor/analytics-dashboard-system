@@ -59,7 +59,9 @@ const badgeClass = computed(() =>
         class="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
       >
         <div>
-          <p class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">
+          <p
+            class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
+          >
             {{ summary.scopeLabel }}
           </p>
           <p class="mt-1 text-sm font-semibold text-slate-950">

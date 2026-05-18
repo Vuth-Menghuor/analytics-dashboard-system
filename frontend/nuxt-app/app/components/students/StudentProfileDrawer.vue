@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import {
+  studentProfileDetails,
+  studentProfileStats,
+} from "~/constants/studentAnalytics";
 import type { Student } from "~/types/analytics";
 
 defineProps<{
@@ -6,6 +10,20 @@ defineProps<{
 }>();
 
 const open = defineModel<boolean>({ default: false });
+
+const formatStudentValue = (
+  student: Student,
+  key: keyof Student,
+  suffix = "",
+) => {
+  const value = student[key];
+
+  if (value === undefined || value === null || value === "") {
+    return "-";
+  }
+
+  return `${value}${suffix}`;
+};
 </script>
 
 <template>
@@ -30,37 +48,9 @@ const open = defineModel<boolean>({ default: false });
         </div>
 
         <div class="profile-stat-grid">
-          <div>
-            <span>Last login</span>
-            <strong>{{ student.lastLogin }}</strong>
-          </div>
-          <div>
-            <span>Enrollments</span>
-            <strong>{{ student.enrollments }}</strong>
-          </div>
-          <div>
-            <span>Completions</span>
-            <strong>{{ student.completions }}</strong>
-          </div>
-          <div>
-            <span>Average grade</span>
-            <strong>{{ student.averageGrade }}%</strong>
-          </div>
-          <div>
-            <span>Attendance</span>
-            <strong>{{ student.attendanceRate }}%</strong>
-          </div>
-          <div>
-            <span>Quiz average</span>
-            <strong>{{ student.quizAverage }}%</strong>
-          </div>
-          <div>
-            <span>Assignments</span>
-            <strong>{{ student.assignmentSubmissionRate }}%</strong>
-          </div>
-          <div>
-            <span>Learning hours</span>
-            <strong>{{ student.learningHours }}</strong>
+          <div v-for="stat in studentProfileStats" :key="stat.label">
+            <span>{{ stat.label }}</span>
+            <strong>{{ formatStudentValue(student, stat.key, stat.suffix) }}</strong>
           </div>
         </div>
 
@@ -76,21 +66,17 @@ const open = defineModel<boolean>({ default: false });
         <UCard :ui="{ body: 'p-4' }">
           <h3>Moodle Profile Fields</h3>
           <dl class="student-profile-details">
-            <div>
-              <dt>Institute</dt>
-              <dd>{{ student.institute }}</dd>
-            </div>
-            <div>
-              <dt>Department</dt>
-              <dd>{{ student.department }}</dd>
-            </div>
-            <div>
-              <dt>City</dt>
-              <dd>{{ student.city }}</dd>
-            </div>
-            <div>
-              <dt>Confirmed</dt>
-              <dd>{{ student.confirmed ? 'Yes' : 'No' }}</dd>
+            <div v-for="detail in studentProfileDetails" :key="detail.label">
+              <dt>{{ detail.label }}</dt>
+              <dd>
+                {{
+                  detail.type === 'boolean'
+                    ? student[detail.key]
+                      ? 'Yes'
+                      : 'No'
+                    : formatStudentValue(student, detail.key)
+                }}
+              </dd>
             </div>
           </dl>
         </UCard>
