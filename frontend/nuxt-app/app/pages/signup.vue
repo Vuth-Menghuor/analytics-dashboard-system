@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useSignupForm } from "~/composables/auth/useSignupForm";
 
-definePageMeta({ layout: "auth" });
+definePageMeta({
+  layout: "auth",
+  middleware: "guest",
+});
 
 const {
   actionModeItems,
@@ -32,11 +35,16 @@ const {
       <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
         <h1 id="signup-hero-title">Start managing your analytics workspace</h1>
-        <p>Create your account and keep every dashboard workflow in one place.</p>
+        <p>
+          Create your account and keep every dashboard workflow in one place.
+        </p>
       </div>
 
       <div class="showcase-context">
-        <p>Create the right account for your workflow, then move into a guided dashboard experience designed for clean reporting.</p>
+        <p>
+          Create the right account for your workflow, then move into a guided
+          dashboard experience designed for clean reporting.
+        </p>
         <ul>
           <li>Visitor access setup</li>
           <li>Partner review flow</li>
@@ -254,7 +262,10 @@ const {
 
         <p v-if="submitStatus" class="auth-success">{{ submitStatus }}</p>
 
-        <div class="auth-actions" :class="{ split: isPartner && currentStep > 1 }">
+        <div
+          class="auth-actions"
+          :class="{ split: isPartner && currentStep > 1 }"
+        >
           <UButton
             v-if="isPartner && currentStep > 1"
             block
@@ -264,7 +275,12 @@ const {
             label="Back"
             @click="goToPreviousStep"
           />
-          <UButton block class="auth-primary-button" type="submit" :label="primaryButtonLabel" />
+          <UButton
+            block
+            class="auth-primary-button"
+            type="submit"
+            :label="primaryButtonLabel"
+          />
         </div>
       </form>
 

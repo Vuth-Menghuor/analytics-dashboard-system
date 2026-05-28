@@ -50,14 +50,16 @@ const {
             @click="selectAccessRole(role.value)"
           >
             <span class="access-role-icon">
-              <IconByName :name="role.icon" size="20" />
+              <UIcon v-if="role.value === 'manager'" name="i-lucide-shield-check" />
+              <UIcon v-else-if="role.value === 'partner'" name="i-lucide-school" />
+              <UIcon v-else name="i-lucide-eye" />
             </span>
             <span class="access-role-copy">
               <span class="access-role-title">{{ role.label }}</span>
               <span class="access-role-access">{{ role.access }}</span>
               <span class="access-role-description">{{ role.description }}</span>
             </span>
-            <IconByName class="access-role-arrow" name="i-lucide-chevron-right" size="18" />
+            <UIcon class="access-role-arrow" name="i-lucide-chevron-right" />
           </button>
         </div>
       </template>
