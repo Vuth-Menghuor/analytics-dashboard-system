@@ -260,6 +260,10 @@
   color: #2563eb;
 }
 
+.access-role-icon .iconify {
+  font-size: 20px;
+}
+
 .access-role-copy {
   display: grid;
   min-width: 0;
@@ -288,6 +292,7 @@
 
 .access-role-arrow {
   color: #94a3b8;
+  font-size: 18px;
   transition:
     color 0.15s ease,
     transform 0.15s ease;

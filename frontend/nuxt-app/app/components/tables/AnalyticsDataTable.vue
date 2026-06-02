@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
 import type { AnalyticsTable } from "~/types/analytics";
 
 defineProps<{
   table: AnalyticsTable;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -14,7 +17,7 @@ defineProps<{
         color="neutral"
         variant="outline"
         icon="i-lucide-eye"
-        label="View"
+        :label="t('text.view')"
       />
     </template>
   </DashboardDataTable>

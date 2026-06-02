@@ -1,0 +1,33 @@
+meta {
+  name: POST Submit Partner Request Duplicate Email
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://127.0.0.1:8000/api/partner-requests
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "state_province": "Phnom Penh",
+    "first_name": "Partner",
+    "last_name": "Duplicate",
+    "email": "partner.applicant@example.com",
+    "phone_number": "+85512345678",
+    "institution_name": "ITC",
+    "password": "password",
+    "password_confirmation": "password"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AnalyticsWorkspacePage from "~/components/dashboard/AnalyticsWorkspacePage.vue";
-
 definePageMeta({
   middleware: ["role"],
-  roles: ["manager", "partner", "visitor"],
+  roles: ["manager", "partner"],
 });
+
+await navigateTo("/learning-performance", { replace: true });
 </script>
 
 <template>
-  <AnalyticsWorkspacePage page-key="quizzes" />
+  <div />
 </template>

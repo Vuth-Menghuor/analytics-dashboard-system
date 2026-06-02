@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@vueuse/core";
-import { useSidebarNavigation } from "~/composables/sidebar/useSidebarNavigation";
+import { useSidebarNavigation } from "~/composables/layout/useSidebarNavigation";
 
 export const useDashboardSidebar = () => {
   const auth = useAuthStore();

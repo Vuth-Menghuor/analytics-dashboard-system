@@ -1,80 +1,163 @@
-import type { EChartsOption } from "echarts";
-import { useDashboardData } from "~/composables/dashboard/useDashboardData";
-import { appColors } from "~/constants/colors";
+import {
+  getCourseCompletion,
+  getPopularCourses,
+  getStudentActivity,
+  getStudentGenderDistribution,
+  getStudentsByDepartment,
+} from "~/services/analytics.service";
+import type { AnalyticsChart, AnalyticsPageConfig } from "~/types/analytics";
 
 export const usePartnerDashboardPage = () => {
-  const { metrics, reports, weeklyTraffic } = useDashboardData();
+  const auth = useAuthStore();
   const {
     data: moodleDashboard,
     error: moodleDashboardError,
     isLoading: moodleDashboardLoading,
   } = useDashboard();
+  const charts = ref<AnalyticsChart[]>([]);
+  const chartError = ref("");
+  const chartsLoading = ref(true);
 
-  const reportStatus = computed(() => {
-    const ready = reports.filter((report) => report.status === "Ready").length;
-    const draft = reports.filter((report) => report.status === "Draft").length;
+  const loadCharts = async () => {
+    chartsLoading.value = true;
+    chartError.value = "";
 
-    return { ready, draft, total: reports.length };
-  });
+    const [gender, departments, popularCourses, completion, activity] =
+      await Promise.allSettled([
+        getStudentGenderDistribution(),
+        getStudentsByDepartment(),
+        getPopularCourses(),
+        getCourseCompletion(),
+        getStudentActivity(),
+      ]);
 
-  const trafficOption = computed<EChartsOption>(() => ({
-    color: [appColors.primaryHover],
-    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-    grid: { top: 16, right: 12, bottom: 28, left: 36, containLabel: true },
-    xAxis: {
-      type: "category",
-      data: weeklyTraffic.map((point) => point.label),
-      axisTick: { show: false },
-    },
-    yAxis: {
-      type: "value",
-      max: 100,
-      axisLabel: { formatter: "{value}%" },
-      splitLine: { lineStyle: { color: appColors.grid } },
-    },
-    series: [
-      {
-        name: "Traffic",
-        type: "bar",
-        data: weeklyTraffic.map((point) => point.value),
-        barMaxWidth: 34,
-        itemStyle: { borderRadius: [5, 5, 0, 0] },
-      },
-    ],
-  }));
+    const loadedCharts: AnalyticsChart[] = [];
 
-  const reportStatusOption = computed<EChartsOption>(() => ({
-    color: [appColors.success, appColors.warning],
-    tooltip: { trigger: "item", formatter: "{b}: {c}" },
-    legend: { bottom: 0, itemWidth: 16, itemHeight: 10 },
-    series: [
-      {
-        name: "Reports",
-        type: "pie",
-        radius: ["52%", "74%"],
-        center: ["50%", "42%"],
-        avoidLabelOverlap: true,
-        label: {
-          formatter: "{b}\n{d}%",
-          color: appColors.ink,
-          fontWeight: 700,
-        },
-        data: [
-          { name: "Ready", value: reportStatus.value.ready },
-          { name: "Draft", value: reportStatus.value.draft },
+    if (departments.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Top Departments",
+        description: "Largest departments by Moodle student count.",
+        icon: "i-lucide-list-ordered",
+        type: "horizontalBar",
+        labels: departments.value.slice(0, 10).map((point) => point.department),
+        series: [
+          {
+            name: "Students",
+            data: departments.value
+              .slice(0, 10)
+              .map((point) => point.totalStudents),
+          },
         ],
-      },
-    ],
-  }));
+      });
+    }
+
+    if (gender.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Gender Distribution",
+        description: "Student gender breakdown from Moodle profiles.",
+        icon: "i-lucide-pie-chart",
+        type: "donut",
+        labels: gender.value.map((point) => point.gender),
+        series: [
+          {
+            name: "Students",
+            data: gender.value.map((point) => point.totalStudents),
+          },
+        ],
+      });
+    }
+
+    if (popularCourses.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Popular Courses",
+        description: "Courses ranked by total enrollments.",
+        icon: "i-lucide-trending-up",
+        type: "horizontalBar",
+        labels: popularCourses.value
+          .slice(0, 10)
+          .map((course) => course.courseName),
+        series: [
+          {
+            name: "Enrollments",
+            data: popularCourses.value
+              .slice(0, 10)
+              .map((course) => course.totalEnrollments),
+          },
+        ],
+      });
+    }
+
+    if (completion.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Course Completion Rate",
+        description: "Top course completion percentages.",
+        icon: "i-lucide-check-circle-2",
+        type: "bar",
+        labels: completion.value.slice(0, 8).map((course) => course.courseName),
+        series: [
+          {
+            name: "Completion %",
+            data: completion.value
+              .slice(0, 8)
+              .map((course) => course.completionRatePercentage),
+          },
+        ],
+      });
+    }
+
+    if (activity.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Student Login Activity",
+        description: "Login activity status across Moodle students.",
+        icon: "i-lucide-activity",
+        type: "donut",
+        labels: activity.value.map((point) => point.loginStatus),
+        series: [
+          {
+            name: "Students",
+            data: activity.value.map((point) => point.totalStudents),
+          },
+        ],
+      });
+    }
+
+    charts.value = loadedCharts;
+
+    if (loadedCharts.length === 0) {
+      chartError.value = "Unable to load partner dashboard charts.";
+    }
+
+    chartsLoading.value = false;
+  };
+
+  onMounted(loadCharts);
+
+  const partnerDashboard = computed<AnalyticsPageConfig | null>(() =>
+    moodleDashboard.value
+      ? {
+          ...moodleDashboard.value,
+          title: "Partner Dashboard",
+          copy:
+            "Institute-scoped Moodle analytics for students, courses, completions, and learning activity.",
+          charts: charts.value,
+        }
+      : null,
+  );
+
+  const partnerInstituteLabel = computed(() =>
+    auth.user?.institution_name
+      ? `Institute: ${auth.user.institution_name}`
+      : "Institute scope not assigned",
+  );
+
+  const partnerDashboardLoading = computed(() => moodleDashboardLoading.value);
 
   return {
-    metrics,
-    moodleDashboard,
-    moodleDashboardError,
-    moodleDashboardLoading,
-    reports,
-    reportStatus,
-    reportStatusOption,
-    trafficOption,
+    chartError,
+    chartsLoading,
+    partnerDashboard,
+    partnerDashboardError: moodleDashboardError,
+    partnerDashboardLoading,
+    partnerInstituteLabel,
   };
 };

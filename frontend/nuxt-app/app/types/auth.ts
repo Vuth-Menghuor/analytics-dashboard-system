@@ -9,6 +9,7 @@ export type AuthUser = {
   name: string;
   email: string;
   role: AuthRole;
+  institution_name?: string | null;
   avatarUrl?: string | null;
   avatar_url?: string | null;
 };
@@ -19,8 +20,8 @@ export type RoleOption<TValue extends string> = {
 };
 
 export type LoginRoleConfig = RoleOption<LoginRole> & {
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
 };
 
 export type AccessRoleCard = RoleOption<AuthRole> & {

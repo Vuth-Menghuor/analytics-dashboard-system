@@ -1,9 +1,7 @@
-import type { EChartsOption } from "echarts";
 import type { Metric } from "~/types/dashboard";
 import type { Ref } from "vue";
 import { appColors } from "~/constants/colors";
 
-const DEFAULT_SPARKLINE = [42, 46, 44, 49, 52, 50, 56, 60];
 const DEFAULT_ACCENT_COLOR = appColors.primary;
 
 function hexToRgb(hex: string) {
@@ -25,15 +23,6 @@ function hexToRgb(hex: string) {
 }
 
 export const useMetricCard = (metric: Ref<Metric>) => {
-  const trendParts = computed(() => metric.value.trend.split(" "));
-  const trendValue = computed(() => trendParts.value[0] ?? "");
-  const trendDescription = computed(() => trendParts.value.slice(1).join(" "));
-  const trendTone = computed(() =>
-    metric.value.trend.trim().startsWith("-") ? "negative" : "positive",
-  );
-  const sparklineData = computed(() =>
-    metric.value.sparkline?.length ? metric.value.sparkline : DEFAULT_SPARKLINE,
-  );
   const accentColor = computed(() => metric.value.color ?? DEFAULT_ACCENT_COLOR);
   const accentRgb = computed(() => hexToRgb(accentColor.value));
   const accentSoftColor = computed(() => {
@@ -41,50 +30,11 @@ export const useMetricCard = (metric: Ref<Metric>) => {
 
     return `rgba(${r}, ${g}, ${b}, 0.12)`;
   });
-  const sparklineFill = computed(() => {
-    const { r, g, b } = accentRgb.value;
-
-    return `rgba(${r}, ${g}, ${b}, 0.14)`;
-  });
-  const sparklineOption = computed<EChartsOption>(() => ({
-    animation: false,
-    grid: { top: 6, right: 0, bottom: 2, left: 0 },
-    tooltip: { show: false },
-    xAxis: {
-      type: "category",
-      show: false,
-      boundaryGap: false,
-      data: sparklineData.value.map((_, index) => index + 1),
-    },
-    yAxis: {
-      type: "value",
-      show: false,
-      min: "dataMin",
-      max: "dataMax",
-    },
-    series: [
-      {
-        type: "line",
-        data: sparklineData.value,
-        smooth: true,
-        symbol: "none",
-        lineStyle: {
-          width: 2,
-          color: accentColor.value,
-        },
-        areaStyle: {
-          color: sparklineFill.value,
-        },
-      },
-    ],
-  }));
+  const backgroundColor = computed(() => accentColor.value);
 
   return {
     accentColor,
     accentSoftColor,
-    sparklineOption,
-    trendDescription,
-    trendTone,
-    trendValue,
+    backgroundColor,
   };
 };

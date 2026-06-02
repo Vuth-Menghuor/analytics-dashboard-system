@@ -1,35 +1,113 @@
-import {
-  reportFilterOptions,
-  savedReportColumns,
-  savedReports,
-} from "~/constants/reports";
-import type { AnalyticsTable } from "~/types/analytics";
+type ReportExportKey =
+  | "dashboard"
+  | "students"
+  | "courses"
+  | "activity"
+  | "learning";
+
+type ReportCard = {
+  key: ReportExportKey;
+  title: string;
+  description: string;
+  icon: string;
+  route: string;
+  format: string;
+};
+
+const reportCards: Array<{
+  key: ReportExportKey;
+  title: string;
+  description: string;
+  icon: string;
+  route: string;
+  format: string;
+}> = [
+  {
+    key: "dashboard",
+    title: "Dashboard Report",
+    description: "KPI cards and dashboard summary charts.",
+    icon: "i-lucide-layout-dashboard",
+    route: "/dashboard",
+    format: "CSV first",
+  },
+  {
+    key: "students",
+    title: "Students Report",
+    description: "Student list, filters, profile fields, and distributions.",
+    icon: "i-lucide-users",
+    route: "/students",
+    format: "CSV first",
+  },
+  {
+    key: "courses",
+    title: "Courses Report",
+    description: "Courses, completions, views, and visibility status.",
+    icon: "i-lucide-book-open",
+    route: "/courses",
+    format: "CSV first",
+  },
+  {
+    key: "activity",
+    title: "User Activity Report",
+    description: "Login status counts and activity breakdown.",
+    icon: "i-lucide-activity",
+    route: "/activity",
+    format: "CSV first",
+  },
+  {
+    key: "learning",
+    title: "Learning Performance Report",
+    description: "Grades, quizzes, assignments, and risk preview.",
+    icon: "i-lucide-graduation-cap",
+    route: "/learning-performance",
+    format: "CSV later",
+  },
+];
 
 export const useReportsPage = () => {
-  const filters = reactive({
-    range: "Last 30 days",
-    institute: "All institutes",
-    course: "All courses",
-    status: "All students",
-  });
+  const toast = useToast();
+  const auth = useAuthStore();
 
-  const table = computed<AnalyticsTable>(() => ({
-    title: "Saved Reports",
-    icon: "i-lucide-file-bar-chart",
-    description: "Prepared report packages for repeated Moodle database exports.",
-    rowKey: "id",
-    columns: savedReportColumns,
-    rows: [...savedReports],
-  }));
+  const partnerInstituteLabel = computed(() =>
+    auth.user?.role === "partner" && auth.user.institution_name
+      ? `Institute: ${auth.user.institution_name}`
+      : "",
+  );
+
+  const previewExport = (report: ReportExportKey) => {
+    const card = reportCards.find((item) => item.key === report);
+
+    toast.add({
+      title: "Export UI only",
+      description: `${card?.title ?? "Report export"} will connect to the backend CSV export API later.`,
+      color: "warning",
+    });
+  };
+
+  const reportSummaryItems = computed(() => [
+    {
+      label: "Export format",
+      value: "CSV",
+      detail: "PDF can be added after API approval.",
+    },
+    {
+      label: "Data scope",
+      value: partnerInstituteLabel.value || "Role based",
+      detail: partnerInstituteLabel.value
+        ? "Partner exports will use approved institute scope."
+        : "Manager exports can use global analytics scope.",
+    },
+    {
+      label: "Status",
+      value: "UI only",
+      detail: "No backend export endpoint is called yet.",
+    },
+  ]);
 
   return {
-    filters,
-    filterOptions: {
-      ranges: [...reportFilterOptions.ranges],
-      institutes: [...reportFilterOptions.institutes],
-      courses: [...reportFilterOptions.courses],
-      statuses: [...reportFilterOptions.statuses],
-    },
-    table,
+    partnerInstituteLabel,
+    previewExport,
+    reportSummaryItems,
+    reportCards,
   };
 };

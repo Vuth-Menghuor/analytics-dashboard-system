@@ -9,6 +9,7 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 backend/.phpunit.result.cache
+backend/bootstrap/cache/*.php
 backend/database/database.sqlite
 backend/node_modules/
 backend/public/build/

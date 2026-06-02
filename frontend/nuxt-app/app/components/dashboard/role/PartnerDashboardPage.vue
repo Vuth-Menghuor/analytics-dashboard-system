@@ -1,127 +1,49 @@
 <script setup lang="ts">
+import StatePanel from "~/components/common/StatePanel.vue";
+import DashboardOverview from "~/components/dashboard/DashboardOverview.vue";
 import { usePartnerDashboardPage } from "~/composables/dashboard/role/usePartnerDashboardPage";
 
 const {
-  metrics,
-  moodleDashboard,
-  moodleDashboardError,
-  moodleDashboardLoading,
-  reports,
-  reportStatus,
-  reportStatusOption,
-  trafficOption,
+  chartError,
+  chartsLoading,
+  partnerDashboard,
+  partnerDashboardError,
+  partnerDashboardLoading,
+  partnerInstituteLabel,
 } = usePartnerDashboardPage();
 </script>
 
 <template>
   <div class="page-stack">
-    <section class="grid metrics">
-      <MetricCard
-        v-for="metric in metrics.slice(0, 3)"
-        :key="metric.label"
-        :metric="metric"
-      />
-    </section>
-
-    <section class="grid dashboard-insights">
-      <UCard
-        as="article"
-        class="analytics-card"
-        :ui="{ body: 'analytics-card-body' }"
-      >
-        <h2 class="section-title">Shared Report Status</h2>
-        <AppEChart
-          :option="reportStatusOption"
-          height="246px"
-          aria-label="Shared report status chart"
-        />
-        <p class="chart-note">Total shared reports: {{ reportStatus.total }}</p>
-      </UCard>
-
-      <UCard
-        as="article"
-        class="analytics-card"
-        :ui="{ body: 'analytics-card-body' }"
-      >
-        <h2 class="section-title">Weekly Traffic</h2>
-        <AppEChart
-          :option="trafficOption"
-          height="246px"
-          aria-label="Partner weekly traffic"
-        />
-      </UCard>
-    </section>
-
-    <GenderByInstitutionTable />
-
-    <section class="grid dashboard-detail">
-      <UCard
-        as="article"
-        class="analytics-card"
-        :ui="{ body: 'analytics-card-body' }"
-      >
-        <div class="section-heading">
-          <h2 class="section-title with-icon">
-            <UIcon name="i-lucide-file-bar-chart" />
-            Shared Reports
-          </h2>
-          <p>Report cadence and publishing status for partner review</p>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Report</th>
-                <th>Cadence</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="report in reports" :key="report.id">
-                <td>{{ report.name }}</td>
-                <td>{{ report.cadence }}</td>
-                <td>
-                  <span
-                    class="status"
-                    :class="{ warn: report.status === 'Draft' }"
-                    >{{ report.status }}</span
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </UCard>
-
-      <UCard
-        as="article"
-        class="analytics-card"
-        :ui="{ body: 'analytics-card-body' }"
-      >
-        <div class="section-heading">
-          <h2 class="section-title with-icon">
-            <UIcon name="i-lucide-circle-check" />
-            Report Mix
-          </h2>
-          <p>Ready reports compared with drafts in progress</p>
-        </div>
-
-        <AppEChart
-          :option="reportStatusOption"
-          height="292px"
-          aria-label="Partner report status mix"
-        />
-      </UCard>
-    </section>
-
-    <USeparator />
-
-    <StatePanel v-if="moodleDashboardLoading" state="loading" />
+    <StatePanel v-if="partnerDashboardLoading" state="loading" />
     <StatePanel
-      v-else-if="moodleDashboardError || !moodleDashboard"
+      v-else-if="partnerDashboardError || !partnerDashboard"
       state="error"
-      :description="moodleDashboardError"
+      :description="partnerDashboardError"
     />
-    <DashboardOverview v-else :config="moodleDashboard" />
+    <template v-else>
+      <DashboardOverview
+        :config="partnerDashboard"
+        :scope-label="partnerInstituteLabel"
+      />
+
+      <UAlert
+        v-if="chartsLoading"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-loader"
+        title="Loading scoped charts"
+        description="Summary metrics are ready. Charts will appear when the analytics API responds."
+      />
+
+      <UAlert
+        v-else-if="chartError"
+        color="warning"
+        variant="soft"
+        icon="i-lucide-triangle-alert"
+        title="Charts unavailable"
+        :description="chartError"
+      />
+    </template>
   </div>
 </template>

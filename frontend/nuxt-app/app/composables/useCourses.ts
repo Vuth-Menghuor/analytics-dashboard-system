@@ -4,13 +4,12 @@ import type { Course } from "~/types/analytics";
 export const useCourses = () => {
   const courses = ref<Course[]>([]);
   const selectedCourse = ref<Course | null>(null);
-  const isLoading = ref(false);
+  const isLoading = ref(true);
   const error = ref("");
 
   const filters = reactive({
     query: "",
     category: "All categories",
-    institute: "All institutes",
     status: "All statuses",
   });
 
@@ -28,7 +27,7 @@ export const useCourses = () => {
     }
   };
 
-  refresh();
+  onMounted(refresh);
 
   const filteredCourses = computed(() => {
     const query = filters.query.trim().toLowerCase();
@@ -42,14 +41,11 @@ export const useCourses = () => {
       const matchesCategory =
         filters.category === "All categories" ||
         course.category === filters.category;
-      const matchesInstitute =
-        filters.institute === "All institutes" ||
-        course.institute === filters.institute;
       const matchesStatus =
         filters.status === "All statuses" || course.status === filters.status;
 
       return (
-        matchesQuery && matchesCategory && matchesInstitute && matchesStatus
+        matchesQuery && matchesCategory && matchesStatus
       );
     });
   });

@@ -1,15 +1,37 @@
 <script setup lang="ts">
 import type { EChartsOption } from "echarts";
+import AppEChart from "~/components/common/AppEChart.vue";
 import { appColors, chartColors } from "~/constants/colors";
 import type { AnalyticsChart } from "~/types/analytics";
 
-const props = defineProps<{
-  chart: AnalyticsChart;
-}>();
+const props = withDefaults(
+  defineProps<{
+    chart?: AnalyticsChart;
+    option?: EChartsOption;
+    title?: string;
+    icon?: string;
+    description?: string;
+    badge?: string;
+    badgeColor?: "primary" | "success" | "warning" | "error" | "neutral";
+    height?: string;
+    ariaLabel?: string;
+  }>(),
+  {
+    badgeColor: "primary",
+    height: "300px",
+  },
+);
 
-const option = computed<EChartsOption>(() => {
+const { translateText } = useTranslateText();
+
+const computedOption = computed<EChartsOption>(() => {
+  if (props.option) return props.option;
+
   const chart = props.chart;
+  if (!chart) return {};
+
   const colors = [...chartColors];
+
   const baseTooltip: EChartsOption["tooltip"] = {
     trigger: chart.type === "pie" || chart.type === "donut" ? "item" : "axis",
     backgroundColor: appColors.white,
@@ -45,15 +67,26 @@ const option = computed<EChartsOption>(() => {
   return {
     color: colors,
     tooltip: baseTooltip,
-    legend: chart.series.length > 1 ? { bottom: 0, itemWidth: 14, itemHeight: 10 } : undefined,
-    grid: { top: 20, right: 18, bottom: chart.series.length > 1 ? 48 : 24, left: 28, containLabel: true },
+    legend:
+      chart.series.length > 1
+        ? { bottom: 0, itemWidth: 14, itemHeight: 10 }
+        : undefined,
+    grid: {
+      top: 20,
+      right: 18,
+      bottom: chart.series.length > 1 ? 48 : 24,
+      left: 28,
+      containLabel: true,
+    },
     xAxis: {
       type: isHorizontal ? "value" : "category",
       data: isHorizontal ? undefined : chart.labels,
       axisTick: { show: false },
       axisLine: { lineStyle: { color: appColors.axis } },
       axisLabel: { color: appColors.secondary },
-      splitLine: isHorizontal ? { lineStyle: { color: appColors.grid, type: "dashed" } } : undefined,
+      splitLine: isHorizontal
+        ? { lineStyle: { color: appColors.grid, type: "dashed" } }
+        : undefined,
     },
     yAxis: {
       type: isHorizontal ? "category" : "value",
@@ -62,7 +95,9 @@ const option = computed<EChartsOption>(() => {
       axisTick: { show: false },
       axisLine: { show: false },
       axisLabel: { color: appColors.secondary },
-      splitLine: isHorizontal ? undefined : { lineStyle: { color: appColors.grid, type: "dashed" } },
+      splitLine: isHorizontal
+        ? undefined
+        : { lineStyle: { color: appColors.grid, type: "dashed" } },
     },
     series: chart.series.map((series) => ({
       name: series.name,
@@ -71,25 +106,52 @@ const option = computed<EChartsOption>(() => {
       data: series.data,
       barMaxWidth: 28,
       areaStyle: chart.type === "line" ? { opacity: 0.14 } : undefined,
-      itemStyle: chart.type === "bar" || chart.type === "horizontalBar" ? { borderRadius: isHorizontal ? [0, 8, 8, 0] : [8, 8, 0, 0] } : undefined,
+      itemStyle:
+        chart.type === "bar" || chart.type === "horizontalBar"
+          ? { borderRadius: isHorizontal ? [0, 8, 8, 0] : [8, 8, 0, 0] }
+          : undefined,
     })),
   };
 });
+
+const cardTitle = computed(() => props.title || props.chart?.title || "");
+const cardIcon = computed(() => props.icon || props.chart?.icon);
+const cardDescription = computed(
+  () => props.description || props.chart?.description,
+);
+const chartHeight = computed(
+  () => props.height || props.chart?.height || "300px",
+);
+const chartAriaLabel = computed(() => props.ariaLabel || cardTitle.value);
 </script>
 
 <template>
-  <UCard as="article" class="analytics-card" :ui="{ body: 'analytics-card-body' }">
-    <div class="section-heading">
-      <h2 class="section-title with-icon">
-        <UIcon :name="chart.icon" />
-        {{ chart.title }}
-      </h2>
-      <p v-if="chart.description">{{ chart.description }}</p>
+  <UCard
+    as="article"
+    class="analytics-card"
+    :ui="{ body: 'analytics-card-body' }"
+  >
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="section-title with-icon">
+          <UIcon v-if="cardIcon" :name="cardIcon" />
+          {{ translateText(cardTitle) }}
+        </h2>
+
+        <p v-if="cardDescription" class="chart-note">
+          {{ translateText(cardDescription) }}
+        </p>
+      </div>
+
+      <UBadge v-if="badge" :color="badgeColor" variant="soft">
+        {{ translateText(badge) }}
+      </UBadge>
     </div>
+
     <AppEChart
-      :option="option"
-      :height="chart.height || '300px'"
-      :aria-label="chart.title"
+      :option="computedOption"
+      :height="chartHeight"
+      :aria-label="chartAriaLabel"
     />
   </UCard>
 </template>

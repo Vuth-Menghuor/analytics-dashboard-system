@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import PageHeader from "~/components/common/PageHeader.vue";
 import {
   adminPermissionColumns,
   adminPermissionModules,
@@ -6,6 +8,9 @@ import {
   adminPermissionRows,
   adminPermissionStats,
 } from "~/constants/admin";
+
+const { t } = useI18n();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -15,42 +20,55 @@ import {
       title="Permissions"
       copy="Review which dashboard capabilities are available to managers, partners, and visitors."
     >
-      <UButton icon="i-lucide-shield-plus" label="Add permission" />
+      <UBadge color="neutral" variant="soft">Read-only configuration</UBadge>
     </PageHeader>
 
     <section class="permission-console">
-      <UCard as="article" class="permission-model-card">
+      <UCard as="article" class="admin-panel-card">
         <div class="section-heading">
           <h2 class="section-title with-icon">
             <UIcon name="i-lucide-lock-keyhole" />
-            Permission Model
+            {{ t("text.permissionModel") }}
           </h2>
           <p>
             Access is composed from route metadata, sidebar visibility, and
             role-scoped account behavior.
           </p>
         </div>
-        <div class="permission-stat-grid">
+        <div class="admin-summary-grid permission-stat-grid">
           <div
             v-for="permission in adminPermissionStats"
             :key="permission.label"
+            class="admin-summary-card permission-stat-card"
           >
-            <UIcon :name="permission.icon" />
-            <span>{{ permission.label }}</span>
-            <strong>{{ permission.value }}</strong>
-            <p>{{ permission.description }}</p>
+            <div class="admin-card-heading">
+              <span class="admin-card-icon">
+                <UIcon :name="permission.icon" />
+              </span>
+              <UBadge color="neutral" variant="soft">Current</UBadge>
+            </div>
+            <span>{{ translateText(permission.label) }}</span>
+            <strong>{{ translateText(permission.value) }}</strong>
+            <p>{{ translateText(permission.description) }}</p>
           </div>
         </div>
       </UCard>
 
-      <UCard as="article" class="permission-role-card">
+      <UCard as="article" class="admin-panel-card permission-role-card">
+        <div class="section-heading compact">
+          <h2 class="section-title with-icon">
+            <UIcon name="i-lucide-users-round" />
+            Role Scope
+          </h2>
+          <p>Current access level by system role.</p>
+        </div>
         <div
           v-for="summary in adminPermissionRoleSummaries"
           :key="summary.role"
           class="permission-role"
         >
-          <span>{{ summary.role }}</span>
-          <strong>{{ summary.scope }}</strong>
+          <span>{{ translateText(summary.role) }}</span>
+          <strong>{{ translateText(summary.scope) }}</strong>
         </div>
       </UCard>
     </section>
@@ -62,34 +80,34 @@ import {
         as="article"
         class="permission-module-card"
       >
-        <div>
+        <div class="permission-module-header">
           <span>{{ module.routes }}</span>
-          <strong>{{ module.label }}</strong>
+          <strong>{{ translateText(module.label) }}</strong>
         </div>
         <dl>
           <div>
-            <dt>Manager</dt>
+            <dt>{{ t("text.manager") }}</dt>
             <dd>{{ module.manager }}</dd>
           </div>
           <div>
-            <dt>Partner</dt>
+            <dt>{{ t("text.partner") }}</dt>
             <dd>{{ module.partner }}</dd>
           </div>
           <div>
-            <dt>Visitor</dt>
+            <dt>{{ t("text.visitor") }}</dt>
             <dd>{{ module.visitor }}</dd>
           </div>
         </dl>
       </UCard>
     </section>
 
-    <UCard as="article" class="permission-route-banner">
-      <span>
+    <UCard as="article" class="permission-route-banner admin-panel-card">
+      <span class="admin-card-icon">
         <UIcon name="i-lucide-route" />
       </span>
       <div>
-        <p class="eyebrow">Permission model</p>
-        <h2>Route metadata controls access</h2>
+        <p class="eyebrow">{{ t("text.permissionModel") }}</p>
+        <h2>{{ translateText("Route metadata controls access") }}</h2>
         <p>
           Permissions shown here mirror the current role-protected routes and
           account settings behavior.
@@ -99,7 +117,7 @@ import {
     </UCard>
 
     <DashboardDataTable
-      title="Permission Matrix"
+      :title="t('text.permissionMatrix')"
       icon="i-lucide-lock-keyhole"
       description="Allowed and blocked capabilities by dashboard role"
       :columns="adminPermissionColumns"
@@ -121,24 +139,48 @@ import {
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
 }
 
-.permission-stat-grid {
+.admin-panel-card,
+.admin-summary-card,
+.permission-module-card {
+  border: 1px solid var(--ui-border);
+  box-shadow: none;
+}
+
+.admin-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
+}
+
+.permission-stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 1rem;
 }
 
-.permission-stat-grid div,
+.admin-card-heading,
+.permission-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 8px;
+  background: var(--ui-bg-elevated);
+  color: var(--ui-color-primary-700);
+}
+
+.permission-stat-card,
 .permission-role,
 .permission-module-card dl div {
   border: 1px solid var(--ui-border);
   border-radius: 8px;
   padding: 0.9rem;
-}
-
-.permission-stat-grid svg {
-  color: var(--ui-color-primary-700);
-  font-size: 1.2rem;
 }
 
 .permission-stat-grid span,
@@ -168,12 +210,13 @@ import {
   line-height: 1.45;
 }
 
-.permission-role-card {
-  background: linear-gradient(
-    145deg,
-    rgba(10, 56, 104, 0.06),
-    rgba(245, 158, 11, 0.08)
-  );
+.permission-role {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.permission-role:first-of-type {
+  margin-top: 1rem;
 }
 
 .permission-role + .permission-role {
@@ -199,17 +242,6 @@ import {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
-}
-
-.permission-route-banner > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 8px;
-  background: rgba(10, 56, 104, 0.08);
-  color: var(--ui-color-primary-700);
 }
 
 .permission-route-banner h2 {

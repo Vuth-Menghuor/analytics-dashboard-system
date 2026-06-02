@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import PageHeader from "~/components/common/PageHeader.vue";
 import { useProfilePage } from "~/composables/profile/useProfilePage";
 
 const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
   useProfilePage();
+const { translateText } = useTranslateText();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -30,7 +33,7 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
               <div class="hero-name-row">
                 <h2 class="hero-name">{{ profile.name }}</h2>
                 <UBadge color="primary" variant="soft" size="sm">
-                  {{ profile.role ?? "User" }}
+                  {{ translateText(profile.role ?? "User") }}
                 </UBadge>
               </div>
               <p class="hero-email">{{ profile.email }}</p>
@@ -43,14 +46,14 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
               color="neutral"
               variant="soft"
               size="sm"
-              label="Security"
+              :label="t('text.security')"
             />
             <UButton
               icon="i-lucide-log-out"
               color="error"
               variant="solid"
               size="sm"
-              label="Log out"
+              :label="t('common.logout')"
               @click="handleLogout"
             />
           </div>
@@ -63,8 +66,8 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
         <UCard>
           <template #header>
             <CardHeader
-              title="Account Information"
-              description="Basic details linked to your account."
+              :title="t('text.accountInformation')"
+              :description="t('text.basicAccountDetails')"
             />
           </template>
 
@@ -74,8 +77,8 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
                 <UIcon :name="item.icon" />
               </div>
               <div class="info-text">
-                <span class="info-label">{{ item.label }}</span>
-                <strong class="info-value">{{ item.value }}</strong>
+                <span class="info-label">{{ translateText(item.label) }}</span>
+                <strong class="info-value">{{ translateText(item.value) }}</strong>
               </div>
             </li>
           </ul>
@@ -85,8 +88,8 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
         <UCard>
           <template #header>
             <CardHeader
-              title="Security"
-              description="Keep your account safe and protected."
+              :title="t('text.security')"
+              :description="translateText('Keep your account safe and protected.')"
             />
           </template>
 
@@ -97,14 +100,14 @@ const { avatarInitial, handleLogout, infoItems, profile, securityItems } =
               class="security-item"
             >
               <div class="security-text">
-                <strong>{{ item.title }}</strong>
-                <span>{{ item.description }}</span>
+                <strong>{{ translateText(item.title) }}</strong>
+                <span>{{ translateText(item.description) }}</span>
               </div>
               <UButton
                 :color="item.color"
                 variant="soft"
                 size="xs"
-                :label="item.actionLabel"
+                :label="String(translateText(item.actionLabel))"
                 @click="item.action === 'logout' ? handleLogout() : undefined"
               />
             </li>

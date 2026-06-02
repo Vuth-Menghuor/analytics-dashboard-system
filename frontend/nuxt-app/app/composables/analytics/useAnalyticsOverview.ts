@@ -1,6 +1,5 @@
 import type { EChartsOption } from "echarts";
-import { useDashboardData } from "~/composables/dashboard/useDashboardData";
-import { analyticsOverviewPeriods, recentCourseColumns } from "~/constants/analytics";
+import { recentCourseColumns } from "~/constants/analytics";
 import { appColors } from "~/constants/colors";
 import { api } from "~/services/api";
 import type { ImportedMetric, ImportedOverview, RecentCourse, TopCategory } from "~/types/analytics";
@@ -25,14 +24,11 @@ const formatCourseDate = (value: string | null) => {
 };
 
 export const useAnalyticsOverview = () => {
-  const { metrics, weeklyTraffic } = useDashboardData();
-
-  const importedMetrics = ref<ImportedMetric[]>(metrics);
+  const importedMetrics = ref<ImportedMetric[]>([]);
   const topCategories = ref<TopCategory[]>([]);
   const recentCourses = ref<RecentCourse[]>([]);
   const isLoading = ref(true);
   const loadError = ref("");
-  const analyticsPeriod = ref<(typeof analyticsOverviewPeriods)[number]>("Last 7 days");
 
   const categoryPeakCourses = computed(() =>
     Math.max(...topCategories.value.map((category) => category.coursecount), 0),
@@ -127,75 +123,6 @@ export const useAnalyticsOverview = () => {
     ],
   }));
 
-  const weeklyActivityOption = computed<EChartsOption>(() => ({
-    color: [appColors.success],
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "line",
-        lineStyle: { color: appColors.success, width: 1, type: "dashed" },
-      },
-      backgroundColor: appColors.white,
-      borderColor: appColors.axis,
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: [10, 12],
-      textStyle: { color: appColors.ink, fontSize: 12 },
-      extraCssText: `box-shadow: ${tooltipShadow};`,
-    },
-    grid: { top: 18, right: 18, bottom: 18, left: 12, containLabel: true },
-    xAxis: {
-      type: "category",
-      data: weeklyTraffic.map((point) => point.label),
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: appColors.axis } },
-      axisTick: { show: false },
-      axisLabel: { color: appColors.secondary, fontSize: 12 },
-    },
-    yAxis: {
-      type: "value",
-      max: 100,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: appColors.secondary, fontSize: 12, formatter: "{value}%" },
-      splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
-    },
-    series: [
-      {
-        name: "Activity",
-        type: "line",
-        smooth: true,
-        showSymbol: true,
-        symbol: "circle",
-        symbolSize: 7,
-        lineStyle: { width: 3, color: appColors.success },
-        itemStyle: {
-          color: appColors.white,
-          borderColor: appColors.success,
-          borderWidth: 2,
-        },
-        areaStyle: {
-          color: {
-            type: "linear",
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: "rgba(15, 139, 87, 0.22)" },
-              { offset: 1, color: "rgba(15, 139, 87, 0)" },
-            ],
-          },
-        },
-        emphasis: {
-          focus: "series",
-          itemStyle: { color: appColors.success },
-        },
-        data: weeklyTraffic.map((point) => point.value),
-      },
-    ],
-  }));
-
   onMounted(async () => {
     try {
       const { data } = await api.get<ImportedOverview>("/analytics/imported/overview");
@@ -211,8 +138,6 @@ export const useAnalyticsOverview = () => {
   });
 
   return {
-    analyticsPeriod,
-    analyticsPeriods: [...analyticsOverviewPeriods],
     categoryChartHeight,
     categoryOption,
     importedMetrics,
@@ -221,6 +146,5 @@ export const useAnalyticsOverview = () => {
     recentCourseColumns,
     recentCourseRows,
     topCategories,
-    weeklyActivityOption,
   };
 };

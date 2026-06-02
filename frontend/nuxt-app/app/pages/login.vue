@@ -13,6 +13,8 @@ const {
   selectedRole,
   selectedRoleConfig,
 } = useLoginForm();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -20,8 +22,8 @@ const {
     <section class="login-hero" aria-labelledby="login-hero-title">
       <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
-        <h1 id="login-hero-title">The simplest way to manage your analytics workspace</h1>
-        <p>Enter your credentials to access your account.</p>
+        <h1 id="login-hero-title">{{ t("auth.heroTitle") }}</h1>
+        <p>{{ t("auth.heroDescription") }}</p>
       </div>
 
       <div class="showcase-context">
@@ -37,8 +39,8 @@ const {
     <section class="auth-panel login-card">
       <template v-if="isRoleLanding">
         <div class="auth-header">
-          <h2>Choose your access type</h2>
-          <p>Select the role that best matches how you use the dashboard.</p>
+          <h2>{{ t("auth.accessType") }}</h2>
+          <p>{{ t("auth.accessTypeDescription") }}</p>
         </div>
 
         <div class="access-role-list" aria-label="Access types">
@@ -66,37 +68,39 @@ const {
 
       <template v-else>
         <div class="auth-header">
-          <span class="auth-step-meta">{{ selectedRole }} access</span>
-          <h2>{{ selectedRoleConfig.label }} Login</h2>
+          <span class="auth-step-meta">
+            {{ t("auth.roleAccess", { role: selectedRole }) }}
+          </span>
+          <h2>{{ t("auth.roleLogin", { role: selectedRoleConfig.label }) }}</h2>
           <p>
             {{
               selectedRole === "manager"
-                ? "Sign in with your system administrator account."
-                : "Sign in with your approved account."
+                ? t("auth.managerLoginDescription")
+                : t("auth.standardLoginDescription")
             }}
           </p>
         </div>
 
         <div v-if="selectedRole !== 'manager'" class="auth-mode-links">
           <NuxtLink :to="`/login?role=${selectedRole}`" class="active">
-            I already have an account
+            {{ t("auth.alreadyHaveAccount") }}
           </NuxtLink>
           <NuxtLink :to="`/signup?role=${selectedRole}`">
             {{
               selectedRole === "partner"
-                ? "Create Partner Account"
-                : "Create Account"
+                ? t("auth.createPartnerAccount")
+                : t("auth.createAccount")
             }}
           </NuxtLink>
         </div>
 
         <form class="auth-form" @submit.prevent="handleLogin">
-          <UFormField label="Email" class="field">
+          <UFormField :label="t('auth.email')" class="field">
             <UInput
               v-model="form.email"
               class="w-full"
               type="email"
-              :placeholder="selectedRoleConfig.email"
+              placeholder="Enter email address"
               autocomplete="email"
               required
             />
@@ -104,8 +108,8 @@ const {
 
           <AuthPasswordField
             v-model="form.password"
-            label="Password"
-            :placeholder="selectedRoleConfig.password"
+            :label="t('auth.password')"
+            placeholder="Enter password"
             autocomplete="current-password"
             required
           />
@@ -113,9 +117,11 @@ const {
           <div class="auth-form-row">
             <label class="remember-control">
               <input v-model="form.remember" type="checkbox" />
-              <span>Remember me</span>
+              <span>{{ t("auth.rememberMe") }}</span>
             </label>
-            <NuxtLink class="auth-link" to="/login">Forgot password?</NuxtLink>
+            <NuxtLink class="auth-link" to="/login">
+              {{ t("auth.forgotPassword") }}
+            </NuxtLink>
           </div>
 
           <p v-if="auth.error" class="form-error">{{ auth.error }}</p>
@@ -126,12 +132,12 @@ const {
             type="submit"
             size="lg"
             :loading="auth.isLoading"
-            :label="auth.isLoading ? 'Signing in...' : 'Sign In'"
+            :label="auth.isLoading ? t('auth.signingIn') : t('auth.signIn')"
           />
         </form>
 
         <p class="auth-switch-copy">
-          <NuxtLink to="/login">Back to access type</NuxtLink>
+          <NuxtLink to="/login">{{ t("auth.backToAccessType") }}</NuxtLink>
         </p>
       </template>
 

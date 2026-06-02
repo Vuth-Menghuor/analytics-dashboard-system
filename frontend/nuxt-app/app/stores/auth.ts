@@ -1,127 +1,154 @@
-import { AxiosError } from 'axios'
-import { api } from '~/services/api'
-import type { AuthUser } from '~/types/auth'
+import { AxiosError } from "axios";
+import { api } from "~/services/api";
+import type { AuthUser } from "~/types/auth";
 
 type LoginPayload = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
-export const useAuthStore = defineStore('auth', () => {
-  const token = useCookie<string | null>('auth_token', { sameSite: 'lax' })
-  const userCookie = useCookie<AuthUser | null>('auth_user', { sameSite: 'lax' })
+type RegisterVisitorPayload = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+};
 
-  const user = ref<AuthUser | null>(userCookie.value)
-  const isLoading = ref(false)
-  const error = ref('')
+const getDashboardPath = (nextUser: AuthUser | null) => {
+  if (nextUser?.role === "manager") {
+    return "/manager/dashboard";
+  }
 
-  const isAuthenticated = computed(() => Boolean(token.value && user.value))
+  if (nextUser?.role === "partner") {
+    return "/partner/dashboard";
+  }
 
-  const roleDashboardPath = computed(() => {
-    if (user.value?.role === 'manager') {
-      return '/manager/dashboard'
-    }
+  return "/visitor/dashboard";
+};
 
-    if (user.value?.role === 'partner') {
-      return '/partner/dashboard'
-    }
+export const useAuthStore = defineStore("auth", () => {
+  const token = useCookie<string | null>("auth_token", {
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+  });
 
-    return '/visitor/dashboard'
-  })
+  const userCookie = useCookie<AuthUser | null>("auth_user", {
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  const user = ref<AuthUser | null>(userCookie.value);
+  const isLoading = ref(false);
+  const error = ref("");
+
+  const isAuthenticated = computed(() => Boolean(token.value && user.value));
+
+  const roleDashboardPath = computed(() => getDashboardPath(user.value));
 
   const setSession = (nextToken: string, nextUser: AuthUser) => {
-    token.value = nextToken
-    user.value = nextUser
-    userCookie.value = nextUser
-  }
+    token.value = nextToken;
+    user.value = nextUser;
+    userCookie.value = nextUser;
+  };
 
   const refreshSession = () => {
     if (userCookie.value) {
-      user.value = userCookie.value
+      user.value = userCookie.value;
     }
-  }
+  };
 
   const updateLocalUser = (payload: Partial<AuthUser>) => {
     if (!user.value) {
-      return
+      return;
     }
 
     const nextUser = {
       ...user.value,
-      ...payload
-    }
+      ...payload,
+    };
 
-    user.value = nextUser
-    userCookie.value = nextUser
-  }
-
-  const dashboardPathFor = (nextUser: AuthUser | null) => {
-    if (nextUser?.role === 'manager') {
-      return '/manager/dashboard'
-    }
-
-    if (nextUser?.role === 'partner') {
-      return '/partner/dashboard'
-    }
-
-    return '/visitor/dashboard'
-  }
+    user.value = nextUser;
+    userCookie.value = nextUser;
+  };
 
   const login = async (payload: LoginPayload) => {
-    isLoading.value = true
-    error.value = ''
+    isLoading.value = true;
+    error.value = "";
 
     try {
-      const { data } = await api.post<{ token: string; user: AuthUser }>('/login', payload)
+      const { data } = await api.post<{ token: string; user: AuthUser }>(
+        "/login",
+        payload,
+      );
 
-      setSession(data.token, data.user)
+      setSession(data.token, data.user);
 
-      return data.user
+      return data.user;
     } catch (err) {
       if (err instanceof AxiosError && err.response?.status === 422) {
-        error.value = 'Email or password is incorrect.'
+        error.value = "Email or password is incorrect.";
       } else {
-        error.value = 'Unable to sign in right now.'
+        error.value = "Unable to sign in right now.";
       }
 
-      throw err
+      throw err;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
-  }
+  };
 
-  const createVisitorSession = (name: string, email: string) => {
-    setSession(`visitor-local-${Date.now()}`, {
-      id: Date.now(),
-      name,
-      email,
-      role: 'visitor'
-    })
-  }
+  const registerVisitor = async (payload: RegisterVisitorPayload) => {
+    isLoading.value = true;
+    error.value = "";
+
+    try {
+      const { data } = await api.post<{ token: string; user: AuthUser }>(
+        "/register",
+        {
+          ...payload,
+          role: "visitor",
+        },
+      );
+
+      setSession(data.token, data.user);
+
+      return data.user;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 422) {
+        error.value = "Please check the visitor account details.";
+      } else {
+        error.value = "Unable to create visitor account right now.";
+      }
+
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
 
   const logout = async () => {
     try {
       if (token.value) {
-        await api.post('/logout')
+        await api.post("/logout");
       }
     } finally {
-      token.value = null
-      user.value = null
-      userCookie.value = null
+      token.value = null;
+      user.value = null;
+      userCookie.value = null;
     }
-  }
+  };
 
   return {
-    createVisitorSession,
-    dashboardPathFor,
+    dashboardPathFor: getDashboardPath,
     error,
     isAuthenticated,
     isLoading,
     login,
     logout,
+    registerVisitor,
     refreshSession,
     roleDashboardPath,
     updateLocalUser,
-    user
-  }
-})
+    user,
+  };
+});

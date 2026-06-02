@@ -10,20 +10,14 @@ export const loginRoleConfigByValue: Record<LoginRole, LoginRoleConfig> = {
   manager: {
     label: "Manager",
     value: "manager",
-    email: "manager@example.com",
-    password: "password",
   },
   partner: {
     label: "Partner",
     value: "partner",
-    email: "partner@example.com",
-    password: "password",
   },
   visitor: {
     label: "Visitor",
     value: "visitor",
-    email: "visitor@example.com",
-    password: "password",
   },
 };
 
@@ -60,9 +54,12 @@ export const stateProvinceOptions = [
 ];
 
 export const schoolInstituteOptions = [
-  "Institute of Technology of Cambodia",
-  "Royal University of Phnom Penh",
-  "National University of Management",
-  "Royal University of Law and Economics",
-  "Cambodia Academy of Digital Technology",
+  "ITC",
+  "RUPP",
+  "NUM",
+  "RUA",
+  "SRU",
+  "UHST",
+  "AEU",
+  "NUBB",
 ];

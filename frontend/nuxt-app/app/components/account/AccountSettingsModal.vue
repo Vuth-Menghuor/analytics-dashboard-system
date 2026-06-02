@@ -29,23 +29,25 @@ const {
   initialSection: toRef(props, "initialSection"),
   open,
 });
+
+const { t } = useI18n();
 </script>
 
 <template>
   <UModal
     v-model:open="open"
-    title="Account settings"
-    description="Manage dashboard account details."
+    :title="t('account.accountSettings')"
+    :description="t('account.accountSettingsDescription')"
     :ui="{
       content:
-        'w-[90vw] max-w-[1080px] overflow-hidden rounded-md bg-white ring-1 ring-slate-200',
+        'w-[90vw] max-w-[1080px] overflow-hidden rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] ring-1 ring-[var(--app-border)]',
       body: '!overflow-hidden !p-0 sm:!p-0',
       header: 'hidden',
     }"
   >
     <template #body="{ close }">
       <div
-        class="grid h-[760px] max-h-[90vh] bg-[#f5f7fb] text-[#172033] lg:grid-cols-[280px_minmax(0,1fr)]"
+        class="account-settings-root grid h-[760px] max-h-[90vh] bg-[var(--app-bg)] text-[var(--app-text)] lg:grid-cols-[280px_minmax(0,1fr)]"
       >
         <AccountSettingsSidebar
           v-model:active-section="activeSection"
@@ -58,7 +60,9 @@ const {
           :user-initial="userInitial"
         />
 
-        <main class="grid min-h-0 grid-rows-[minmax(0,1fr)_auto]">
+        <main
+          class="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[var(--app-bg)]"
+        >
           <div class="settings-scrollbar min-h-0 overflow-y-auto">
             <Transition name="settings-fade" mode="out-in">
               <AccountSettingsOverview
@@ -102,18 +106,18 @@ const {
           </div>
 
           <footer
-            class="flex justify-end gap-2 border-t border-slate-200 bg-white px-6 py-4"
+            class="flex justify-end gap-2 border-t border-[var(--app-border)] bg-[var(--app-surface)] px-6 py-4"
           >
             <UButton
               color="neutral"
               variant="outline"
-              label="Cancel"
+              :label="t('common.cancel')"
               class="rounded-md"
               @click="isDiscardOpen = true"
             />
             <UButton
               icon="i-lucide-save"
-              label="Save Changes"
+              :label="t('common.saveChanges')"
               class="rounded-md bg-primary hover:bg-primary-hover"
               @click="saveAndClose(close)"
             />

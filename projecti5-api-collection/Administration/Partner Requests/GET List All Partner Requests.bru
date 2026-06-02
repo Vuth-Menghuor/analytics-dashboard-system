@@ -1,0 +1,20 @@
+meta {
+  name: GET List All Partner Requests
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://127.0.0.1:8000/api/admin/partner-requests?page=1&perPage=10
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{manager_token}}
+}
+
+settings {
+  encodeUrl: true
+}

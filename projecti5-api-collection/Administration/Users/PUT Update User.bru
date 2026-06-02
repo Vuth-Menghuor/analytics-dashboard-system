@@ -1,0 +1,30 @@
+meta {
+  name: PUT Update User
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://127.0.0.1:8000/api/admin/users/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{manager_token}}
+}
+
+body:json {
+  {
+    "name": "Updated User",
+    "email": "updated.user@example.com",
+    "role": "partner",
+    "institution_name": "ITC"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -3,6 +3,15 @@ import type { Student } from "~/types/analytics";
 
 export const useStudents = () => {
   const students = ref<Student[]>([]);
+
+  const pagination = ref({
+    currentPage: 1,
+    perPage: 10,
+    total: 0,
+    lastPage: 1,
+  });
+
+  let latestRequestId = 0;
   const isLoading = ref(true);
   const error = ref("");
 
@@ -15,35 +24,101 @@ export const useStudents = () => {
     status: "All statuses",
   });
 
+  const getStudentQuery = () => ({
+    search: filters.query.trim() || undefined,
+    institution:
+      filters.institute === "All institutes" ? undefined : filters.institute,
+    department:
+      filters.department === "All departments" ? undefined : filters.department,
+    city: filters.city === "All cities" ? undefined : filters.city,
+    gender: filters.gender === "All genders" ? undefined : filters.gender,
+    status: filters.status === "All statuses" ? undefined : filters.status,
+  });
+
   const refresh = async () => {
+    const requestId = ++latestRequestId;
+
     isLoading.value = true;
     error.value = "";
 
     try {
-      students.value = await getStudents();
+      const response = await getStudents({
+        ...getStudentQuery(),
+        page: pagination.value.currentPage,
+        perPage: pagination.value.perPage,
+      });
+
+      if (requestId === latestRequestId) {
+        students.value = response.data;
+        pagination.value = response.meta;
+      }
     } catch {
-      error.value = "Unable to load students.";
+      if (requestId === latestRequestId) {
+        error.value = "Unable to load students.";
+      }
     } finally {
-      isLoading.value = false;
+      if (requestId === latestRequestId) {
+        isLoading.value = false;
+      }
     }
   };
 
-  const filteredStudents = computed(() => {
-    const query = filters.query.trim().toLowerCase();
+  const refreshFromFirstPage = () => {
+    pagination.value.currentPage = 1;
+    refresh();
+  };
 
-    return students.value.filter((student) => {
-      const matchesQuery = !query || [student.name, student.email, student.username].some((value) => value.toLowerCase().includes(query));
-      const matchesInstitute = filters.institute === "All institutes" || student.institute === filters.institute;
-      const matchesDepartment = filters.department === "All departments" || student.department === filters.department;
-      const matchesCity = filters.city === "All cities" || student.city === filters.city;
-      const matchesGender = filters.gender === "All genders" || student.gender === filters.gender;
-      const matchesStatus = filters.status === "All statuses" || student.status === filters.status;
+  watch(
+    () => [
+      filters.institute,
+      filters.department,
+      filters.city,
+      filters.gender,
+      filters.status,
+    ],
+    refreshFromFirstPage,
+  );
 
-      return matchesQuery && matchesInstitute && matchesDepartment && matchesCity && matchesGender && matchesStatus;
-    });
-  });
+  const applySearch = (query: string) => {
+    filters.query = query;
+    refreshFromFirstPage();
+  };
+
+  const setPage = (page: number) => {
+    const nextPage = Math.min(
+      Math.max(page, 1),
+      Math.max(pagination.value.lastPage, 1),
+    );
+
+    if (nextPage === pagination.value.currentPage) {
+      return;
+    }
+
+    pagination.value.currentPage = nextPage;
+    refresh();
+  };
+
+  const setPerPage = (perPage: number) => {
+    if (perPage === pagination.value.perPage) {
+      return;
+    }
+
+    pagination.value.currentPage = 1;
+    pagination.value.perPage = perPage;
+    refresh();
+  };
 
   onMounted(refresh);
 
-  return { error, filteredStudents, filters, isLoading, refresh, students };
+  return {
+    error,
+    filters,
+    isLoading,
+    pagination,
+    applySearch,
+    refresh,
+    setPage,
+    setPerPage,
+    students,
+  };
 };

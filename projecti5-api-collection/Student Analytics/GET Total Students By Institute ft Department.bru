@@ -1,0 +1,20 @@
+meta {
+  name: GET Total Students By Institute ft Department
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://127.0.0.1:8000/api/dashboard/students/by-department
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer aV9WpWVwOMx5l12UMj0oerYpk28IKFc7bgmQQTSe2d57570b
+}
+
+settings {
+  encodeUrl: true
+}

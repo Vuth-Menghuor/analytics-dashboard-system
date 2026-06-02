@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AnalyticsWorkspacePage from "~/components/dashboard/AnalyticsWorkspacePage.vue";
+import UserActivityPage from "~/components/activity/UserActivityPage.vue";
 
 definePageMeta({
   middleware: ["role"],
@@ -8,5 +8,5 @@ definePageMeta({
 </script>
 
 <template>
-  <AnalyticsWorkspacePage page-key="activity" />
+  <UserActivityPage />
 </template>

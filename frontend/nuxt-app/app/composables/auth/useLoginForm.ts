@@ -14,8 +14,8 @@ export const useLoginForm = () => {
 
   const selectedRole = ref<LoginRole>(routeRole.value || "manager");
   const form = reactive({
-    email: loginRoleConfigByValue[selectedRole.value].email,
-    password: loginRoleConfigByValue[selectedRole.value].password,
+    email: "",
+    password: "",
     remember: false,
   });
 
@@ -31,10 +31,6 @@ export const useLoginForm = () => {
 
   const selectRole = (role: LoginRole) => {
     selectedRole.value = role;
-    const nextRole = loginRoleConfigByValue[role];
-
-    form.email = nextRole.email;
-    form.password = nextRole.password;
     auth.error = "";
   };
 

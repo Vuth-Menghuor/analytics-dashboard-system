@@ -1,14 +1,30 @@
 import {
-  courseActivityTrendLabels,
-  courseActivityTrendSeed,
   courseCategoryAllOption,
-  courseInstituteAllOption,
   courseStatusOptions,
   courseTableColumns,
 } from "~/constants/courseAnalytics";
-import type { AnalyticsChart, AnalyticsTable, Course } from "~/types/analytics";
+import type { AnalyticsChart, AnalyticsTable } from "~/types/analytics";
+import type { Metric } from "~/types/dashboard";
+import { appColors } from "~/constants/colors";
+import {
+  getCourseCompletion,
+  getCourseViews,
+  getPopularCourses,
+  type CourseCompletionApi,
+  type CourseViewsApi,
+  type PopularCourseApi,
+} from "~/services/analytics.service";
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) =>
+  Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error("Request timed out")), timeoutMs);
+    }),
+  ]);
 
 export const useCourseAnalyticsView = () => {
+  const auth = useAuthStore();
   const {
     courses,
     error,
@@ -16,16 +32,58 @@ export const useCourseAnalyticsView = () => {
     filters,
     isLoading,
     refresh,
-    selectedCourse,
   } = useCourses();
+  const popularCourses = ref<PopularCourseApi[]>([]);
+  const completionCourses = ref<CourseCompletionApi[]>([]);
+  const viewedCourses = ref<CourseViewsApi[]>([]);
+  const chartError = ref("");
+  const chartsLoading = ref(true);
+  const currentPage = ref(1);
+  const perPage = ref(10);
+  const partnerInstituteLabel = computed(() =>
+    auth.user?.role === "partner" && auth.user.institution_name
+      ? `Institute: ${auth.user.institution_name}`
+      : "",
+  );
+
+  const loadLiveCourseCharts = async () => {
+    chartsLoading.value = true;
+    chartError.value = "";
+
+    const [popular, completion, views] = await Promise.allSettled([
+      getPopularCourses(),
+      getCourseCompletion(),
+      withTimeout(getCourseViews(), 8000),
+    ]);
+
+    if (popular.status === "fulfilled") {
+      popularCourses.value = popular.value;
+    }
+
+    if (completion.status === "fulfilled") {
+      completionCourses.value = completion.value;
+    }
+
+    if (views.status === "fulfilled") {
+      viewedCourses.value = views.value;
+    }
+
+    if (
+      popular.status === "rejected" &&
+      completion.status === "rejected" &&
+      views.status === "rejected"
+    ) {
+      chartError.value = "Unable to load live course charts.";
+    }
+
+    chartsLoading.value = false;
+  };
+
+  onMounted(loadLiveCourseCharts);
 
   const categories = computed(() => [
     courseCategoryAllOption,
     ...new Set(courses.value.map((course) => course.category)),
-  ]);
-  const institutes = computed(() => [
-    courseInstituteAllOption,
-    ...new Set(courses.value.map((course) => course.institute)),
   ]);
 
   const visibleCourses = computed(() =>
@@ -34,119 +92,175 @@ export const useCourseAnalyticsView = () => {
   const hiddenCourses = computed(() =>
     courses.value.filter((course) => course.status === "Hidden"),
   );
-  const topCourse = computed(
-    () => [...courses.value].sort((a, b) => b.views - a.views)[0] ?? null,
-  );
   const totalEnrollments = computed(() =>
     courses.value.reduce((sum, course) => sum + course.enrolled, 0),
   );
   const totalCompleted = computed(() =>
     courses.value.reduce((sum, course) => sum + course.completed, 0),
   );
-  const totalViews = computed(() =>
-    courses.value.reduce((sum, course) => sum + course.views, 0),
-  );
-  const averageCompletion = computed(() => {
-    if (!courses.value.length) {
-      return 0;
-    }
-
-    return Math.round(
-      courses.value.reduce((sum, course) => sum + course.completionRate, 0) /
-        courses.value.length,
-    );
-  });
   const completionGap = computed(() =>
     Math.max(totalEnrollments.value - totalCompleted.value, 0),
   );
 
-  const courseSummaryItems = computed(() => [
+  const courseSummaryItems = computed<Metric[]>(() => [
+    {
+      label: "Total Courses",
+      value: courses.value.length.toLocaleString(),
+      trend: "Imported Moodle courses",
+      icon: "BookOpen",
+      color: appColors.purple,
+    },
     {
       label: "Visible Courses",
       value: visibleCourses.value.length.toLocaleString(),
-      detail: `${hiddenCourses.value.length} hidden course shells`,
-      icon: "i-lucide-book-open-check",
+      trend: "Available to learners",
+      icon: "Eye",
+      color: appColors.success,
     },
     {
-      label: "Enrollments",
+      label: "Hidden Courses",
+      value: hiddenCourses.value.length.toLocaleString(),
+      trend: "Hidden Moodle course shells",
+      icon: "EyeOff",
+      color: appColors.warning,
+    },
+    {
+      label: "Total Enrollments",
       value: totalEnrollments.value.toLocaleString(),
-      detail: `${totalCompleted.value.toLocaleString()} completed learners`,
-      icon: "i-lucide-users",
+      trend: "Distinct enrolled learners",
+      icon: "Users",
+      color: appColors.primaryHover,
     },
     {
-      label: "Avg. Completion",
-      value: `${averageCompletion.value}%`,
-      detail: `${completionGap.value.toLocaleString()} learners in progress`,
-      icon: "i-lucide-circle-check-big",
-    },
-    {
-      label: "Course Views",
-      value: totalViews.value.toLocaleString(),
-      detail: topCourse.value?.shortName ?? "No active course",
-      icon: "i-lucide-trending-up",
+      label: "Total Completions",
+      value: totalCompleted.value.toLocaleString(),
+      trend: `${completionGap.value.toLocaleString()} learners in progress`,
+      icon: "Check",
+      color: appColors.success,
     },
   ]);
 
-  const courseHealthItems = computed(() =>
-    [...filteredCourses.value]
-      .sort((a, b) => a.completionRate - b.completionRate)
-      .slice(0, 3),
+  const pagination = computed(() => {
+    const total = filteredCourses.value.length;
+    const lastPage = Math.max(Math.ceil(total / perPage.value), 1);
+
+    return {
+      currentPage: Math.min(currentPage.value, lastPage),
+      perPage: perPage.value,
+      total,
+      lastPage,
+    };
+  });
+
+  const paginatedCourses = computed(() => {
+    const start = (pagination.value.currentPage - 1) * pagination.value.perPage;
+
+    return filteredCourses.value.slice(start, start + pagination.value.perPage);
+  });
+
+  const paginationLabel = computed(() => {
+    if (pagination.value.total === 0) {
+      return "No courses found";
+    }
+
+    const start =
+      (pagination.value.currentPage - 1) * pagination.value.perPage + 1;
+    const end = Math.min(
+      pagination.value.currentPage * pagination.value.perPage,
+      pagination.value.total,
+    );
+
+    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${pagination.value.total.toLocaleString()}`;
+  });
+
+  const goToPage = (page: number) => {
+    currentPage.value = Math.min(Math.max(page, 1), pagination.value.lastPage);
+  };
+
+  const setPerPage = (nextPerPage: number) => {
+    perPage.value = nextPerPage;
+    currentPage.value = 1;
+  };
+
+  watch(
+    () => ({ ...filters }),
+    () => {
+      currentPage.value = 1;
+    },
   );
 
-  const charts = computed<AnalyticsChart[]>(() => [
-    {
-      title: "Enrollment by Course",
-      description: "Ranked courses based on current enrollment records",
-      icon: "i-lucide-users",
-      type: "horizontalBar",
-      labels: filteredCourses.value.map((course) => course.shortName),
-      series: [
-        {
-          name: "Enrollments",
-          data: filteredCourses.value.map((course) => course.enrolled),
-        },
-      ],
+  watch(
+    () => pagination.value.lastPage,
+    (lastPage) => {
+      if (currentPage.value > lastPage) {
+        currentPage.value = lastPage;
+      }
     },
-    {
-      title: "Completion Rate",
-      description: "Completion percentage for each filtered course",
-      icon: "i-lucide-check-circle-2",
-      type: "bar",
-      labels: filteredCourses.value.map((course) => course.shortName),
-      series: [
-        {
-          name: "Completion",
-          data: filteredCourses.value.map((course) => course.completionRate),
-        },
-      ],
-    },
-    {
-      title: "Activity Trend",
-      description: "Monthly course view trend across the catalog",
-      icon: "i-lucide-trending-up",
-      type: "line",
-      labels: courseActivityTrendLabels,
-      series: [
-        {
-          name: "Views",
-          data: [...courseActivityTrendSeed, totalViews.value],
-        },
-      ],
-    },
-    {
-      title: "Visibility Mix",
-      description: "Visible courses compared with hidden course shells",
-      icon: "i-lucide-eye",
-      type: "donut",
-      labels: ["Visible", "Hidden"],
-      series: [
-        {
-          name: "Courses",
-          data: [visibleCourses.value.length, hiddenCourses.value.length],
-        },
-      ],
-    },
-  ]);
+  );
+
+  const charts = computed<AnalyticsChart[]>(() => {
+    const chartItems: AnalyticsChart[] = [
+      {
+        title: "Popular Courses",
+        description: "Top courses by total enrollments",
+        icon: "i-lucide-users",
+        type: "horizontalBar",
+        labels: popularCourses.value.map((course) => course.courseName),
+        series: [
+          {
+            name: "Enrollments",
+            data: popularCourses.value.map((course) => course.totalEnrollments),
+          },
+        ],
+      },
+      {
+        title: "Course Completion Rate",
+        description: "Top courses by course completion percentage",
+        icon: "i-lucide-check-circle-2",
+        type: "bar",
+        labels: completionCourses.value.map((course) => course.courseName),
+        series: [
+          {
+            name: "Completion",
+            data: completionCourses.value.map(
+              (course) => course.completionRatePercentage,
+            ),
+          },
+        ],
+      },
+      {
+        title: "Visible vs Hidden Courses",
+        description: "Visible courses compared with hidden course shells",
+        icon: "i-lucide-eye",
+        type: "donut",
+        labels: ["Visible", "Hidden"],
+        series: [
+          {
+            name: "Courses",
+            data: [visibleCourses.value.length, hiddenCourses.value.length],
+          },
+        ],
+      },
+    ];
+
+    if (viewedCourses.value.length) {
+      chartItems.splice(2, 0, {
+        title: "Most Viewed Courses",
+        description: "Top courses by Moodle log views",
+        icon: "i-lucide-trending-up",
+        type: "horizontalBar",
+        labels: viewedCourses.value.map((course) => course.courseName),
+        series: [
+          {
+            name: "Views",
+            data: viewedCourses.value.map((course) => course.totalViews),
+          },
+        ],
+      });
+    }
+
+    return chartItems;
+  });
 
   const table = computed<AnalyticsTable>(() => ({
     title: "Course List",
@@ -155,44 +269,29 @@ export const useCourseAnalyticsView = () => {
       "Course records from mdl_course with enrollment, completion, visibility, and view activity.",
     rowKey: "id",
     columns: courseTableColumns,
-    rows: filteredCourses.value.map((course) => ({
+    rows: paginatedCourses.value.map((course) => ({
       ...course,
       completionRate: `${course.completionRate}%`,
-      action: course.id,
+      views: course.views.toLocaleString(),
     })),
   }));
 
-  const selectCourse = (id: string | number | boolean | null) => {
-    selectedCourse.value =
-      courses.value.find((course) => course.id === Number(id)) ?? null;
-  };
-
-  const completionTone = (course: Course) => {
-    if (course.completionRate >= 70) {
-      return "high";
-    }
-
-    if (course.completionRate >= 55) {
-      return "medium";
-    }
-
-    return "low";
-  };
-
   return {
     categories,
+    chartError,
     charts,
-    completionTone,
-    courseHealthItems,
+    chartsLoading,
     courseStatusOptions: [...courseStatusOptions],
     courseSummaryItems,
     error,
     filters,
-    institutes,
+    goToPage,
     isLoading,
+    pagination,
+    paginationLabel,
+    partnerInstituteLabel,
     refresh,
-    selectCourse,
-    selectedCourse,
+    setPerPage,
     table,
   };
 };

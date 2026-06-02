@@ -1,7 +1,14 @@
 <script setup lang="ts">
+import PageHeader from "~/components/common/PageHeader.vue";
 import { useReportsPage } from "~/composables/reports/useReportsPage";
 
-const { filters, filterOptions, table } = useReportsPage();
+const {
+  partnerInstituteLabel,
+  previewExport,
+  reportCards,
+  reportSummaryItems,
+} = useReportsPage();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -9,56 +16,79 @@ const { filters, filterOptions, table } = useReportsPage();
     <PageHeader
       eyebrow="Reporting"
       title="Reports"
-      copy="Generate filtered reports by date range, institute, course, and student status with export-ready placeholders."
+      copy="Review the export layout before backend export APIs are connected."
     >
-      <UButton icon="i-lucide-file-plus-2" label="Generate report" />
+      <div class="toolbar">
+        <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
+          {{ partnerInstituteLabel }}
+        </UBadge>
+        <UBadge color="warning" variant="soft">
+          Export UI only — backend export API later
+        </UBadge>
+      </div>
     </PageHeader>
 
-    <UCard :ui="{ body: 'analytics-filter-bar' }">
-      <div class="analytics-filter-field">
-        <label>Date range</label>
-        <USelect v-model="filters.range" :items="filterOptions.ranges" />
-      </div>
-      <div class="analytics-filter-field">
-        <label>Institute</label>
-        <USelect v-model="filters.institute" :items="filterOptions.institutes" />
-      </div>
-      <div class="analytics-filter-field">
-        <label>Course</label>
-        <USelect v-model="filters.course" :items="filterOptions.courses" />
-      </div>
-      <div class="analytics-filter-field">
-        <label>Student status</label>
-        <USelect v-model="filters.status" :items="filterOptions.statuses" />
-      </div>
-      <div class="toolbar report-export-actions">
-        <UButton color="neutral" variant="outline" icon="i-lucide-file-text" label="PDF" />
-        <UButton color="neutral" variant="outline" icon="i-lucide-table-2" label="Excel" />
-        <UButton color="neutral" variant="outline" icon="i-lucide-download" label="CSV" />
-      </div>
-    </UCard>
+    <section class="grid report-export-summary">
+      <UCard
+        v-for="item in reportSummaryItems"
+        :key="item.label"
+        as="article"
+        :ui="{ body: 'report-summary-card' }"
+      >
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+        <p>{{ item.detail }}</p>
+      </UCard>
+    </section>
+
+    <section class="report-export-grid">
+      <UCard
+        v-for="report in reportCards"
+        :key="report.key"
+        as="article"
+        class="analytics-card"
+        :ui="{ body: 'report-export-card' }"
+      >
+        <div class="report-export-icon">
+          <UIcon :name="report.icon" />
+        </div>
+        <div>
+          <h2>{{ report.title }}</h2>
+          <p>{{ report.description }}</p>
+        </div>
+        <div class="report-export-meta">
+          <UBadge color="neutral" variant="soft">{{ report.format }}</UBadge>
+          <UBadge color="warning" variant="soft">API later</UBadge>
+        </div>
+        <div class="toolbar">
+          <UButton
+            :to="report.route"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-eye"
+            label="View data"
+          />
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-download"
+            label="Export CSV"
+            @click="previewExport(report.key)"
+          />
+        </div>
+      </UCard>
+    </section>
 
     <UCard as="article" :ui="{ body: 'report-preview-card' }">
       <div>
-        <p class="eyebrow">Preview</p>
-        <h2>Moodle Learning Analytics Report</h2>
-        <p>Includes dashboard summary, activity trend, grade distribution, attendance status, and selected filters.</p>
+        <p class="eyebrow">{{ translateText("Preview") }}</p>
+        <h2>{{ translateText("Moodle Learning Analytics Report") }}</h2>
+        <p>
+          Export buttons are static UI controls for review. CSV generation will
+          be connected first; PDF can be added later if needed.
+        </p>
       </div>
-      <UBadge color="primary" variant="soft">POST /api/reports/export</UBadge>
+      <UBadge color="warning" variant="soft">Static preview</UBadge>
     </UCard>
-
-    <DashboardDataTable
-      :title="table.title"
-      :icon="table.icon"
-      :description="table.description"
-      :columns="table.columns"
-      :rows="table.rows"
-      :row-key="table.rowKey"
-      min-width="900px"
-    >
-      <template #cell-action>
-        <UButton size="sm" color="neutral" variant="outline" icon="i-lucide-download" label="Export" />
-      </template>
-    </DashboardDataTable>
   </div>
 </template>

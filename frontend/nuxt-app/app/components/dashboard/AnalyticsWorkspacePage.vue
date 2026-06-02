@@ -1,10 +1,18 @@
 <script setup lang="ts">
+import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
+import AnalyticsFilterBar from "~/components/common/AnalyticsFilterBar.vue";
+import StatePanel from "~/components/common/StatePanel.vue";
+import MetricCard from "~/components/common/MetricCard.vue";
+import PageHeader from "~/components/common/PageHeader.vue";
+import AnalyticsDataTable from "~/components/tables/AnalyticsDataTable.vue";
+
 const props = defineProps<{
   pageKey: string;
 }>();
 
 const { data, error, isLoading, refresh } = useAnalytics(props.pageKey);
 const filterValues = ref<Record<string, string>>({});
+const { t } = useI18n();
 </script>
 
 <template>
@@ -13,7 +21,7 @@ const filterValues = ref<Record<string, string>>({});
       v-if="isLoading"
       state="loading"
       title="Loading analytics"
-      description="Preparing mock Moodle data."
+      description="Preparing analytics data."
     />
     <StatePanel
       v-else-if="error || !data"
@@ -33,7 +41,7 @@ const filterValues = ref<Record<string, string>>({});
             color="neutral"
             variant="outline"
             icon="i-lucide-refresh-cw"
-            label="Refresh"
+            :label="t('text.refresh')"
             @click="refresh"
           />
         </div>

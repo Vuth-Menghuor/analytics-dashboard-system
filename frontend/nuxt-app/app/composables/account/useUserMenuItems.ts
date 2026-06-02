@@ -7,6 +7,7 @@ type UserMenuOptions = {
 
 export const useUserMenuItems = (options: UserMenuOptions) => {
   const auth = useAuthStore();
+  const { t } = useI18n();
 
   function openAfterMenuClose(callback: () => void) {
     setTimeout(callback, 0);
@@ -27,14 +28,14 @@ export const useUserMenuItems = (options: UserMenuOptions) => {
   const userMenuItems = computed<DropdownMenuItem[][]>(() => [
     [
       {
-        label: "View profile",
+        label: t("account.viewProfile"),
         icon: "i-lucide-user",
         kbds: ["meta", "shift", "p"],
         onClick: createOpenHandler(options.onViewProfile),
         onSelect: createOpenHandler(options.onViewProfile),
       },
       {
-        label: "Account settings",
+        label: t("account.settings"),
         icon: "i-lucide-settings",
         kbds: ["meta", "s"],
         onClick: createOpenHandler(options.onAccountSettings),
@@ -43,12 +44,12 @@ export const useUserMenuItems = (options: UserMenuOptions) => {
     ],
     [
       {
-        label: "Updates",
+        label: t("account.updates"),
         icon: "i-lucide-box",
         kbds: ["meta", "a"],
       },
       {
-        label: "Log out",
+        label: t("common.logout"),
         icon: "i-lucide-log-out",
         kbds: ["option", "shift", "q"],
         onSelect: handleLogout,

@@ -1,5 +1,4 @@
 import {
-  studentActivityTimeline,
   studentCityAllOption,
   studentDepartmentAllOption,
   studentGenderOptions,
@@ -8,100 +7,203 @@ import {
   studentTableColumns,
 } from "~/constants/studentAnalytics";
 import { appColors } from "~/constants/colors";
-import type { AnalyticsChart, AnalyticsTable, Student } from "~/types/analytics";
-
-const average = (values: number[]) =>
-  Math.round(
-    values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1),
-  );
+import type {
+  AnalyticsChart,
+  AnalyticsTable,
+  Student,
+} from "~/types/analytics";
+import {
+  getDashboardSummaryData,
+  getStudent,
+  getStudentActivity,
+  getStudentGenderDistribution,
+  getStudentsByCity,
+  getStudentsByDepartment,
+  getStudentsByInstitution,
+} from "~/services/analytics.service";
+import type {
+  DashboardSummaryApi,
+  StudentCityDistributionApi,
+  StudentDepartmentDistributionApi,
+  StudentGenderDistributionApi,
+  StudentInstitutionDistributionApi,
+  StudentActivityApi,
+} from "~/types/analytics-api";
+import type { Metric } from "~/types/dashboard";
 
 export const useStudentAnalyticsView = () => {
-  const { error, filteredStudents, filters, isLoading, refresh, students } =
-    useStudents();
+  const auth = useAuthStore();
+  const {
+    applySearch,
+    error,
+    filters,
+    isLoading,
+    pagination,
+    setPage,
+    setPerPage,
+    students,
+  } = useStudents();
   const selectedStudent = ref<Student | null>(null);
+  const selectedStudentIsLoading = ref(false);
   const profileOpen = ref(false);
+  const liveError = ref("");
+  const liveIsLoading = ref(true);
+  const searchQuery = ref(filters.query);
+  const dashboardSummary = ref<DashboardSummaryApi | null>(null);
+  const studentsByInstitution = ref<StudentInstitutionDistributionApi[]>([]);
+  const studentsByDepartment = ref<StudentDepartmentDistributionApi[]>([]);
+  const studentsByCity = ref<StudentCityDistributionApi[]>([]);
+  const genderDistribution = ref<StudentGenderDistributionApi[]>([]);
+  const studentActivity = ref<StudentActivityApi[]>([]);
+  const partnerInstitute = computed(() =>
+    auth.user?.role === "partner" ? auth.user.institution_name || "" : "",
+  );
+  const isPartnerScoped = computed(() => Boolean(partnerInstitute.value));
+  const partnerInstituteLabel = computed(() =>
+    isPartnerScoped.value ? `Institute: ${partnerInstitute.value}` : "",
+  );
 
-  const institutes = computed(() => [
-    studentInstituteAllOption,
-    ...new Set(students.value.map((student) => student.institute)),
-  ]);
+  if (isPartnerScoped.value) {
+    filters.institute = partnerInstitute.value;
+  }
+
+  const loadLiveStudentCharts = async () => {
+    liveIsLoading.value = true;
+    liveError.value = "";
+
+    const [
+      summary,
+      institutions,
+      departmentsData,
+      citiesData,
+      genderData,
+      activityData,
+    ] = await Promise.allSettled([
+      getDashboardSummaryData(),
+      getStudentsByInstitution(),
+      getStudentsByDepartment(),
+      getStudentsByCity(),
+      getStudentGenderDistribution(),
+      getStudentActivity(),
+    ]);
+
+    if (summary.status === "fulfilled") {
+      dashboardSummary.value = summary.value;
+    }
+
+    if (institutions.status === "fulfilled") {
+      studentsByInstitution.value = institutions.value;
+    }
+
+    if (departmentsData.status === "fulfilled") {
+      studentsByDepartment.value = departmentsData.value;
+    }
+
+    if (citiesData.status === "fulfilled") {
+      studentsByCity.value = citiesData.value;
+    }
+
+    if (genderData.status === "fulfilled") {
+      genderDistribution.value = genderData.value;
+    }
+
+    if (activityData.status === "fulfilled") {
+      studentActivity.value = activityData.value;
+    }
+
+    const loadedCount = [
+      summary,
+      institutions,
+      departmentsData,
+      citiesData,
+      genderData,
+      activityData,
+    ].filter((result) => result.status === "fulfilled").length;
+
+    if (loadedCount === 0) {
+      liveError.value = "Unable to load live student analytics.";
+    }
+
+    liveIsLoading.value = false;
+  };
+
+  onMounted(loadLiveStudentCharts);
+
+  const institutes = computed(() =>
+    isPartnerScoped.value
+      ? [partnerInstitute.value]
+      : [
+          studentInstituteAllOption,
+          ...studentsByInstitution.value.map((point) => point.institution),
+        ],
+  );
   const departments = computed(() => [
     studentDepartmentAllOption,
-    ...new Set(students.value.map((student) => student.department)),
+    ...new Set(studentsByDepartment.value.map((point) => point.department)),
   ]);
   const cities = computed(() => [
     studentCityAllOption,
-    ...new Set(students.value.map((student) => student.city)),
+    ...studentsByCity.value.map((point) => point.city),
   ]);
 
   const activeStudents = computed(() =>
     students.value.filter((student) => student.status === "Active"),
   );
-  const highRiskStudents = computed(() =>
-    students.value.filter((student) => student.riskLevel === "High"),
+  const inactiveStudents = computed(() =>
+    students.value.filter((student) => student.status === "Inactive"),
   );
-  const completionRate = computed(() => {
-    const completions = students.value.reduce(
-      (sum, student) => sum + student.completions,
-      0,
-    );
-    const enrollments = students.value.reduce(
-      (sum, student) => sum + student.enrollments,
-      0,
-    );
-
-    return Math.round((completions / Math.max(enrollments, 1)) * 100);
-  });
-
-  const heroStats = computed(() => [
-    {
-      label: "Avg grade",
-      value: `${average(students.value.map((student) => student.averageGrade))}%`,
-    },
-    {
-      label: "Avg attendance",
-      value: `${average(students.value.map((student) => student.attendanceRate ?? 0))}%`,
-    },
-    {
-      label: "Learning hours",
-      value: students.value
-        .reduce((sum, student) => sum + student.learningHours, 0)
-        .toLocaleString(),
-    },
-  ]);
-
-  const metrics = computed(() => [
+  const metrics = computed<Metric[]>(() => [
     {
       label: "Total Students",
-      value: students.value.length.toLocaleString(),
-      trend: "+12.5% from latest Moodle import",
+      value: pagination.value.total.toLocaleString(),
+      trend: "Matching current filters",
       icon: "Users",
       color: appColors.primaryHover,
       sparkline: [22, 26, 31, 38, 42, 48, 52, 58],
     },
     {
       label: "Active Students",
-      value: activeStudents.value.length.toLocaleString(),
-      trend: `${Math.round((activeStudents.value.length / Math.max(students.value.length, 1)) * 100)}% currently active`,
+      value: (
+        dashboardSummary.value?.totalActiveStudents ??
+        activeStudents.value.length
+      ).toLocaleString(),
+      trend: "Confirmed and not suspended",
       icon: "UserRoundCheck",
       color: appColors.success,
       sparkline: [18, 21, 29, 34, 39, 42, 47, 51],
     },
     {
-      label: "Completion Rate",
-      value: `${completionRate.value}%`,
-      trend: "Course completions / enrollments",
-      icon: "Check",
-      color: appColors.purple,
-      sparkline: [42, 46, 51, 53, 58, 61, 64, completionRate.value],
+      label: "Inactive Students",
+      value: (
+        dashboardSummary.value?.totalInactiveStudents ??
+        inactiveStudents.value.length
+      ).toLocaleString(),
+      trend: "Suspended, unconfirmed, or never logged in",
+      icon: "UserCircle",
+      color: appColors.warning,
+      sparkline: [
+        7,
+        6,
+        6,
+        5,
+        5,
+        4,
+        4,
+        dashboardSummary.value?.totalInactiveStudents ??
+          inactiveStudents.value.length,
+      ],
     },
     {
-      label: "At-Risk Students",
-      value: highRiskStudents.value.length.toLocaleString(),
-      trend: "Needs follow-up based on grades and attendance",
-      icon: "CircleHelp",
+      label: "Never Logged In",
+      value: (
+        studentActivity.value.find(
+          (point) => point.loginStatus === "Never logged in",
+        )?.totalStudents ?? 0
+      ).toLocaleString(),
+      trend: "Students without a Moodle login",
+      icon: "UserRoundX",
       color: appColors.warning,
-      sparkline: [8, 7, 7, 6, 5, 5, 4, highRiskStudents.value.length],
+      sparkline: [12, 10, 9, 9, 8, 7, 6, 5],
     },
   ]);
 
@@ -120,157 +222,242 @@ export const useStudentAnalyticsView = () => {
   };
 
   const byInstitute = computed(() => countBy("institute"));
+  const byDepartment = computed(() => countBy("department"));
   const byCity = computed(() => countBy("city"));
-  const riskCounts = computed(() => countBy("riskLevel"));
 
   const charts = computed<AnalyticsChart[]>(() => [
     {
       title: "Students by Institute",
-      description: "Distribution from Moodle user profile institution fields.",
       icon: "i-lucide-building-2",
-      type: "bar",
-      labels: [...byInstitute.value.keys()],
-      series: [{ name: "Students", data: [...byInstitute.value.values()] }],
+      type: "horizontalBar",
+      labels:
+        studentsByInstitution.value.length > 0
+          ? studentsByInstitution.value
+              .slice(0, 12)
+              .map((point) => point.institution)
+          : [...byInstitute.value.keys()],
+      series: [
+        {
+          name: "Students",
+          data:
+            studentsByInstitution.value.length > 0
+              ? studentsByInstitution.value
+                  .slice(0, 12)
+                  .map((point) => point.totalStudents)
+              : [...byInstitute.value.values()],
+        },
+      ],
+    },
+    {
+      title: "Students by Department",
+      icon: "i-lucide-list-ordered",
+      type: "horizontalBar",
+      labels:
+        studentsByDepartment.value.length > 0
+          ? studentsByDepartment.value
+              .slice(0, 10)
+              .map((point) => point.department)
+          : [...byDepartment.value.keys()].slice(0, 10),
+      series: [
+        {
+          name: "Students",
+          data:
+            studentsByDepartment.value.length > 0
+              ? studentsByDepartment.value
+                  .slice(0, 10)
+                  .map((point) => point.totalStudents)
+              : [...byDepartment.value.values()].slice(0, 10),
+        },
+      ],
     },
     {
       title: "Students by City",
-      description: "Useful for partner reporting and regional engagement.",
       icon: "i-lucide-map-pin",
-      type: "bar",
-      labels: [...byCity.value.keys()],
-      series: [{ name: "Students", data: [...byCity.value.values()] }],
+      type: "horizontalBar",
+      labels:
+        studentsByCity.value.length > 0
+          ? studentsByCity.value.slice(0, 12).map((point) => point.city)
+          : [...byCity.value.keys()],
+      series: [
+        {
+          name: "Students",
+          data:
+            studentsByCity.value.length > 0
+              ? studentsByCity.value
+                  .slice(0, 12)
+                  .map((point) => point.totalStudents)
+              : [...byCity.value.values()],
+        },
+      ],
     },
     {
       title: "Gender Distribution",
       icon: "i-lucide-pie-chart",
       type: "donut",
-      labels: ["Male", "Female"],
+      labels:
+        genderDistribution.value.length > 0
+          ? genderDistribution.value.map((point) => point.gender)
+          : ["Male", "Female", "Not filled"],
       series: [
         {
           name: "Students",
-          data: [
-            students.value.filter((student) => student.gender === "Male").length,
-            students.value.filter((student) => student.gender === "Female").length,
-          ],
+          data:
+            genderDistribution.value.length > 0
+              ? genderDistribution.value.map((point) => point.totalStudents)
+              : [
+                  students.value.filter((student) => student.gender === "Male")
+                    .length,
+                  students.value.filter(
+                    (student) => student.gender === "Female",
+                  ).length,
+                  students.value.filter(
+                    (student) => student.gender === "Not filled",
+                  ).length,
+                ],
         },
       ],
     },
     {
-      title: "Active vs Suspended Users",
-      icon: "i-lucide-user-round-check",
-      type: "donut",
-      labels: ["Active", "Suspended"],
-      series: [
-        {
-          name: "Users",
-          data: [
-            students.value.filter((student) => student.status === "Active").length,
-            students.value.filter((student) => student.status === "Suspended").length,
-          ],
-        },
-      ],
-    },
-    {
-      title: "Student Risk Levels",
-      description:
-        "Static sample signal using grade, attendance, and submission patterns.",
-      icon: "i-lucide-triangle-alert",
-      type: "donut",
-      labels: ["Low", "Medium", "High"],
-      series: [
-        {
-          name: "Students",
-          data: [
-            riskCounts.value.get("Low") ?? 0,
-            riskCounts.value.get("Medium") ?? 0,
-            riskCounts.value.get("High") ?? 0,
-          ],
-        },
-      ],
-    },
-    {
-      title: "Grade vs Attendance Snapshot",
-      icon: "i-lucide-bar-chart-3",
+      title: "Student Login Activity",
+      icon: "i-lucide-activity",
       type: "bar",
-      labels: ["Avg Grade", "Attendance", "Quiz Avg", "Submissions"],
+      labels:
+        studentActivity.value.length > 0
+          ? studentActivity.value.map((point) => point.loginStatus)
+          : ["Active", "Inactive"],
       series: [
         {
-          name: "Percent",
-          data: [
-            average(students.value.map((student) => student.averageGrade)),
-            average(students.value.map((student) => student.attendanceRate ?? 0)),
-            average(students.value.map((student) => student.quizAverage ?? 0)),
-            average(
-              students.value.map(
-                (student) => student.assignmentSubmissionRate ?? 0,
-              ),
-            ),
-          ],
+          name: "Students",
+          data:
+            studentActivity.value.length > 0
+              ? studentActivity.value.map((point) => point.totalStudents)
+              : [
+                  dashboardSummary.value?.totalActiveStudents ??
+                    students.value.filter(
+                      (student) => student.status === "Active",
+                    ).length,
+                  dashboardSummary.value?.totalInactiveStudents ??
+                    students.value.filter(
+                      (student) => student.status === "Inactive",
+                    ).length,
+                ],
         },
       ],
     },
   ]);
 
+  const studentTableRows = computed(() =>
+    students.value.map((student) => ({
+      ...student,
+      action: student.id,
+    })),
+  );
+
+  const studentPageOptions = [10, 20, 30, 50, 100];
+  const studentPage = computed({
+    get: () => pagination.value.currentPage,
+    set: (page: number) => setPage(page),
+  });
+  const studentPerPage = computed({
+    get: () => pagination.value.perPage,
+    set: (perPage: number) => setPerPage(perPage),
+  });
+  const studentTotal = computed(() => pagination.value.total);
+
+  const submitSearch = () => {
+    applySearch(searchQuery.value);
+  };
+
+  watch(partnerInstitute, (institute) => {
+    if (institute) {
+      filters.institute = institute;
+    }
+  });
+
+  watch(
+    () => filters.institute,
+    (institute) => {
+      if (partnerInstitute.value && institute !== partnerInstitute.value) {
+        filters.institute = partnerInstitute.value;
+      }
+    },
+  );
+
   const table = computed<AnalyticsTable>(() => ({
     title: "Student List",
     icon: "i-lucide-users",
-    description:
-      "Static sample table based on Moodle user, enrollment, completion, grade, last access, and activity fields.",
     rowKey: "id",
     columns: studentTableColumns,
-    rows: filteredStudents.value.map((student) => ({
-      ...student,
-      averageGrade: `${student.averageGrade}%`,
-      action: student.id,
-    })),
+    rows: studentTableRows.value,
   }));
 
-  const topStudents = computed(() =>
-    [...students.value]
-      .sort((a, b) => b.averageGrade - a.averageGrade)
-      .slice(0, 5),
-  );
+  const paginationLabel = computed(() => {
+    if (studentTotal.value === 0) {
+      return "No students found";
+    }
 
-  const atRiskStudents = computed(() =>
-    students.value
-      .filter(
-        (student) =>
-          student.riskLevel === "High" || student.status === "Suspended",
-      )
-      .slice(0, 4),
-  );
+    const start = (studentPage.value - 1) * studentPerPage.value + 1;
+    const end = Math.min(
+      studentPage.value * studentPerPage.value,
+      studentTotal.value,
+    );
 
-  const viewStudent = (id: number | string | boolean | null | undefined) => {
+    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${studentTotal.value.toLocaleString()}`;
+  });
+
+  const viewStudent = async (
+    id: number | string | boolean | null | undefined,
+  ) => {
     if (id === undefined || id === null) {
       selectedStudent.value = null;
       profileOpen.value = false;
       return;
     }
 
+    const studentId = Number(id);
+
     selectedStudent.value =
-      students.value.find((student) => student.id === Number(id)) ?? null;
+      students.value.find((student) => student.id === studentId) ?? null;
     profileOpen.value = Boolean(selectedStudent.value);
+    selectedStudentIsLoading.value = true;
+
+    try {
+      selectedStudent.value = await getStudent(studentId);
+      profileOpen.value = true;
+    } catch {
+      selectedStudent.value = null;
+      profileOpen.value = false;
+    } finally {
+      selectedStudentIsLoading.value = false;
+    }
   };
 
   return {
-    activityTimeline: studentActivityTimeline,
-    atRiskStudents,
     charts,
     cities,
     departments,
     error,
     filters,
     genderOptions: [...studentGenderOptions],
-    heroStats,
     institutes,
     isLoading,
+    isPartnerScoped,
+    liveError,
+    liveIsLoading,
     metrics,
+    paginationLabel,
+    partnerInstituteLabel,
     profileOpen,
-    refresh,
+    searchQuery,
     selectedStudent,
+    selectedStudentIsLoading,
     statusOptions: [...studentStatusOptions],
+    studentPage,
+    studentPageOptions,
+    studentPerPage,
+    studentTotal,
     table,
-    topStudents,
+    submitSearch,
     viewStudent,
   };
 };

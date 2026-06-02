@@ -1,17 +1,21 @@
 .app-shell {
   display: flex;
   min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-text);
 }
 
 .app-main {
   flex: 1;
   min-width: 0;
   padding: 28px;
+  background: var(--app-bg);
 }
 
 .page-stack {
   display: grid;
   gap: 24px;
+  color: var(--app-text);
 }
 
 .app-page-header,
@@ -24,7 +28,7 @@
 
 .app-page-header {
   padding-bottom: 24px;
-  border-bottom: 1px solid #e5eaf1;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .page-header-main {
@@ -33,7 +37,7 @@
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #64748b;
+  color: var(--app-muted);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -42,7 +46,7 @@
 
 .page-title {
   margin: 0;
-  color: #111827;
+  color: var(--app-text);
   font-size: clamp(1.65rem, 3vw, 2.35rem);
   font-weight: 750;
   line-height: 1.12;
@@ -51,7 +55,7 @@
 .page-copy {
   max-width: 720px;
   margin: 8px 0 0;
-  color: #526070;
+  color: var(--app-muted);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -66,10 +70,6 @@
 .page-header-actions {
   flex: 0 0 auto;
   padding-top: 4px;
-}
-
-.analytics-period-select {
-  width: 176px;
 }
 
 .grid {
@@ -87,7 +87,7 @@
 
 .section-title {
   margin: 0 0 14px;
-  color: #1f2937;
+  color: var(--app-text);
   font-size: 1rem;
 }
 

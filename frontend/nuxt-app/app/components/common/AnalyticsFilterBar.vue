@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const model = defineModel<Record<string, string>>({ default: () => ({}) });
 
+const { translateText } = useTranslateText();
+
 watch(
   () => props.filters,
   (filters) => {
@@ -27,18 +29,23 @@ watch(
       :key="filter.key"
       class="analytics-filter-field"
     >
-      <label>{{ filter.label }}</label>
+      <label>{{ translateText(filter.label) }}</label>
       <UInput
         v-if="filter.type === 'search'"
         v-model="model[filter.key]"
         icon="i-lucide-search"
-        :placeholder="filter.placeholder || 'Search...'"
+        :placeholder="String(translateText(filter.placeholder || 'Search...'))"
       />
       <USelect
         v-else
         v-model="model[filter.key]"
-        :items="filter.options || []"
-        :aria-label="filter.label"
+        :items="
+          (filter.options || []).map((item) => ({
+            label: String(translateText(item)),
+            value: item,
+          }))
+        "
+        :aria-label="String(translateText(filter.label))"
       />
     </div>
   </UCard>

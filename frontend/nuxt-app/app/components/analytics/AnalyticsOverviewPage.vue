@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import AppEChart from "~/components/common/AppEChart.vue";
+import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import MetricCard from "~/components/common/MetricCard.vue";
+import PageHeader from "~/components/common/PageHeader.vue";
 import { useAnalyticsOverview } from "~/composables/analytics/useAnalyticsOverview";
 
 const {
-  analyticsPeriod,
-  analyticsPeriods,
   categoryChartHeight,
   categoryOption,
   importedMetrics,
@@ -12,7 +14,6 @@ const {
   recentCourseColumns,
   recentCourseRows,
   topCategories,
-  weeklyActivityOption,
 } = useAnalyticsOverview();
 </script>
 
@@ -21,15 +22,8 @@ const {
     <PageHeader
       eyebrow="Dashboard insights"
       title="Analytics"
-      copy="Monitor imported course data, learning activity, and reporting trends for the selected period."
-    >
-      <USelect
-        v-model="analyticsPeriod"
-        :items="analyticsPeriods"
-        aria-label="Analytics period"
-        class="analytics-period-select"
-      />
-    </PageHeader>
+      copy="Monitor imported course data, learning activity, and reporting trends from the Moodle database."
+    />
 
     <UAlert
       v-if="loadError"
@@ -86,20 +80,5 @@ const {
       min-width="820px"
     />
 
-    <UCard as="article" :ui="{ body: 'p-5' }">
-      <h2 class="section-title with-icon">
-        <UIcon name="i-lucide-activity" />
-        Weekly Activity Preview
-      </h2>
-      <AppEChart
-        :option="weeklyActivityOption"
-        height="280px"
-        aria-label="Weekly activity preview"
-      />
-    </UCard>
-
-    <USeparator />
-
-    <AnalyticsWorkspacePage page-key="activity" />
   </div>
 </template>

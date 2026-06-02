@@ -16,6 +16,7 @@ const {
   headerTitle,
   idCardPreviewType,
   idCardPreviewUrl,
+  isSubmitting,
   isPartner,
   isPartnerReviewStep,
   primaryButtonLabel,
@@ -279,6 +280,7 @@ const {
             block
             class="auth-primary-button"
             type="submit"
+            :loading="isSubmitting"
             :label="primaryButtonLabel"
           />
         </div>

@@ -24,8 +24,9 @@ export const managerDepartments = [
 ];
 
 export const managerGenderDistribution = [
-  { name: "Male", value: 7234 },
-  { name: "Female", value: 5613 },
+  { name: "Male", value: 7040 },
+  { name: "Female", value: 5489 },
+  { name: "Not filled", value: 318 },
 ];
 
 export const visitorPublicDashboardCopy =

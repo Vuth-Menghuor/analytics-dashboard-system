@@ -10,6 +10,8 @@ withDefaults(
     description: "",
   },
 );
+
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -27,16 +29,20 @@ withDefaults(
       />
       <h2>
         {{
-          title ||
-          (state === "error" ? "Something went wrong" : "No data available")
+          translateText(
+            title ||
+              (state === "error" ? "Something went wrong" : "No data available"),
+          )
         }}
       </h2>
       <p>
         {{
-          description ||
-          (state === "error"
-            ? "Please try again later."
-            : "Change filters or import Moodle data to see results.")
+          translateText(
+            description ||
+              (state === "error"
+                ? "Please try again later."
+                : "Change filters or import Moodle data to see results."),
+          )
         }}
       </p>
     </template>

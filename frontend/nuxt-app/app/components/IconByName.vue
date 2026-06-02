@@ -15,5 +15,9 @@ const icon = computed(() => resolveIconName(props.name));
 </script>
 
 <template>
-  <UIcon :name="icon" :size="props.size" aria-hidden="true" />
+  <UIcon
+    :name="icon"
+    :style="{ width: `${props.size}px`, height: `${props.size}px` }"
+    aria-hidden="true"
+  />
 </template>

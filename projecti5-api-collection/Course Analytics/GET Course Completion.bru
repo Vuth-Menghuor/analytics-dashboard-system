@@ -1,0 +1,20 @@
+meta {
+  name: GET Course Completion
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://127.0.0.1:8000/api/dashboard/courses/completion
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer qbBmpNoVSFawPokfsFJMBFlfJEm7u1Lt9KnqQyUYf7d94757
+}
+
+settings {
+  encodeUrl: true
+}

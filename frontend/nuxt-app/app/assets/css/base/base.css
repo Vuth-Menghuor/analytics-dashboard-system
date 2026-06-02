@@ -1,58 +1,67 @@
+@font-face {
+  font-family: "Khmer OS Siemreap";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400 700;
+  src: url("/fonts/Khmer%20OS%20Siemreap-Kh%20Auto.ttf") format("truetype");
+  unicode-range: U+1780-17FF, U+19E0-19FF;
+}
+
 :root {
-  color: #172033;
-  background: #f5f7fb;
-  font-family: Helvetica, Arial, sans-serif;
+  color-scheme: light;
+  --app-font-family: Helvetica, Arial, sans-serif;
+  --app-khmer-font-family: "Khmer OS Siemreap", Helvetica, Arial, sans-serif;
+
+  font-family: var(--app-font-family);
   line-height: 1.5;
+
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f1f5f9;
+  --app-border: #e2e8f0;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --app-heading: #020617;
+  --app-input: #ffffff;
+  --app-primary: #0c447c;
+  --app-primary-soft: #e8f2fa;
+  --app-shadow: 0 12px 30px rgb(15 23 42 / 0.05);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --app-bg: #020617;
+  --app-surface: #0f172a;
+  --app-surface-soft: #111c31;
+  --app-border: #24324a;
+  --app-text: #e5e7eb;
+  --app-muted: #94a3b8;
+  --app-heading: #f8fafc;
+  --app-input: #111827;
+  --app-primary: #60a5fa;
+  --app-primary-soft: #102a43;
+  --app-shadow: 0 12px 30px rgb(0 0 0 / 0.28);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#__nuxt {
+  min-height: 100%;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
 body {
   min-width: 320px;
   margin: 0;
-  background: #f5f7fb;
-  scrollbar-color: #8a8f98 #f1f3f6;
-  scrollbar-width: thin;
-}
-
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: #f1f3f6;
-}
-
-*::-webkit-scrollbar-thumb {
-  border: 2px solid #f1f3f6;
-  border-radius: 999px;
-  background: #8a8f98;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: #6f747d;
-}
-
-.scrollbar-hidden {
-  -ms-overflow-style: none;
-  scrollbar-width: none !important;
-}
-
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-.font-helvetica {
-  font-family: Helvetica, Arial, sans-serif;
-}
-
-.font-inter {
-  font-family: Helvetica, Arial, sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 button,
@@ -62,8 +71,13 @@ textarea {
   font: inherit;
 }
 
-button {
-  cursor: pointer;
+html:lang(km),
+html:lang(km) body,
+html:lang(km) button,
+html:lang(km) input,
+html:lang(km) select,
+html:lang(km) textarea {
+  font-family: var(--app-khmer-font-family);
 }
 
 a {
@@ -71,6 +85,7 @@ a {
   text-decoration: none;
 }
 
-.muted {
-  color: #64748b;
+.muted,
+.text-muted {
+  color: var(--app-muted);
 }

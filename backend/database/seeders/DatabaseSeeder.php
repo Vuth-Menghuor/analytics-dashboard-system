@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Partner User',
             'password' => 'password',
             'role' => 'partner',
+            'institution_name' => 'ITC',
         ]);
 
         User::query()->updateOrCreate([

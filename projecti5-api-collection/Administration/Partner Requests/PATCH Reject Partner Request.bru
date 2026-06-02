@@ -1,0 +1,27 @@
+meta {
+  name: PATCH Reject Partner Request
+  type: http
+  seq: 5
+}
+
+patch {
+  url: http://127.0.0.1:8000/api/admin/partner-requests/1/reject
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{manager_token}}
+}
+
+body:json {
+  {
+    "reason": "Unable to verify institute affiliation."
+  }
+}
+
+settings {
+  encodeUrl: true
+}

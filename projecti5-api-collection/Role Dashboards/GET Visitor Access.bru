@@ -1,0 +1,20 @@
+meta {
+  name: GET Visitor Access
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://127.0.0.1:8000/api/visitor/dashboard
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer y5Xgu5EzCBUZKhEvOqGYVl4nee9MvgHyZfR5If1W8309cb26
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,49 +1,63 @@
 <script setup lang="ts">
+import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import MetricCard from "~/components/common/MetricCard.vue";
+import PageHeader from "~/components/common/PageHeader.vue";
 import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import StudentProfileDrawer from "~/components/students/StudentProfileDrawer.vue";
 import { useStudentAnalyticsView } from "~/composables/students/useStudentAnalyticsView";
 
 const {
-  activityTimeline,
-  atRiskStudents,
   charts,
   cities,
   departments,
   error,
   filters,
   genderOptions,
-  heroStats,
   institutes,
+  isPartnerScoped,
   isLoading,
+  liveError,
+  liveIsLoading,
   metrics,
+  paginationLabel,
+  partnerInstituteLabel,
   profileOpen,
-  refresh,
+  searchQuery,
   selectedStudent,
+  selectedStudentIsLoading,
   statusOptions,
+  studentPage,
+  studentPageOptions,
+  studentPerPage,
+  studentTotal,
+  submitSearch,
   table,
-  topStudents,
   viewStudent,
 } = useStudentAnalyticsView();
+
+const { t } = useI18n();
+const { translateText } = useTranslateText();
+
+const translatedSelectItems = (items: string[]) =>
+  items.map((item) => ({
+    label: String(translateText(item)),
+    value: item,
+  }));
+
 </script>
 
 <template>
   <div class="page-stack">
     <PageHeader
-      eyebrow="Static Moodle sample"
-      title="Student Analytics"
-      copy="Explore a sample Moodle student analytics screen with searchable user records, institute filters, engagement summaries, profile details, risk signals, grades, attendance, and activity snapshots."
+      title="Students"
+      copy="Inspect Moodle student records, demographics, login activity, and profile details."
     >
       <div class="toolbar">
-        <UBadge color="primary" variant="soft">Static sample data</UBadge>
-        <UBadge color="neutral" variant="soft">GET /api/students later</UBadge>
-        <UButton
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-refresh-cw"
-          label="Reload sample"
-          @click="refresh"
-        />
+        <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
+          {{ partnerInstituteLabel }}
+        </UBadge>
+        <UBadge color="primary" variant="soft">GET /api/dashboard/students</UBadge>
       </div>
     </PageHeader>
 
@@ -51,130 +65,12 @@ const {
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
-      <section class="student-sample-hero">
-        <div>
-          <p class="eyebrow">Sample cohort overview</p>
-          <h2>Moodle Learning Behavior Cohort</h2>
-          <p>
-            This static sample combines fields from mdl_user,
-            mdl_user_enrolments, mdl_course_completions, mdl_grade_grades,
-            mdl_logstore_standard_log, mdl_user_lastaccess, and attendance
-            records.
-          </p>
-        </div>
-        <div class="student-sample-hero-stats">
-          <div v-for="stat in heroStats" :key="stat.label">
-            <span>{{ stat.label }}</span>
-            <strong>{{ stat.value }}</strong>
-          </div>
-        </div>
-      </section>
-
-      <UCard :ui="{ body: 'analytics-filter-bar' }">
-        <div class="analytics-filter-field wide">
-          <label>Search</label>
-          <UInput
-            v-model="filters.query"
-            icon="i-lucide-search"
-            placeholder="Search name, email, or username"
-          />
-        </div>
-        <div class="analytics-filter-field">
-          <label>Institute</label>
-          <USelect v-model="filters.institute" :items="institutes" />
-        </div>
-        <div class="analytics-filter-field">
-          <label>Department</label>
-          <USelect v-model="filters.department" :items="departments" />
-        </div>
-        <div class="analytics-filter-field">
-          <label>City</label>
-          <USelect v-model="filters.city" :items="cities" />
-        </div>
-        <div class="analytics-filter-field">
-          <label>Gender</label>
-          <USelect
-            v-model="filters.gender"
-            :items="genderOptions"
-          />
-        </div>
-        <div class="analytics-filter-field">
-          <label>Status</label>
-          <USelect
-            v-model="filters.status"
-            :items="statusOptions"
-          />
-        </div>
-      </UCard>
-
       <section class="grid metrics">
         <MetricCard
           v-for="metricItem in metrics"
           :key="metricItem.label"
           :metric="metricItem"
         />
-      </section>
-
-      <section class="grid student-insight-grid">
-        <UCard as="article" :ui="{ body: 'student-insight-panel' }">
-          <div class="section-heading compact">
-            <h2 class="section-title with-icon">
-              <UIcon name="i-lucide-trophy" />
-              Top Performing Students
-            </h2>
-            <p>Ranked by current average grade.</p>
-          </div>
-          <div class="student-rank-list">
-            <div v-for="(student, index) in topStudents" :key="student.id">
-              <span>{{ index + 1 }}</span>
-              <strong>{{ student.name }}</strong>
-              <em>{{ student.averageGrade }}%</em>
-            </div>
-          </div>
-        </UCard>
-
-        <UCard as="article" :ui="{ body: 'student-insight-panel' }">
-          <div class="section-heading compact">
-            <h2 class="section-title with-icon">
-              <UIcon name="i-lucide-triangle-alert" />
-              Students Needing Follow-up
-            </h2>
-            <p>High risk or suspended accounts.</p>
-          </div>
-          <div class="student-risk-list">
-            <div v-for="student in atRiskStudents" :key="student.id">
-              <div>
-                <strong>{{ student.name }}</strong>
-                <span>{{ student.institute }} · {{ student.department }}</span>
-              </div>
-              <UBadge
-                :color="student.riskLevel === 'High' ? 'warning' : 'neutral'"
-                variant="soft"
-              >
-                {{ student.riskLevel }}
-              </UBadge>
-            </div>
-          </div>
-        </UCard>
-
-        <UCard as="article" :ui="{ body: 'student-insight-panel' }">
-          <div class="section-heading compact">
-            <h2 class="section-title with-icon">
-              <UIcon name="i-lucide-clock-3" />
-              Daily Activity Timeline
-            </h2>
-            <p>Sample events from Moodle logs.</p>
-          </div>
-          <div class="student-timeline">
-            <div v-for="event in activityTimeline" :key="event.time">
-              <span>{{ event.time }}</span>
-              <div>
-                <strong>{{ event.title }}</strong>
-                <p>{{ event.meta }}</p>
-              </div>
-            </div>
-          </div>
-        </UCard>
       </section>
 
       <section class="grid analytics-chart-grid">
@@ -184,6 +80,69 @@ const {
           :chart="chart"
         />
       </section>
+
+      <UAlert
+        v-if="liveIsLoading"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-loader"
+        title="Loading student analytics charts"
+        description="The student table is ready. Chart sections will update as Moodle analytics responds."
+      />
+
+      <UAlert
+        v-else-if="liveError"
+        color="warning"
+        variant="soft"
+        icon="i-lucide-triangle-alert"
+        title="Student charts unavailable"
+        :description="liveError"
+      />
+
+      <UCard :ui="{ body: 'analytics-filter-bar' }">
+        <div class="analytics-filter-field wide">
+          <label>{{ t("common.search") }}</label>
+          <UInput
+            v-model="searchQuery"
+            icon="i-lucide-search"
+            :placeholder="String(translateText('Search name, email, or username'))"
+            @keydown.enter="submitSearch"
+          />
+        </div>
+        <div class="analytics-filter-field">
+          <label>{{ t("text.institution") }}</label>
+          <USelect
+            v-model="filters.institute"
+            :items="translatedSelectItems(institutes)"
+            :disabled="isPartnerScoped"
+          />
+          <span v-if="isPartnerScoped" class="text-xs text-muted">
+            Locked to your approved institute.
+          </span>
+        </div>
+        <div class="analytics-filter-field">
+          <label>{{ t("text.department") }}</label>
+          <USelect v-model="filters.department" :items="translatedSelectItems(departments)" />
+        </div>
+        <div class="analytics-filter-field">
+          <label>{{ translateText("City") }}</label>
+          <USelect v-model="filters.city" :items="translatedSelectItems(cities)" />
+        </div>
+        <div class="analytics-filter-field">
+          <label>{{ translateText("Gender") }}</label>
+          <USelect
+            v-model="filters.gender"
+            :items="translatedSelectItems(genderOptions)"
+          />
+        </div>
+        <div class="analytics-filter-field">
+          <label>{{ t("text.status") }}</label>
+          <USelect
+            v-model="filters.status"
+            :items="translatedSelectItems(statusOptions)"
+          />
+        </div>
+      </UCard>
 
       <DashboardDataTable
         :title="table.title"
@@ -200,13 +159,96 @@ const {
             color="neutral"
             variant="outline"
             icon="i-lucide-eye"
-            label="View"
+            :label="t('text.view')"
             @click="viewStudent(value)"
           />
         </template>
       </DashboardDataTable>
+
+      <div class="student-pagination">
+        <span>{{ paginationLabel }}</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">{{ t("text.rowsPerPage") }}</span>
+
+            <USelect
+              v-model="studentPerPage"
+              :items="studentPageOptions"
+              :aria-label="t('text.rowsPerPage')"
+              class="max-w-[100px]"
+            />
+          </div>
+
+          <UPagination
+            v-model:page="studentPage"
+            :total="studentTotal"
+            :items-per-page="studentPerPage"
+            :ui="{ first: 'hidden', last: 'hidden' }"
+          />
+        </div>
+      </div>
+
+      <section class="grid dashboard-detail">
+        <UCard as="article" class="analytics-card" :ui="{ body: 'analytics-card-body' }">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="section-title with-icon">
+                <UIcon name="i-lucide-triangle-alert" />
+                Risk Level Explanation
+              </h2>
+              <p class="chart-note">Static preview for the future student risk model.</p>
+            </div>
+            <UBadge color="warning" variant="soft">Static preview</UBadge>
+          </div>
+          <ul class="static-preview-list">
+            <li>
+              <UIcon name="i-lucide-check-circle-2" />
+              <span>Never logged in increases risk.</span>
+            </li>
+            <li>
+              <UIcon name="i-lucide-check-circle-2" />
+              <span>No course completion increases risk.</span>
+            </li>
+            <li>
+              <UIcon name="i-lucide-check-circle-2" />
+              <span>No quiz or assignment activity increases risk.</span>
+            </li>
+          </ul>
+        </UCard>
+
+        <UCard as="article" class="analytics-card" :ui="{ body: 'analytics-card-body' }">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="section-title with-icon">
+                <UIcon name="i-lucide-gauge" />
+                Performance Preview Fields
+              </h2>
+              <p class="chart-note">These fields are UI placeholders until learning-performance APIs are ready.</p>
+            </div>
+            <UBadge color="warning" variant="soft">API later</UBadge>
+          </div>
+          <div class="static-preview-stat-grid">
+            <div>
+              <span>Performance score</span>
+              <strong>76%</strong>
+            </div>
+            <div>
+              <span>Learning hours</span>
+              <strong>42h</strong>
+            </div>
+            <div>
+              <span>Attendance rate</span>
+              <strong>88%</strong>
+            </div>
+          </div>
+        </UCard>
+      </section>
     </template>
 
-    <StudentProfileDrawer v-model="profileOpen" :student="selectedStudent" />
+    <StudentProfileDrawer
+      v-model="profileOpen"
+      :student="selectedStudent"
+      :loading="selectedStudentIsLoading"
+    />
   </div>
 </template>

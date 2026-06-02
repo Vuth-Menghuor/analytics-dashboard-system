@@ -39,7 +39,10 @@ export type AnalyticsTableColumn = {
   warningValues?: Array<string | number | boolean>;
 };
 
-export type AnalyticsTableRow = Record<string, string | number | boolean | null>;
+export type AnalyticsTableRow = Record<
+  string,
+  string | number | boolean | null
+>;
 
 export type AnalyticsTable = {
   title: string;
@@ -98,8 +101,8 @@ export type Student = {
   institute: string;
   department: string;
   city: string;
-  gender: "Male" | "Female";
-  status: "Active" | "Suspended";
+  gender: "Male" | "Female" | "Not filled";
+  status: "Active" | "Inactive";
   confirmed: boolean;
   lastLogin: string;
   lastCourse?: string;

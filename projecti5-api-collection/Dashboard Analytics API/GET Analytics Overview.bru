@@ -1,0 +1,20 @@
+meta {
+  name: GET Analytics Overview
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://127.0.0.1:8000/api/analytics/imported/overview
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer 1ztBtDm50oAQv0iVuj3GYjbG7y3HxN8mXopWkkaTce0f890d
+}
+
+settings {
+  encodeUrl: true
+}

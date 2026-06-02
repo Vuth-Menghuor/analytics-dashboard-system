@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
+import MetricCard from "~/components/common/MetricCard.vue";
+import PageHeader from "~/components/common/PageHeader.vue";
 import type { AnalyticsPageConfig } from "~/types/analytics";
 
 defineProps<{
   config: AnalyticsPageConfig;
+  scopeLabel?: string;
 }>();
 </script>
 
@@ -13,7 +17,12 @@ defineProps<{
       :title="config.title"
       :copy="config.copy"
     >
-      <UBadge color="primary" variant="soft">{{ config.endpoint }}</UBadge>
+      <div class="toolbar">
+        <UBadge v-if="scopeLabel" color="success" variant="soft">
+          {{ scopeLabel }}
+        </UBadge>
+        <UBadge color="primary" variant="soft">{{ config.endpoint }}</UBadge>
+      </div>
     </PageHeader>
 
     <section class="grid metrics">
@@ -24,7 +33,7 @@ defineProps<{
       />
     </section>
 
-    <section class="grid analytics-chart-grid">
+    <section v-if="config.charts.length" class="grid analytics-chart-grid">
       <AnalyticsChartCard
         v-for="chart in config.charts"
         :key="chart.title"

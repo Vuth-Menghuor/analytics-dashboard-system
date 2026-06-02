@@ -1,5 +1,12 @@
+import { AxiosError } from "axios";
 import { stateProvinceOptions, schoolInstituteOptions } from "~/constants/auth";
+import { submitPartnerRequest } from "~/services/admin.service";
 import type { RegistrationRole } from "~/types/auth";
+
+type ValidationErrorResponse = {
+  message?: string;
+  errors?: Record<string, string[]>;
+};
 
 export const useSignupForm = () => {
   const auth = useAuthStore();
@@ -13,6 +20,7 @@ export const useSignupForm = () => {
   const selectedRole = ref<RegistrationRole>(routeRole);
   const currentStep = ref(1);
   const submitStatus = ref("");
+  const isSubmitting = ref(false);
   const idCardPreviewUrl = ref("");
 
   const form = reactive({
@@ -107,6 +115,23 @@ export const useSignupForm = () => {
     }
   };
 
+  const getSubmitErrorMessage = (err: unknown) => {
+    if (err instanceof AxiosError) {
+      const response = err.response?.data as ValidationErrorResponse | undefined;
+      const firstFieldError = response?.errors
+        ? Object.values(response.errors)[0]?.[0]
+        : undefined;
+
+      return (
+        firstFieldError ||
+        response?.message ||
+        "Unable to submit partner request. Please check your details."
+      );
+    }
+
+    return "Unable to submit partner request. Please try again.";
+  };
+
   const handlePrimaryAction = async () => {
     submitStatus.value = "";
 
@@ -116,13 +141,54 @@ export const useSignupForm = () => {
     }
 
     if (selectedRole.value === "visitor") {
+      if (form.password !== form.confirmPassword) {
+        submitStatus.value = "Passwords do not match.";
+        return;
+      }
+
+      await auth.registerVisitor({
+        name: form.fullName || `${form.firstName} ${form.lastName}`.trim() || "Visitor User",
+        email: form.email,
+        password: form.password,
+        password_confirmation: form.confirmPassword,
+      });
+
       submitStatus.value = "Account created successfully.";
-      auth.createVisitorSession(form.fullName || "Visitor User", form.email);
       await router.push("/visitor/dashboard");
       return;
     }
 
-    submitStatus.value = "Your account is under review by Manager.";
+    if (form.password !== form.confirmPassword) {
+      submitStatus.value = "Passwords do not match.";
+      return;
+    }
+
+    if (!form.idCard) {
+      submitStatus.value = "Please upload your institute affiliation document.";
+      return;
+    }
+
+    isSubmitting.value = true;
+
+    try {
+      await submitPartnerRequest({
+        stateProvince: form.stateProvince,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phoneNumber: form.phoneNumber,
+        institutionName: form.institutionName,
+        idCard: form.idCard,
+        password: form.password,
+        passwordConfirmation: form.confirmPassword,
+      });
+
+      submitStatus.value = "Your partner request was submitted for Manager review.";
+    } catch (err) {
+      submitStatus.value = getSubmitErrorMessage(err);
+    } finally {
+      isSubmitting.value = false;
+    }
   };
 
   return {
@@ -135,6 +201,7 @@ export const useSignupForm = () => {
     headerTitle,
     idCardPreviewType,
     idCardPreviewUrl,
+    isSubmitting,
     schoolInstitutes: schoolInstituteOptions,
     isPartner,
     isPartnerReviewStep,
