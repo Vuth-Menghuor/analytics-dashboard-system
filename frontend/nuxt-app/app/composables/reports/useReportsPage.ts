@@ -2,8 +2,7 @@ type ReportExportKey =
   | "dashboard"
   | "students"
   | "courses"
-  | "activity"
-  | "learning";
+  | "learningActivity";
 
 type ReportCard = {
   key: ReportExportKey;
@@ -27,7 +26,7 @@ const reportCards: Array<{
     title: "Dashboard Report",
     description: "KPI cards and dashboard summary charts.",
     icon: "i-lucide-layout-dashboard",
-    route: "/dashboard",
+    route: "/",
     format: "CSV first",
   },
   {
@@ -47,25 +46,16 @@ const reportCards: Array<{
     format: "CSV first",
   },
   {
-    key: "activity",
-    title: "User Activity Report",
-    description: "Login status counts and activity breakdown.",
+    key: "learningActivity",
+    title: "Learning Activity Report",
+    description: "Learner login recency and engagement-status breakdown.",
     icon: "i-lucide-activity",
-    route: "/activity",
+    route: "/learning-activity",
     format: "CSV first",
-  },
-  {
-    key: "learning",
-    title: "Learning Performance Report",
-    description: "Grades, quizzes, assignments, and risk preview.",
-    icon: "i-lucide-graduation-cap",
-    route: "/learning-performance",
-    format: "CSV later",
   },
 ];
 
 export const useReportsPage = () => {
-  const toast = useToast();
   const auth = useAuthStore();
 
   const partnerInstituteLabel = computed(() =>
@@ -73,16 +63,6 @@ export const useReportsPage = () => {
       ? `Institute: ${auth.user.institution_name}`
       : "",
   );
-
-  const previewExport = (report: ReportExportKey) => {
-    const card = reportCards.find((item) => item.key === report);
-
-    toast.add({
-      title: "Export UI only",
-      description: `${card?.title ?? "Report export"} will connect to the backend CSV export API later.`,
-      color: "warning",
-    });
-  };
 
   const reportSummaryItems = computed(() => [
     {
@@ -99,14 +79,13 @@ export const useReportsPage = () => {
     },
     {
       label: "Status",
-      value: "UI only",
-      detail: "No backend export endpoint is called yet.",
+      value: "Available",
+      detail: "CSV export buttons are available inside the feature pages.",
     },
   ]);
 
   return {
     partnerInstituteLabel,
-    previewExport,
     reportSummaryItems,
     reportCards,
   };

@@ -64,6 +64,7 @@ export type PartnerRequestFormPayload = {
   idCard?: File | null;
   password: string;
   passwordConfirmation: string;
+  googleIdToken?: string;
 };
 
 export type AdminUsersPagination = {

@@ -1,9 +1,13 @@
 const pageTitles: Record<string, string> = {
-  "/analytics": "pageTitle.analytics",
+  "/courses": "navigation.courses",
+  "/institutes": "navigation.institutes",
+  "/learning-activity": "navigation.learningActivity",
   "/manager/dashboard": "pageTitle.managerDashboard",
+  "/partner-requests": "navigation.partnerRequests",
   "/partner/dashboard": "pageTitle.partnerDashboard",
   "/profile": "pageTitle.profile",
   "/reports": "pageTitle.reports",
+  "/students": "navigation.students",
   "/users": "pageTitle.userManagement",
   "/visitor/dashboard": "pageTitle.visitorDashboard",
 };

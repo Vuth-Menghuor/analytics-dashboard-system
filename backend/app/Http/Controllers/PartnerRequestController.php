@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\InstitutionNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -29,13 +30,16 @@ class PartnerRequestController extends Controller
             'institution_name' => ['required', 'string', 'max:255'],
             'id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'google_id_token' => ['required', 'string'],
         ]);
+
+        $this->ensureGoogleEmailMatches($validated['google_id_token'], $validated['email']);
 
         $idCardPath = $request->file('id_card')?->store('partner-requests', 'public');
         $validated['institution_name'] = InstitutionNormalizer::normalize($validated['institution_name']);
 
         $partnerRequest = PartnerRequest::create([
-            ...$validated,
+            ...collect($validated)->except('google_id_token')->all(),
             'id_card_path' => $idCardPath,
             'status' => PartnerRequest::STATUS_PENDING,
         ]);
@@ -72,6 +76,44 @@ class PartnerRequestController extends Controller
         if ($partnerRequest->status !== PartnerRequest::STATUS_PENDING) {
             throw ValidationException::withMessages([
                 'status' => ['Only pending partner requests can be reviewed.'],
+            ]);
+        }
+    }
+
+    private function ensureGoogleEmailMatches(string $idToken, string $submittedEmail): void
+    {
+        $clientId = config('services.google.client_id');
+
+        if (! is_string($clientId) || trim($clientId) === '') {
+            throw ValidationException::withMessages([
+                'email' => ['Google account verification is not configured.'],
+            ]);
+        }
+
+        $response = Http::timeout(5)->get('https://oauth2.googleapis.com/tokeninfo', [
+            'id_token' => $idToken,
+        ]);
+
+        if (! $response->ok()) {
+            throw ValidationException::withMessages([
+                'email' => ['Please verify your email with a valid Google account.'],
+            ]);
+        }
+
+        $googleAccount = $response->json();
+        $googleEmail = strtolower((string) ($googleAccount['email'] ?? ''));
+        $isVerified = filter_var($googleAccount['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $audience = (string) ($googleAccount['aud'] ?? '');
+
+        if ($audience !== $clientId || ! $isVerified || $googleEmail === '') {
+            throw ValidationException::withMessages([
+                'email' => ['Please verify your email with a valid Google account.'],
+            ]);
+        }
+
+        if ($googleEmail !== strtolower($submittedEmail)) {
+            throw ValidationException::withMessages([
+                'email' => ['The submitted email must match the verified Google account email.'],
             ]);
         }
     }

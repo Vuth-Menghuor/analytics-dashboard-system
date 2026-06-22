@@ -3,10 +3,10 @@ import {
   accountOverviewDetailItems,
   type AccountSettingsFormState,
 } from "~/constants/accountSettings";
-import type { AccessRoleCard, AuthRole } from "~/types/auth";
+import AppButton from "~/components/common/AppButton.vue";
+import type { AccessRoleCard } from "~/types/auth";
 
-defineProps<{
-  activeRole: AuthRole;
+const props = defineProps<{
   avatarSrc?: string | null;
   displayEmail: string;
   displayName: string;
@@ -14,6 +14,12 @@ defineProps<{
   roleMeta: AccessRoleCard;
   userInitial: string;
 }>();
+
+const emit = defineEmits<{
+  navigate: [section: "profile" | "security"];
+}>();
+
+const { translateText } = useTranslateText();
 
 const getDetailValue = (
   item: (typeof accountOverviewDetailItems)[number],
@@ -25,18 +31,40 @@ const getDetailValue = (
 
   return formState[item.key];
 };
+
+const findOptionLabel = (
+  options: { label: string; value: string }[],
+  value: string,
+) => options.find((option) => option.value === value)?.label ?? value;
+
+const preferenceSummaryItems = computed(() => [
+  {
+    icon: "i-lucide-palette",
+    label: "Theme",
+    value: findOptionLabel(
+      [
+        { label: "System", value: "system" },
+        { label: "Light", value: "light" },
+        { label: "Dark", value: "dark" },
+      ],
+      props.formState.theme,
+    ),
+  },
+]);
 </script>
 
 <template>
-  <section class="grid gap-2 px-4 py-6">
-    <div class="pr-12">
-      <h3 class="text-xl font-bold text-slate-950">Overview</h3>
+  <section class="grid gap-5 p-6">
+    <div>
+      <h3 class="text-xl font-bold text-slate-950">{{ translateText("Overview") }}</h3>
       <p class="mt-1 text-sm text-slate-500">
-        Review account status and access across the analytics dashboard.
+        {{ translateText("Review the current account, dashboard defaults, and alert status.") }}
       </p>
     </div>
 
-    <div class="grid gap-5">
+    <div
+      class="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)] xl:items-start"
+    >
       <div class="rounded-md border border-slate-200 bg-white p-5">
         <div
           class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
@@ -56,12 +84,12 @@ const getDetailValue = (
               <p
                 class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
               >
-                Signed in as
+                {{ translateText("Signed in as") }}
               </p>
-              <h4 class="mt-1 text-lg font-bold text-slate-950">
+              <h4 class="mt-1 truncate text-lg font-bold text-slate-950">
                 {{ formState.displayName || displayName }}
               </h4>
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 truncate text-sm text-slate-500">
                 {{ formState.email || displayEmail }}
               </p>
             </div>
@@ -71,30 +99,28 @@ const getDetailValue = (
             class="flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"
           >
             <span class="size-2 rounded-full bg-emerald-500" />
-            Active account
+            {{ translateText("Active account") }}
           </div>
         </div>
 
         <div
-          class="mt-5 divide-y divide-slate-100 border-t border-slate-100 pt-1"
+          class="account-overview-detail-list mt-5 grid gap-0 pt-1 md:grid-cols-2"
         >
           <div
             v-for="item in accountOverviewDetailItems"
             :key="item.label"
-            class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
+            class="account-overview-detail-row grid gap-1 px-0 py-3 md:px-3 first:md:pl-0"
           >
             <dt class="text-sm font-semibold text-slate-500">
-              {{ item.label }}
+              {{ translateText(item.label) }}
             </dt>
-            <dd class="text-sm font-bold text-slate-950">
-              {{ getDetailValue(item, formState, displayEmail) }}
+            <dd class="truncate text-sm font-bold text-slate-950">
+              {{ translateText(getDetailValue(item, formState, displayEmail)) }}
             </dd>
           </div>
 
-          <div
-            class="grid gap-1 py-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"
-          >
-            <dt class="text-sm font-semibold text-slate-500">Dashboard role</dt>
+          <div class="account-overview-detail-row grid gap-1 px-0 py-3 md:px-3">
+            <dt class="text-sm font-semibold text-slate-500">{{ translateText("Dashboard role") }}</dt>
             <dd
               class="flex items-center gap-2 text-sm font-bold text-slate-950"
             >
@@ -103,17 +129,70 @@ const getDetailValue = (
               >
                 <UIcon :name="roleMeta.icon" class="size-4" />
               </span>
-              <span>{{ roleMeta.label }}</span>
+              <span>{{ translateText(roleMeta.label) }}</span>
             </dd>
           </div>
         </div>
       </div>
 
-      <AccountAccessSummary
-        :institution="formState.institution"
-        :role="activeRole"
-        :role-meta="roleMeta"
-      />
+      <aside class="grid gap-5">
+        <div class="rounded-md border border-slate-200 bg-white p-5">
+          <h4 class="font-bold text-slate-950">{{ translateText("Quick actions") }}</h4>
+          <p class="mt-1 text-sm text-slate-500">
+            {{ translateText("Jump to the settings that are changed most often.") }}
+          </p>
+
+          <div class="mt-4 grid gap-2">
+            <AppButton
+              type="button"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              block
+              class="justify-start"
+              icon="i-lucide-user-pen"
+              :label="String(translateText('Edit profile'))"
+              @click="emit('navigate', 'profile')"
+            />
+            <AppButton
+              type="button"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              block
+              class="justify-start"
+              icon="i-lucide-lock-keyhole"
+              :label="String(translateText('Change password'))"
+              @click="emit('navigate', 'security')"
+            />
+          </div>
+        </div>
+
+        <div class="rounded-md border border-slate-200 bg-white p-5">
+          <h4 class="font-bold text-slate-950">{{ translateText("Appearance") }}</h4>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+            <div
+              v-for="item in preferenceSummaryItems"
+              :key="item.label"
+              class="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3"
+            >
+              <span
+                class="grid size-8 shrink-0 place-items-center rounded-md bg-white text-slate-500 ring-1 ring-slate-200"
+              >
+                <UIcon :name="item.icon" class="size-4" />
+              </span>
+              <span class="min-w-0">
+                <span class="block text-xs font-semibold text-slate-500">
+                  {{ translateText(item.label) }}
+                </span>
+                <span class="block truncate text-sm font-bold text-slate-950">
+                  {{ translateText(item.value) }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
   </section>
 </template>

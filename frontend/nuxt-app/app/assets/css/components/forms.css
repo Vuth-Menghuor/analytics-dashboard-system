@@ -4,24 +4,24 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid #d8e0ec;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 9px 14px;
-  background: #fff;
-  color: #243041;
+  background: var(--app-surface);
+  color: var(--app-text);
   font-weight: 700;
 }
 
 .btn.primary {
-  border-color: #2563eb;
-  background: #2563eb;
-  color: #fff;
+  border-color: var(--app-primary);
+  background: var(--app-primary);
+  color: var(--app-on-primary);
 }
 
 .btn.danger {
-  border-color: #fecaca;
-  background: #fff;
-  color: #b91c1c;
+  border-color: var(--app-error);
+  background: var(--app-surface);
+  color: var(--app-error);
 }
 
 .btn:disabled {
@@ -47,7 +47,7 @@
 
 .field > span:not(.password-field, .contact-field),
 .field label {
-  color: #05060f;
+  color: var(--app-text);
   font-size: 0.87rem;
   font-weight: 500;
 }
@@ -55,25 +55,25 @@
 .input {
   min-height: 36px;
   width: 100%;
-  border: 1px solid #e3e6ee;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 8px 11px;
-  background: #fff;
-  color: #05060f;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
+  background: var(--app-input);
+  color: var(--app-text);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-text) 3%, transparent);
   outline: none;
 }
 
 .input::placeholder {
-  color: #9ca3af;
+  color: var(--app-muted);
 }
 
 .input:focus,
 .country-select:focus,
 .password-toggle:focus-visible,
 .btn:focus-visible {
-  border-color: #9aa5ff;
-  box-shadow: 0 0 0 3px rgb(91 102 232 / 0.14);
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 14%, transparent);
   outline: none;
 }
 
@@ -99,7 +99,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #777c8d;
+  color: var(--app-muted);
 }
 
 .country-select {
@@ -109,7 +109,7 @@
   width: 40px;
   border: 0;
   background: transparent;
-  color: #0f172a;
+  color: var(--app-text);
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -120,11 +120,11 @@
 
 .form-error {
   margin: 0;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--app-error);
   border-radius: 8px;
   padding: 10px 12px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--app-surface-soft);
+  color: var(--app-error);
   font-size: 0.9rem;
   font-weight: 700;
 }

@@ -71,7 +71,7 @@ class AuthenticationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/manager/dashboard')
+        $this->getJson('/api/admin/users')
             ->assertForbidden();
     }
 }

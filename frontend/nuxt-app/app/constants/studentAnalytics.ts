@@ -13,23 +13,25 @@ export const studentGenderOptions = [
 export const studentStatusOptions = ["All statuses", "Active", "Inactive"];
 
 export const studentTableColumns: AnalyticsTableColumn[] = [
-  { key: "name", label: "Student", rowHeader: true, width: "18%" },
-  { key: "studentCode", label: "ID", tone: "muted", width: "12%" },
-  { key: "email", label: "Email", tone: "muted", width: "18%" },
-  { key: "institute", label: "Institute", width: "8%" },
-  { key: "department", label: "Department", width: "14%" },
-  { key: "city", label: "City", width: "10%" },
-  { key: "gender", label: "Gender", width: "9%" },
+  { key: "studentCode", label: "ID", rowHeader: true, width: "180px" },
+  { key: "name", label: "Student", width: "180px" },
+  { key: "email", label: "Email", tone: "muted", width: "240px" },
+  { key: "institute", label: "Institute", width: "92px" },
+  { key: "department", label: "Department", width: "120px" },
+  { key: "city", label: "City", width: "100px" },
+  { key: "gender", label: "Gender", width: "110px" },
+  { key: "lastLogin", label: "Last Login", tone: "muted", width: "172px" },
   {
     key: "status",
     label: "Status",
     type: "status",
     warningValues: ["Inactive"],
-    width: "9%",
+    align: "center",
+    width: "108px",
   },
-  { key: "enrollments", label: "Enrollments", width: "8%" },
-  { key: "completions", label: "Completions", width: "8%" },
-  { key: "action", label: "Profile", type: "action", width: "8%" },
+  { key: "enrollments", label: "Enrollments", align: "right", width: "112px" },
+  { key: "completions", label: "Completions", align: "right", width: "118px" },
+  { key: "action", label: "Profile", type: "action", align: "center", width: "96px" },
 ];
 
 export const studentProfileStats: Array<{

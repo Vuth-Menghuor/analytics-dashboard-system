@@ -18,6 +18,17 @@ const statusLabels: Record<PartnerRequestStatus, string> = {
   rejected: "Rejected",
 };
 
+const formatRequestDate = (value: string | null) => {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
 const getStorageUrl = (path: string | null) => {
   if (!path) {
     return "";
@@ -31,6 +42,7 @@ const getStorageUrl = (path: string | null) => {
 
 export const usePartnerRequestsPage = () => {
   const toast = useToast();
+  const { t } = useI18n();
   const requests = ref<PartnerRequest[]>([]);
   const isLoading = ref(true);
   const isReviewing = ref(false);
@@ -97,6 +109,12 @@ export const usePartnerRequestsPage = () => {
   };
 
   const submitSearch = () => refreshFromFirstPage();
+
+  const clearFilters = () => {
+    searchQuery.value = "";
+    statusFilter.value = "all";
+    refreshFromFirstPage();
+  };
 
   const setPage = (page: number) => {
     const nextPage = Math.min(
@@ -200,6 +218,7 @@ export const usePartnerRequestsPage = () => {
       ...request,
       statusLabel: statusLabels[request.status],
       idCardLabel: request.id_card_path ? "Uploaded" : "Not uploaded",
+      submittedAtLabel: formatRequestDate(request.created_at),
       action: request.id,
     })),
   );
@@ -207,9 +226,17 @@ export const usePartnerRequestsPage = () => {
   const selectedIdCardUrl = computed(() =>
     getStorageUrl(selectedRequest.value?.id_card_path ?? null),
   );
+  const selectedSubmittedAtLabel = computed(() =>
+    formatRequestDate(selectedRequest.value?.created_at ?? null),
+  );
 
   const pendingCount = computed(
     () => requests.value.filter((request) => request.status === "pending").length,
+  );
+  const pendingBadgeLabel = computed(() =>
+    statusFilter.value === "pending"
+      ? t("text.pendingCount", { count: pagination.value.total.toLocaleString() })
+      : t("text.pendingOnPageCount", { count: pendingCount.value.toLocaleString() }),
   );
 
   const table = {
@@ -219,28 +246,33 @@ export const usePartnerRequestsPage = () => {
       "Partner access requests submitted from signup. Approval creates a Laravel system user with partner role.",
     rowKey: "id",
     columns: [
-      { key: "name", label: "Applicant", rowHeader: true },
-      { key: "email", label: "Email", tone: "muted" },
-      { key: "institution_name", label: "Institute" },
-      { key: "state_province", label: "Province", tone: "muted" },
-      { key: "idCardLabel", label: "ID Card", type: "status" },
+      { key: "name", label: "Applicant", rowHeader: true, width: "180px" },
+      { key: "email", label: "Email", tone: "muted", width: "230px" },
+      { key: "institution_name", label: "Institute", width: "160px" },
+      { key: "state_province", label: "Province", tone: "muted", width: "170px" },
+      { key: "idCardLabel", label: "ID Card", type: "status", width: "130px" },
       {
         key: "statusLabel",
         label: "Status",
         type: "status",
         warningValues: ["Pending", "Rejected"],
+        width: "130px",
       },
-      { key: "created_at", label: "Submitted", tone: "muted" },
-      { key: "action", label: "Actions", type: "action" },
+      { key: "submittedAtLabel", label: "Submitted", tone: "muted", width: "190px" },
+      { key: "action", label: "Actions", type: "action", width: "300px" },
     ],
   } as const;
 
   const paginationLabel = computed(() => {
     if (!pagination.value.total) {
-      return "No partner requests found";
+      return t("text.noPartnerRequestsFound");
     }
 
-    return `${pagination.value.from ?? 1}-${pagination.value.to ?? requests.value.length} of ${pagination.value.total} partner requests`;
+    return t("text.partnerRequestsRange", {
+      from: pagination.value.from ?? 1,
+      to: pagination.value.to ?? requests.value.length,
+      total: pagination.value.total,
+    });
   });
 
   return {
@@ -250,10 +282,11 @@ export const usePartnerRequestsPage = () => {
     isReviewing,
     pagination,
     paginationLabel,
-    pendingCount,
+    pendingBadgeLabel,
     rows,
     searchQuery,
     selectedIdCardUrl,
+    selectedSubmittedAtLabel,
     selectedRequest,
     rejectionReason,
     rejectModalOpen,
@@ -261,6 +294,7 @@ export const usePartnerRequestsPage = () => {
     statusOptions,
     table,
     approveRequest,
+    clearFilters,
     confirmRejectRequest,
     fetchRequests,
     openRejectModal,

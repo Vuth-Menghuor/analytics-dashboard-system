@@ -9,12 +9,15 @@ const {
   form,
   handleLogin,
   isRoleLanding,
+  partnerRequestSubmitted,
   selectAccessRole,
   selectedRole,
   selectedRoleConfig,
+  visitorAccountCreated,
 } = useLoginForm();
 
 const { t } = useI18n();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -27,11 +30,11 @@ const { t } = useI18n();
       </div>
 
       <div class="showcase-context">
-        <p>Built for secure daily access with clear roles, live dashboard visibility, and a workspace that stays simple for every user.</p>
+        <p>{{ t("auth.showcaseDescription") }}</p>
         <ul>
-          <li>Role-based access</li>
-          <li>Real-time analytics</li>
-          <li>Protected account sessions</li>
+          <li>{{ t("auth.roleBasedAccess") }}</li>
+          <li>{{ t("auth.realTimeAnalytics") }}</li>
+          <li>{{ t("auth.protectedAccountSessions") }}</li>
         </ul>
       </div>
     </section>
@@ -43,7 +46,7 @@ const { t } = useI18n();
           <p>{{ t("auth.accessTypeDescription") }}</p>
         </div>
 
-        <div class="access-role-list" aria-label="Access types">
+        <div class="access-role-list" :aria-label="t('auth.accessTypes')">
           <button
             v-for="role in accessRoleCards"
             :key="role.value"
@@ -57,9 +60,9 @@ const { t } = useI18n();
               <UIcon v-else name="i-lucide-eye" />
             </span>
             <span class="access-role-copy">
-              <span class="access-role-title">{{ role.label }}</span>
-              <span class="access-role-access">{{ role.access }}</span>
-              <span class="access-role-description">{{ role.description }}</span>
+              <span class="access-role-title">{{ translateText(role.label) }}</span>
+              <span class="access-role-access">{{ translateText(role.access) }}</span>
+              <span class="access-role-description">{{ translateText(role.description) }}</span>
             </span>
             <UIcon class="access-role-arrow" name="i-lucide-chevron-right" />
           </button>
@@ -71,7 +74,7 @@ const { t } = useI18n();
           <span class="auth-step-meta">
             {{ t("auth.roleAccess", { role: selectedRole }) }}
           </span>
-          <h2>{{ t("auth.roleLogin", { role: selectedRoleConfig.label }) }}</h2>
+          <h2>{{ t("auth.roleLogin", { role: translateText(selectedRoleConfig.label) }) }}</h2>
           <p>
             {{
               selectedRole === "manager"
@@ -95,12 +98,19 @@ const { t } = useI18n();
         </div>
 
         <form class="auth-form" @submit.prevent="handleLogin">
+          <p v-if="partnerRequestSubmitted" class="auth-success">
+            {{ t("auth.partnerRequestSubmitted") }}
+          </p>
+          <p v-if="visitorAccountCreated" class="auth-success">
+            {{ t("auth.visitorAccountCreated") }}
+          </p>
+
           <UFormField :label="t('auth.email')" class="field">
             <UInput
               v-model="form.email"
               class="w-full"
               type="email"
-              placeholder="Enter email address"
+              :placeholder="t('auth.enterEmailAddress')"
               autocomplete="email"
               required
             />
@@ -109,7 +119,7 @@ const { t } = useI18n();
           <AuthPasswordField
             v-model="form.password"
             :label="t('auth.password')"
-            placeholder="Enter password"
+            :placeholder="t('auth.enterPassword')"
             autocomplete="current-password"
             required
           />

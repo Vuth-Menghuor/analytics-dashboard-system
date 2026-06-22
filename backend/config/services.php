@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
+    'moodle' => [
+        'base_url' => env('MOODLE_BASE_URL'),
+        'data_root' => env('MOODLE_DATA_ROOT'),
+    ],
+
 ];

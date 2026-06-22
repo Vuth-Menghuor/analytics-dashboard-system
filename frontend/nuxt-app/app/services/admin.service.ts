@@ -2,7 +2,6 @@ import { api } from "~/services/api";
 import type {
   AdminUser,
   AdminUserFormPayload,
-  AdminUserRole,
   AdminUsersQuery,
   AdminUsersResponse,
   LaravelPaginator,
@@ -51,16 +50,6 @@ export const deleteAdminUser = async (id: number) => {
   await api.delete(`/admin/users/${id}`);
 };
 
-export const updateAdminUserRole = async (
-  id: number,
-  role: AdminUserRole,
-) => {
-  const { data } = await api.patch<AdminUser>(`/admin/users/${id}/role`, {
-    role,
-  });
-  return data;
-};
-
 export const updateAdminUserPassword = async (
   id: number,
   password: string,
@@ -100,6 +89,10 @@ export const submitPartnerRequest = async (
   formData.append("institution_name", payload.institutionName);
   formData.append("password", payload.password);
   formData.append("password_confirmation", payload.passwordConfirmation);
+
+  if (payload.googleIdToken) {
+    formData.append("google_id_token", payload.googleIdToken);
+  }
 
   if (payload.idCard) {
     formData.append("id_card", payload.idCard);

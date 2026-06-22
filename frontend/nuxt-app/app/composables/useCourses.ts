@@ -10,7 +10,8 @@ export const useCourses = () => {
   const filters = reactive({
     query: "",
     category: "All categories",
-    status: "All statuses",
+    institute: "All institutes",
+    engagement: "All engagement",
   });
 
   const refresh = async () => {
@@ -41,12 +42,12 @@ export const useCourses = () => {
       const matchesCategory =
         filters.category === "All categories" ||
         course.category === filters.category;
-      const matchesStatus =
-        filters.status === "All statuses" || course.status === filters.status;
+      const matchesInstitute =
+        filters.institute === "All institutes" ||
+        course.institute === filters.institute ||
+        course.institutes?.includes(filters.institute);
 
-      return (
-        matchesQuery && matchesCategory && matchesStatus
-      );
+      return matchesQuery && matchesCategory && matchesInstitute;
     });
   });
 

@@ -1,0 +1,76 @@
+<mxfile host="app.diagrams.net" modified="2026-06-09T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="ccun-erd" name="Entity Relationship Diagram">
+    <mxGraphModel dx="1300" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="CCUN Insights Analytics Dashboard System - Entity Relationship Diagram" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#1F2937;" vertex="1" parent="1">
+          <mxGeometry x="160" y="25" width="850" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="users" value="USERS&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK user_id&lt;br&gt;&amp;nbsp;name&lt;br&gt;&amp;nbsp;email&lt;br&gt;&amp;nbsp;password&lt;br&gt;&amp;nbsp;role&lt;br&gt;&amp;nbsp;created_at&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="115" width="185" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="reports" value="REPORTS&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK report_id&lt;br&gt;&amp;nbsp;FK user_id&lt;br&gt;&amp;nbsp;report_name&lt;br&gt;&amp;nbsp;report_type&lt;br&gt;&amp;nbsp;generated_at&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="430" width="185" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="students" value="STUDENTS&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK student_id&lt;br&gt;&amp;nbsp;student_code&lt;br&gt;&amp;nbsp;full_name&lt;br&gt;&amp;nbsp;gender&lt;br&gt;&amp;nbsp;email&lt;br&gt;&amp;nbsp;status&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="310" y="115" width="190" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="enrollments" value="ENROLLMENTS&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK enrollment_id&lt;br&gt;&amp;nbsp;FK student_id&lt;br&gt;&amp;nbsp;FK course_id&lt;br&gt;&amp;nbsp;enrollment_status&lt;br&gt;&amp;nbsp;enrolled_at&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="565" y="125" width="205" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="courses" value="COURSES&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK course_id&lt;br&gt;&amp;nbsp;course_name&lt;br&gt;&amp;nbsp;course_code&lt;br&gt;&amp;nbsp;category&lt;br&gt;&amp;nbsp;start_date&lt;br&gt;&amp;nbsp;end_date&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#EEF2FF;strokeColor=#4F46E5;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="840" y="115" width="190" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="activity-logs" value="ACTIVITY_LOGS&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK log_id&lt;br&gt;&amp;nbsp;FK student_id&lt;br&gt;&amp;nbsp;FK activity_id&lt;br&gt;&amp;nbsp;action_type&lt;br&gt;&amp;nbsp;accessed_at&lt;br&gt;&amp;nbsp;duration&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFF7ED;strokeColor=#EA580C;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="310" y="430" width="205" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="activities" value="ACTIVITIES&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK activity_id&lt;br&gt;&amp;nbsp;FK course_id&lt;br&gt;&amp;nbsp;activity_name&lt;br&gt;&amp;nbsp;activity_type&lt;br&gt;&amp;nbsp;created_at&lt;br&gt;&amp;nbsp;due_date&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FEFCE8;strokeColor=#CA8A04;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="585" y="430" width="205" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="grades" value="GRADES&lt;br&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&amp;nbsp;PK grade_id&lt;br&gt;&amp;nbsp;FK student_id&lt;br&gt;&amp;nbsp;FK course_id&lt;br&gt;&amp;nbsp;FK activity_id&lt;br&gt;&amp;nbsp;score&lt;br&gt;&amp;nbsp;max_score&lt;br&gt;&amp;nbsp;grade_status&lt;br&gt;&amp;nbsp;graded_at&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FEF2F2;strokeColor=#DC2626;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="845" y="410" width="205" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel-users-reports" value="generates" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#64748B;strokeWidth=1.8;fontSize=11;fontColor=#334155;" edge="1" parent="1" source="users" target="reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-students-enrollments" value="has" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#059669;strokeWidth=1.8;fontSize=11;fontColor=#047857;" edge="1" parent="1" source="students" target="enrollments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-courses-enrollments" value="contains" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#4F46E5;strokeWidth=1.8;fontSize=11;fontColor=#3730A3;" edge="1" parent="1" source="courses" target="enrollments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-courses-activities" value="has" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#CA8A04;strokeWidth=1.8;fontSize=11;fontColor=#854D0E;" edge="1" parent="1" source="courses" target="activities">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-students-logs" value="performs" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#EA580C;strokeWidth=1.8;fontSize=11;fontColor=#9A3412;" edge="1" parent="1" source="students" target="activity-logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-activities-logs" value="records" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#EA580C;strokeWidth=1.8;fontSize=11;fontColor=#9A3412;" edge="1" parent="1" source="activities" target="activity-logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-students-grades" value="receives" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#DC2626;strokeWidth=1.8;fontSize=11;fontColor=#991B1B;" edge="1" parent="1" source="students" target="grades">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-courses-grades" value="includes" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#DC2626;strokeWidth=1.8;fontSize=11;fontColor=#991B1B;" edge="1" parent="1" source="courses" target="grades">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-activities-grades" value="graded by" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#DC2626;strokeWidth=1.8;fontSize=11;fontColor=#991B1B;" edge="1" parent="1" source="activities" target="grades">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="PK = Primary Key, FK = Foreign Key" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontSize=12;fontColor=#475569;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="410" y="685" width="350" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="caption" value="Figure X: Entity Relationship Diagram of the CCUN Insights Analytics Dashboard System" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontStyle=2;fontColor=#1D4ED8;" vertex="1" parent="1">
+          <mxGeometry x="270" y="755" width="630" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

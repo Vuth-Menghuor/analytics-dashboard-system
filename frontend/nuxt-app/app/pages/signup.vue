@@ -10,12 +10,14 @@ const {
   actionModeItems,
   currentStep,
   form,
+  googleButtonRef,
   goToPreviousStep,
   handlePrimaryAction,
   headerCopy,
   headerTitle,
   idCardPreviewType,
   idCardPreviewUrl,
+  isGoogleEmailVerified,
   isSubmitting,
   isPartner,
   isPartnerReviewStep,
@@ -25,9 +27,13 @@ const {
   selectedRole,
   stateProvinces,
   submitStatus,
+  submitStatusType,
   totalSteps,
   updateIdCardFile,
 } = useSignupForm();
+
+const { t } = useI18n();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -35,21 +41,16 @@ const {
     <section class="login-hero signup-hero" aria-labelledby="signup-hero-title">
       <img class="login-hero-logo" src="/ccun-banner.png" alt="CCUN" />
       <div class="login-hero-content">
-        <h1 id="signup-hero-title">Start managing your analytics workspace</h1>
-        <p>
-          Create your account and keep every dashboard workflow in one place.
-        </p>
+        <h1 id="signup-hero-title">{{ t("auth.signupHeroTitle") }}</h1>
+        <p>{{ t("auth.signupHeroDescription") }}</p>
       </div>
 
       <div class="showcase-context">
-        <p>
-          Create the right account for your workflow, then move into a guided
-          dashboard experience designed for clean reporting.
-        </p>
+        <p>{{ t("auth.signupShowcaseDescription") }}</p>
         <ul>
-          <li>Visitor access setup</li>
-          <li>Partner review flow</li>
-          <li>Organized profile details</li>
+          <li>{{ t("auth.visitorAccessSetup") }}</li>
+          <li>{{ t("auth.partnerReviewFlow") }}</li>
+          <li>{{ t("auth.organizedProfileDetails") }}</li>
         </ul>
       </div>
     </section>
@@ -57,10 +58,10 @@ const {
     <section class="auth-panel login-card">
       <div class="auth-header">
         <span class="auth-step-meta"
-          >Step {{ currentStep }} of {{ totalSteps }}</span
+          >{{ t("auth.stepOf", { current: currentStep, total: totalSteps }) }}</span
         >
-        <h2>{{ headerTitle }}</h2>
-        <p>{{ headerCopy }}</p>
+        <h2>{{ translateText(headerTitle) }}</h2>
+        <p>{{ translateText(headerCopy) }}</p>
       </div>
 
       <form class="auth-form" @submit.prevent="handlePrimaryAction">
@@ -71,56 +72,56 @@ const {
             :to="item.to"
             :class="{ active: item.to.includes('/signup') }"
           >
-            {{ item.label }}
+            {{ translateText(item.label) }}
           </NuxtLink>
         </div>
 
         <template v-if="selectedRole === 'visitor'">
-          <UFormField label="Full Name" class="field">
+          <UFormField :label="t('auth.fullName')" class="field">
             <UInput
               v-model="form.fullName"
               class="w-full"
               type="text"
-              placeholder="Enter full name"
+              :placeholder="t('auth.enterFullName')"
               required
             />
           </UFormField>
 
-          <UFormField label="Email" class="field">
+          <UFormField :label="t('auth.email')" class="field">
             <UInput
               v-model="form.email"
               class="w-full"
               type="email"
-              placeholder="Enter email address"
+              :placeholder="t('auth.enterEmailAddress')"
               required
             />
           </UFormField>
 
           <AuthPasswordField
             v-model="form.password"
-            label="Password"
-            placeholder="Enter password"
+            :label="t('auth.password')"
+            :placeholder="t('auth.enterPassword')"
             autocomplete="new-password"
             required
           />
 
           <AuthPasswordField
             v-model="form.confirmPassword"
-            label="Confirm Password"
-            placeholder="Confirm password"
+            :label="t('auth.confirmPassword')"
+            :placeholder="t('auth.confirmPassword')"
             autocomplete="new-password"
-            hide-label="Hide password confirmation"
-            show-label="Show password confirmation"
+            :hide-label="t('auth.hidePasswordConfirmation')"
+            :show-label="t('auth.showPasswordConfirmation')"
             required
           />
         </template>
 
         <template v-else-if="currentStep === 1">
-          <UFormField label="State / Province" class="field">
+          <UFormField :label="t('auth.stateProvince')" class="field">
             <USelect
               v-model="form.stateProvince"
               :items="stateProvinces"
-              placeholder="Select state / province"
+              :placeholder="t('auth.selectStateProvince')"
               class="w-full"
               required
             />
@@ -129,81 +130,95 @@ const {
 
         <template v-else-if="currentStep === 2">
           <div class="auth-form-grid">
-            <UFormField label="First Name" class="field">
+            <UFormField :label="t('auth.firstName')" class="field">
               <UInput
                 v-model="form.firstName"
                 class="w-full"
                 type="text"
-                placeholder="Enter first name"
+                :placeholder="t('auth.enterFirstName')"
                 required
               />
             </UFormField>
 
-            <UFormField label="Last Name" class="field">
+            <UFormField :label="t('auth.lastName')" class="field">
               <UInput
                 v-model="form.lastName"
                 class="w-full"
                 type="text"
-                placeholder="Enter last name"
+                :placeholder="t('auth.enterLastName')"
                 required
               />
             </UFormField>
           </div>
 
-          <UFormField label="Email" class="field">
+          <UFormField :label="t('auth.email')" class="field">
             <UInput
               v-model="form.email"
               class="w-full"
               type="email"
-              placeholder="Enter email address"
+              :placeholder="t('auth.enterEmailAddress')"
+              :readonly="isGoogleEmailVerified"
               required
             />
           </UFormField>
 
-          <UFormField label="Phone Number" class="field">
+          <div class="google-verification-panel">
+            <span class="google-verification-copy">
+              {{ t("auth.verifyPartnerEmail") }}
+            </span>
+            <div ref="googleButtonRef" class="google-signin-button" />
+            <span
+              v-if="isGoogleEmailVerified"
+              class="google-verification-success"
+            >
+              {{ t("auth.verifiedGoogleEmail", { email: form.email }) }}
+            </span>
+          </div>
+
+          <UFormField :label="t('auth.phoneNumber')" class="field">
             <UInput
               v-model="form.phoneNumber"
               class="w-full"
               type="tel"
-              placeholder="Enter phone number"
+              :placeholder="t('auth.enterPhoneNumber')"
               required
             />
           </UFormField>
 
           <AuthPasswordField
             v-model="form.password"
-            label="Password"
-            placeholder="Enter password"
+            :label="t('auth.password')"
+            :placeholder="t('auth.enterPassword')"
             autocomplete="new-password"
             required
           />
 
           <AuthPasswordField
             v-model="form.confirmPassword"
-            label="Confirm Password"
-            placeholder="Confirm password"
+            :label="t('auth.confirmPassword')"
+            :placeholder="t('auth.confirmPassword')"
             autocomplete="new-password"
-            hide-label="Hide password confirmation"
-            show-label="Show password confirmation"
+            :hide-label="t('auth.hidePasswordConfirmation')"
+            :show-label="t('auth.showPasswordConfirmation')"
             required
           />
         </template>
 
         <template v-else-if="currentStep === 3">
-          <UFormField label="School / Institute Name" class="field">
+          <UFormField :label="t('auth.schoolInstituteName')" class="field">
             <USelect
               v-model="form.institutionName"
               :items="schoolInstitutes"
               class="w-full"
-              placeholder="Select school / institute"
+              :placeholder="t('auth.selectSchoolInstitute')"
               required
             />
           </UFormField>
 
           <div class="id-card-upload-group">
             <UFormField
-              label="Institute Affiliation Document"
-              help="Upload proof that you work with or are connected to the selected institute."
+              :label="t('auth.instituteAffiliationDocument')"
+              :help="t('auth.instituteAffiliationDocumentHelp')"
               class="field"
             >
               <input
@@ -225,25 +240,25 @@ const {
         <template v-else-if="isPartnerReviewStep">
           <div class="review-panel">
             <div v-for="item in reviewItems" :key="item.label">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value || "Not provided" }}</strong>
+              <span>{{ translateText(item.label) }}</span>
+              <strong>{{ item.value || t("auth.notProvided") }}</strong>
             </div>
           </div>
 
           <section
             class="id-card-preview"
-            aria-label="Institute affiliation document preview"
+            :aria-label="t('auth.instituteAffiliationDocumentPreview')"
           >
             <div class="id-card-preview-header">
-              <span>Institute Affiliation Document</span>
-              <strong>{{ form.idCard?.name || "Not uploaded" }}</strong>
+              <span>{{ t("auth.instituteAffiliationDocument") }}</span>
+              <strong>{{ form.idCard?.name || t("auth.notUploaded") }}</strong>
             </div>
 
             <img
               v-if="idCardPreviewUrl && idCardPreviewType === 'image'"
               class="id-card-preview-media"
               :src="idCardPreviewUrl"
-              alt="Uploaded institute affiliation document preview"
+              :alt="t('auth.uploadedInstituteAffiliationDocumentPreview')"
             />
             <object
               v-else-if="idCardPreviewUrl"
@@ -252,16 +267,21 @@ const {
               :type="form.idCard?.type || 'application/pdf'"
             >
               <a :href="idCardPreviewUrl" target="_blank" rel="noreferrer">
-                Open uploaded affiliation document
+                {{ t("auth.openUploadedAffiliationDocument") }}
               </a>
             </object>
             <div v-else class="id-card-preview-empty">
-              Affiliation document preview unavailable
+              {{ t("auth.affiliationDocumentPreviewUnavailable") }}
             </div>
           </section>
         </template>
 
-        <p v-if="submitStatus" class="auth-success">{{ submitStatus }}</p>
+        <p
+          v-if="submitStatus"
+          :class="submitStatusType === 'error' ? 'form-error' : 'auth-success'"
+        >
+          {{ translateText(submitStatus) }}
+        </p>
 
         <div
           class="auth-actions"
@@ -273,7 +293,7 @@ const {
             color="neutral"
             variant="outline"
             type="button"
-            label="Back"
+            :label="t('auth.back')"
             @click="goToPreviousStep"
           />
           <UButton
@@ -281,13 +301,13 @@ const {
             class="auth-primary-button"
             type="submit"
             :loading="isSubmitting"
-            :label="primaryButtonLabel"
+            :label="String(translateText(primaryButtonLabel))"
           />
         </div>
       </form>
 
       <p class="auth-switch-copy">
-        <NuxtLink to="/login">Back to access type</NuxtLink>
+        <NuxtLink to="/login">{{ t("auth.backToAccessType") }}</NuxtLink>
       </p>
 
       <AuthFooter privacy-to="/privacy" terms-to="/terms" />

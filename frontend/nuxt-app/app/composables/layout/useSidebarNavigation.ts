@@ -72,16 +72,6 @@ export const useSidebarNavigation = () => {
           to: "/partner-requests",
           active: isActivePath("/partner-requests"),
         },
-        {
-          label: "Roles",
-          to: "/roles",
-          active: isActivePath("/roles"),
-        },
-        {
-          label: "Permissions",
-          to: "/permissions",
-          active: isActivePath("/permissions"),
-        },
       ];
     }
 

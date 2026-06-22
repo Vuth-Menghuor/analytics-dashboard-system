@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import AppSelect from "~/components/common/AppSelect.vue";
+import AppSearchInput from "~/components/common/AppSearchInput.vue";
+import AppButton from "~/components/common/AppButton.vue";
+import AppDataTable from "~/components/common/AppDataTable.vue";
+import AppSegmentedControl from "~/components/common/AppSegmentedControl.vue";
 import MetricCard from "~/components/common/MetricCard.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
@@ -8,13 +12,32 @@ import StudentProfileDrawer from "~/components/students/StudentProfileDrawer.vue
 import { useStudentAnalyticsView } from "~/composables/students/useStudentAnalyticsView";
 
 const {
+  activeTab,
+  activeFilterChips,
+  activeFilterCount,
+  activityPeriodOptions,
+  cityDistributionHeight,
+  cityDistributionOption,
+  cityFilterItems,
   charts,
-  cities,
+  changeInstitute,
+  clearInstituteFilter,
+  clearStudentListFilters,
   departments,
+  departmentChartBadge,
+  departmentFilterItems,
+  dependentFiltersLoading,
   error,
+  exportStudents,
   filters,
-  genderOptions,
+  genderFilterItems,
+  genderDistributionOption,
+  institutionDistributionHeight,
+  institutionDistributionOption,
+  instituteFilterItems,
   institutes,
+  hasInstituteFilter,
+  hasStudentListFilters,
   isPartnerScoped,
   isLoading,
   liveError,
@@ -23,28 +46,29 @@ const {
   paginationLabel,
   partnerInstituteLabel,
   profileOpen,
+  refresh,
+  removeStudentFilter,
   searchQuery,
+  departmentDistributionHeight,
+  departmentDistributionOption,
+  selectedActivityPeriod,
   selectedStudent,
   selectedStudentIsLoading,
-  statusOptions,
+  studentMetricsLoaded,
+  studentMetricsLoading,
   studentPage,
   studentPageOptions,
   studentPerPage,
   studentTotal,
-  submitSearch,
+  statusFilterItems,
   table,
+  tabs,
+  submitSearch,
   viewStudent,
 } = useStudentAnalyticsView();
 
 const { t } = useI18n();
 const { translateText } = useTranslateText();
-
-const translatedSelectItems = (items: string[]) =>
-  items.map((item) => ({
-    label: String(translateText(item)),
-    value: item,
-  }));
-
 </script>
 
 <template>
@@ -57,7 +81,11 @@ const translatedSelectItems = (items: string[]) =>
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
           {{ partnerInstituteLabel }}
         </UBadge>
-        <UBadge color="primary" variant="soft">GET /api/dashboard/students</UBadge>
+        <AppButton
+          action="refresh"
+          :label="t('text.refresh')"
+          @click="refresh"
+        />
       </div>
     </PageHeader>
 
@@ -65,7 +93,16 @@ const translatedSelectItems = (items: string[]) =>
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
-      <section class="grid metrics">
+      <UAlert
+        v-if="!studentMetricsLoaded"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-loader"
+        :title="String(translateText('Loading student metric cards'))"
+        :description="String(translateText('Student totals will appear as soon as the Moodle analytics counts respond.'))"
+      />
+
+      <section v-else class="grid metrics" :aria-busy="studentMetricsLoading">
         <MetricCard
           v-for="metricItem in metrics"
           :key="metricItem.label"
@@ -73,21 +110,140 @@ const translatedSelectItems = (items: string[]) =>
         />
       </section>
 
-      <section class="grid analytics-chart-grid">
-        <AnalyticsChartCard
-          v-for="chart in charts"
-          :key="chart.title"
-          :chart="chart"
-        />
-      </section>
+      <UCard
+        as="section"
+        class="student-advanced-filters"
+        :ui="{ body: 'student-advanced-filters-body' }"
+      >
+        <div class="student-filter-heading">
+          <div>
+            <h2 class="section-title with-icon">
+              <UIcon name="i-lucide-list-filter" />
+              {{ translateText("Advanced Filters") }}
+            </h2>
+            <p class="chart-note">
+              {{ translateText("Combine multiple criteria to update student records and analytics.") }}
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <UBadge color="neutral" variant="soft">
+              {{ t("text.activeFilters", { count: activeFilterCount }) }}
+            </UBadge>
+            <AppButton
+              v-if="hasStudentListFilters"
+              action="clear"
+              @click="clearStudentListFilters"
+            />
+          </div>
+        </div>
+
+        <div class="student-filter-grid">
+          <div class="student-filter-field student-filter-field--search">
+            <label>{{ translateText("Student") }}</label>
+            <AppSearchInput
+              v-model="searchQuery"
+              :placeholder="String(translateText('Name, username, or email'))"
+              :aria-label="String(translateText('Search students by name, username, or email'))"
+              clearable
+              @submit="submitSearch"
+              @clear="submitSearch"
+            />
+          </div>
+
+          <div class="student-filter-field">
+            <label>{{ translateText("Institute") }}</label>
+            <AppSelect
+              v-model="filters.institute"
+              :items="instituteFilterItems"
+              value-key="value"
+              :disabled="isPartnerScoped"
+              searchable
+              :aria-label="String(translateText('Filter students by institute'))"
+              @update:model-value="changeInstitute"
+            />
+          </div>
+
+          <div class="student-filter-field">
+            <label>{{ translateText("Department") }}</label>
+            <AppSelect
+              v-model="filters.department"
+              :items="departmentFilterItems"
+              value-key="value"
+              searchable
+              :disabled="dependentFiltersLoading"
+              :aria-label="String(translateText('Filter students by department'))"
+            />
+          </div>
+
+          <div class="student-filter-field">
+            <label>{{ translateText("City") }}</label>
+            <AppSelect
+              v-model="filters.city"
+              :items="cityFilterItems"
+              value-key="value"
+              searchable
+              :disabled="dependentFiltersLoading"
+              :aria-label="String(translateText('Filter students by city'))"
+            />
+          </div>
+
+          <div class="student-filter-field">
+            <label>{{ translateText("Gender") }}</label>
+            <AppSelect
+              v-model="filters.gender"
+              :items="genderFilterItems"
+              value-key="value"
+              :aria-label="String(translateText('Filter students by gender'))"
+            />
+          </div>
+
+          <div class="student-filter-field">
+            <label>{{ translateText("Status") }}</label>
+            <AppSelect
+              v-model="filters.status"
+              :items="statusFilterItems"
+              value-key="value"
+              :aria-label="String(translateText('Filter students by status'))"
+            />
+          </div>
+
+          <div class="student-filter-apply">
+            <AppButton
+              action="search"
+              :label="String(translateText('Apply search'))"
+              @click="submitSearch"
+            />
+          </div>
+        </div>
+
+        <div
+          v-if="activeFilterChips.length"
+          class="student-active-filters"
+          :aria-label="String(translateText('Applied filters'))"
+        >
+          <span class="student-active-filters-label">{{ translateText("Applied:") }}</span>
+          <button
+            v-for="chip in activeFilterChips"
+            :key="chip.key"
+            type="button"
+            class="student-filter-chip"
+            :aria-label="`Remove ${chip.label}`"
+            @click="removeStudentFilter(chip.key)"
+          >
+            <span>{{ chip.label }}</span>
+            <UIcon name="i-lucide-x" />
+          </button>
+        </div>
+      </UCard>
 
       <UAlert
         v-if="liveIsLoading"
         color="neutral"
         variant="soft"
         icon="i-lucide-loader"
-        title="Loading student analytics charts"
-        description="The student table is ready. Chart sections will update as Moodle analytics responds."
+        :title="String(translateText('Loading student analytics charts'))"
+        :description="String(translateText('The student table is ready. Chart sections will update as Moodle analytics responds.'))"
       />
 
       <UAlert
@@ -95,75 +251,145 @@ const translatedSelectItems = (items: string[]) =>
         color="warning"
         variant="soft"
         icon="i-lucide-triangle-alert"
-        title="Student charts unavailable"
+        :title="String(translateText('Student charts unavailable'))"
         :description="liveError"
       />
 
-      <UCard :ui="{ body: 'analytics-filter-bar' }">
-        <div class="analytics-filter-field wide">
-          <label>{{ t("common.search") }}</label>
-          <UInput
-            v-model="searchQuery"
-            icon="i-lucide-search"
-            :placeholder="String(translateText('Search name, email, or username'))"
-            @keydown.enter="submitSearch"
-          />
-        </div>
-        <div class="analytics-filter-field">
-          <label>{{ t("text.institution") }}</label>
-          <USelect
-            v-model="filters.institute"
-            :items="translatedSelectItems(institutes)"
-            :disabled="isPartnerScoped"
-          />
-          <span v-if="isPartnerScoped" class="text-xs text-muted">
-            Locked to your approved institute.
-          </span>
-        </div>
-        <div class="analytics-filter-field">
-          <label>{{ t("text.department") }}</label>
-          <USelect v-model="filters.department" :items="translatedSelectItems(departments)" />
-        </div>
-        <div class="analytics-filter-field">
-          <label>{{ translateText("City") }}</label>
-          <USelect v-model="filters.city" :items="translatedSelectItems(cities)" />
-        </div>
-        <div class="analytics-filter-field">
-          <label>{{ translateText("Gender") }}</label>
-          <USelect
-            v-model="filters.gender"
-            :items="translatedSelectItems(genderOptions)"
-          />
-        </div>
-        <div class="analytics-filter-field">
-          <label>{{ t("text.status") }}</label>
-          <USelect
-            v-model="filters.status"
-            :items="translatedSelectItems(statusOptions)"
-          />
-        </div>
-      </UCard>
+      <nav class="activity-tabs" :aria-label="String(translateText('Student analytics sections'))">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          type="button"
+          class="activity-tab"
+          :class="{ 'activity-tab--active': activeTab === tab.value }"
+          @click="activeTab = tab.value"
+        >
+          {{ translateText(tab.label) }}
+        </button>
+      </nav>
 
-      <DashboardDataTable
+      <template v-if="!liveIsLoading && !liveError">
+        <section v-if="activeTab === 'overview'" class="grid analytics-chart-grid activity-tab-panel">
+          <AnalyticsChartCard
+            title="Students by Institute"
+            icon="i-lucide-building-2"
+            description="Student totals across all Moodle institutes."
+            :option="institutionDistributionOption"
+            :height="institutionDistributionHeight"
+            aria-label="Students by Institute"
+          />
+          <AnalyticsChartCard
+            title="Students by Department"
+            icon="i-lucide-list-ordered"
+            description="Student totals across all Moodle departments."
+            :badge="departmentChartBadge"
+            :option="departmentDistributionOption"
+            :height="departmentDistributionHeight"
+            aria-label="Students by Department"
+          >
+            <template #actions>
+              <div class="flex items-center gap-2">
+                <UBadge color="primary" variant="soft">
+                  {{ departmentChartBadge }}
+                </UBadge>
+                <AppSelect
+                  v-model="filters.institute"
+                  :items="instituteFilterItems"
+                  value-key="value"
+                  :disabled="isPartnerScoped"
+                  class="min-w-44"
+                  size="sm"
+                  @update:model-value="changeInstitute"
+                />
+                <AppButton
+                  v-if="hasInstituteFilter"
+                  action="clear"
+                  label=""
+                  square
+                  :aria-label="String(translateText('Clear institute filter'))"
+                  @click="clearInstituteFilter"
+                />
+              </div>
+            </template>
+          </AnalyticsChartCard>
+        </section>
+
+        <section v-else-if="activeTab === 'demographics'" class="grid analytics-chart-grid activity-tab-panel">
+          <AnalyticsChartCard
+            title="Gender Distribution"
+            icon="i-lucide-pie-chart"
+            description="Breakdown of students by gender."
+            :option="genderDistributionOption"
+            height="360px"
+            aria-label="Gender Distribution"
+          />
+          <AnalyticsChartCard
+            title="Students by City"
+            icon="i-lucide-map-pin"
+            description="Student totals across reported cities."
+            :option="cityDistributionOption"
+            :height="cityDistributionHeight"
+            aria-label="Students by City"
+          />
+        </section>
+
+        <section v-else class="grid analytics-chart-grid activity-tab-panel">
+          <AnalyticsChartCard
+            v-for="chart in charts"
+            :key="chart.title"
+            :chart="chart"
+            :class="{ 'analytics-chart-wide': chart.wide }"
+          >
+            <template v-if="chart.title === 'Student Login Activity'" #actions>
+              <AppSegmentedControl
+                v-model="selectedActivityPeriod"
+                :options="activityPeriodOptions"
+                :aria-label="String(translateText('Student activity period'))"
+              />
+            </template>
+          </AnalyticsChartCard>
+        </section>
+      </template>
+
+      <AppDataTable
         :title="table.title"
         :icon="table.icon"
         :description="table.description"
         :columns="table.columns"
         :rows="table.rows"
         :row-key="table.rowKey"
-        min-width="1280px"
+        min-width="1628px"
       >
+        <template #actions>
+          <div class="dashboard-table-toolbar">
+            <AppSearchInput
+              v-model="searchQuery"
+              class="dashboard-table-search"
+              :placeholder="String(translateText('Search students'))"
+              :aria-label="String(translateText('Search students by name, username, or email'))"
+              clearable
+              @submit="submitSearch"
+              @clear="submitSearch"
+            />
+            <div class="dashboard-table-toolbar-actions">
+              <UBadge v-if="activeFilterCount" color="primary" variant="soft">
+                {{ activeFilterCount }} {{ translateText("filters") }}
+              </UBadge>
+              <AppButton
+                action="export"
+                @click="exportStudents"
+              />
+            </div>
+          </div>
+        </template>
         <template #cell-action="{ value }">
-          <UButton
-            size="sm"
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-eye"
+          <AppButton
+            action="view"
             :label="t('text.view')"
             @click="viewStudent(value)"
           />
         </template>
-      </DashboardDataTable>
+      </AppDataTable>
 
       <div class="student-pagination">
         <span>{{ paginationLabel }}</span>
@@ -187,62 +413,6 @@ const translatedSelectItems = (items: string[]) =>
           />
         </div>
       </div>
-
-      <section class="grid dashboard-detail">
-        <UCard as="article" class="analytics-card" :ui="{ body: 'analytics-card-body' }">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h2 class="section-title with-icon">
-                <UIcon name="i-lucide-triangle-alert" />
-                Risk Level Explanation
-              </h2>
-              <p class="chart-note">Static preview for the future student risk model.</p>
-            </div>
-            <UBadge color="warning" variant="soft">Static preview</UBadge>
-          </div>
-          <ul class="static-preview-list">
-            <li>
-              <UIcon name="i-lucide-check-circle-2" />
-              <span>Never logged in increases risk.</span>
-            </li>
-            <li>
-              <UIcon name="i-lucide-check-circle-2" />
-              <span>No course completion increases risk.</span>
-            </li>
-            <li>
-              <UIcon name="i-lucide-check-circle-2" />
-              <span>No quiz or assignment activity increases risk.</span>
-            </li>
-          </ul>
-        </UCard>
-
-        <UCard as="article" class="analytics-card" :ui="{ body: 'analytics-card-body' }">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h2 class="section-title with-icon">
-                <UIcon name="i-lucide-gauge" />
-                Performance Preview Fields
-              </h2>
-              <p class="chart-note">These fields are UI placeholders until learning-performance APIs are ready.</p>
-            </div>
-            <UBadge color="warning" variant="soft">API later</UBadge>
-          </div>
-          <div class="static-preview-stat-grid">
-            <div>
-              <span>Performance score</span>
-              <strong>76%</strong>
-            </div>
-            <div>
-              <span>Learning hours</span>
-              <strong>42h</strong>
-            </div>
-            <div>
-              <span>Attendance rate</span>
-              <strong>88%</strong>
-            </div>
-          </div>
-        </UCard>
-      </section>
     </template>
 
     <StudentProfileDrawer
@@ -252,3 +422,174 @@ const translatedSelectItems = (items: string[]) =>
     />
   </div>
 </template>
+
+<style scoped>
+.student-advanced-filters :deep(.student-advanced-filters-body) {
+  display: grid;
+  gap: 16px;
+}
+
+.student-filter-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.student-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(5, minmax(150px, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.student-filter-field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.student-filter-field label,
+.student-active-filters-label {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.student-filter-field :deep(.dashboard-select) {
+  width: 100%;
+  min-width: 0;
+}
+
+.student-filter-apply {
+  display: flex;
+  align-items: center;
+}
+
+.student-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-border);
+}
+
+.student-filter-chip {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--app-primary-extra-soft);
+  color: var(--app-text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.student-filter-chip:hover {
+  border-color: var(--app-primary);
+}
+
+.student-filter-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-filter-chip svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.activity-tabs {
+  align-items: center;
+  display: flex;
+  gap: 28px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0 2px;
+  scrollbar-width: none;
+}
+
+.activity-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.activity-tab {
+  align-items: center;
+  color: var(--app-muted);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 0 13px;
+  position: relative;
+  transition: color 0.18s ease;
+}
+
+.activity-tab::after {
+  background: currentColor;
+  bottom: 0;
+  content: "";
+  height: 2px;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  transform: scaleX(0.75);
+  transform-origin: center;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.activity-tab:hover,
+.activity-tab--active {
+  color: var(--app-text);
+}
+
+.activity-tab--active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.activity-tab-panel {
+  display: grid;
+  gap: 20px;
+}
+
+@media (max-width: 1279px) {
+  .student-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .student-filter-field--search {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .student-filter-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .student-filter-field--search {
+    grid-column: auto;
+  }
+
+  .student-filter-apply :deep(.app-button) {
+    width: 100%;
+  }
+}
+</style>

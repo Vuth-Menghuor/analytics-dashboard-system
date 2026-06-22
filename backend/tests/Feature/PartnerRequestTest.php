@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\PartnerRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -12,8 +13,17 @@ class PartnerRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['services.google.client_id' => 'test-google-client-id']);
+    }
+
     public function test_partner_can_submit_access_request(): void
     {
+        $this->fakeVerifiedGoogleAccount('partner.request@example.com');
+
         $this->postJson('/api/partner-requests', [
             'state_province' => 'Phnom Penh',
             'first_name' => 'Partner',
@@ -23,6 +33,7 @@ class PartnerRequestTest extends TestCase
             'institution_name' => 'ITC',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'google_id_token' => 'valid-google-token',
         ])
             ->assertCreated()
             ->assertJsonPath('status', 'pending')
@@ -41,6 +52,8 @@ class PartnerRequestTest extends TestCase
 
     public function test_partner_request_normalizes_full_institute_name_to_moodle_code(): void
     {
+        $this->fakeVerifiedGoogleAccount('full.institute@example.com');
+
         $this->postJson('/api/partner-requests', [
             'state_province' => 'Phnom Penh',
             'first_name' => 'Full',
@@ -50,9 +63,29 @@ class PartnerRequestTest extends TestCase
             'institution_name' => 'Institute of Technology of Cambodia',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'google_id_token' => 'valid-google-token',
         ])
             ->assertCreated()
             ->assertJsonPath('institution_name', 'ITC');
+    }
+
+    public function test_partner_request_requires_verified_google_email_to_match_submitted_email(): void
+    {
+        $this->fakeVerifiedGoogleAccount('different.email@example.com');
+
+        $this->postJson('/api/partner-requests', [
+            'state_province' => 'Phnom Penh',
+            'first_name' => 'Partner',
+            'last_name' => 'User',
+            'email' => 'partner.request@example.com',
+            'phone_number' => '+85512345678',
+            'institution_name' => 'ITC',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'google_id_token' => 'valid-google-token',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
     }
 
     public function test_manager_can_approve_partner_request_and_create_partner_user(): void
@@ -175,34 +208,21 @@ class PartnerRequestTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_partner_access_is_limited_to_partner_routes(): void
+    public function test_partner_can_authenticate_but_cannot_access_admin_routes(): void
     {
         Sanctum::actingAs(User::factory()->create([
             'role' => 'partner',
             'institution_name' => 'ITC',
         ]));
 
-        $this->getJson('/api/partner/dashboard')
+        $this->getJson('/api/user')
             ->assertOk()
-            ->assertJsonPath('message', 'Partner dashboard');
-
-        $this->getJson('/api/manager/dashboard')
-            ->assertForbidden();
+            ->assertJsonPath('role', 'partner');
 
         $this->getJson('/api/admin/users')
             ->assertForbidden();
 
         $this->getJson('/api/admin/partner-requests')
-            ->assertForbidden();
-    }
-
-    public function test_manager_cannot_access_partner_only_dashboard(): void
-    {
-        Sanctum::actingAs(User::factory()->create([
-            'role' => 'manager',
-        ]));
-
-        $this->getJson('/api/partner/dashboard')
             ->assertForbidden();
     }
 
@@ -229,5 +249,16 @@ class PartnerRequestTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('status');
+    }
+
+    private function fakeVerifiedGoogleAccount(string $email): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
+                'aud' => 'test-google-client-id',
+                'email' => $email,
+                'email_verified' => 'true',
+            ]),
+        ]);
     }
 }

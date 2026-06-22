@@ -12,7 +12,6 @@ const props = withDefaults(
 );
 
 const {
-  activeRole,
   activeRoleMeta,
   activeSection,
   avatarSrc,
@@ -68,13 +67,13 @@ const { t } = useI18n();
               <AccountSettingsOverview
                 v-if="activeSection === 'overview'"
                 key="overview"
-                :active-role="activeRole"
                 :avatar-src="avatarSrc"
                 :display-email="displayEmail"
                 :display-name="displayName"
                 :form-state="formState"
                 :role-meta="activeRoleMeta"
                 :user-initial="userInitial"
+                @navigate="activeSection = $event"
               />
               <AccountSettingsProfile
                 v-else-if="activeSection === 'profile'"
@@ -88,19 +87,21 @@ const { t } = useI18n();
               <AccountSettingsSecurity
                 v-else-if="activeSection === 'security'"
                 key="security"
-                :form-state="formState"
               />
               <AccountSettingsPreferences
                 v-else-if="activeSection === 'preferences'"
                 key="preferences"
                 :form-state="formState"
-                :role="activeRole"
               />
-              <AccountSettingsNotifications
+              <AccountSettingsOverview
                 v-else
-                key="notifications"
+                key="overview-fallback"
+                :avatar-src="avatarSrc"
+                :display-email="displayEmail"
+                :display-name="displayName"
                 :form-state="formState"
-                :role="activeRole"
+                :role-meta="activeRoleMeta"
+                :user-initial="userInitial"
               />
             </Transition>
           </div>
@@ -146,7 +147,7 @@ const { t } = useI18n();
 }
 
 .settings-scrollbar {
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: var(--app-outline-variant) transparent;
   scrollbar-width: thin;
 }
 
@@ -160,11 +161,11 @@ const { t } = useI18n();
 }
 
 .settings-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--app-outline-variant);
   border-radius: 999px;
 }
 
 .settings-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--app-disabled);
 }
 </style>

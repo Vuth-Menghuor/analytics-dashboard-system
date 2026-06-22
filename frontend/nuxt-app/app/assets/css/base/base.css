@@ -1,16 +1,62 @@
 @font-face {
-  font-family: "Khmer OS Siemreap";
+  font-family: "Open Sauce Sans";
   font-display: swap;
   font-style: normal;
-  font-weight: 400 700;
-  src: url("/fonts/Khmer%20OS%20Siemreap-Kh%20Auto.ttf") format("truetype");
-  unicode-range: U+1780-17FF, U+19E0-19FF;
+  font-weight: 300;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 500;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 800;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-ExtraBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sauce Sans";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 900;
+  src: url("/fonts/open-sauce-fon/OpenSauceSans-Black.ttf") format("truetype");
 }
 
 :root {
   color-scheme: light;
-  --app-font-family: Helvetica, Arial, sans-serif;
-  --app-khmer-font-family: "Khmer OS Siemreap", Helvetica, Arial, sans-serif;
+  --app-font-family: "Open Sauce Sans", sans-serif;
 
   font-family: var(--app-font-family);
   line-height: 1.5;
@@ -23,9 +69,33 @@
   --app-muted: #64748b;
   --app-heading: #020617;
   --app-input: #ffffff;
-  --app-primary: #0c447c;
+  --app-primary: #0a3868;
+  --app-primary-hover: #082f57;
+  --app-on-primary: #ffffff;
+  --app-on-media: #ffffff;
+  --app-media-overlay: #0f172a;
   --app-primary-soft: #e8f2fa;
-  --app-shadow: 0 12px 30px rgb(15 23 42 / 0.05);
+  --app-primary-extra-soft: #f3f8fc;
+  --app-secondary: #64748b;
+  --app-success: #16a34a;
+  --app-warning: #f59e0b;
+  --app-on-warning: #1e293b;
+  --app-error: #dc2626;
+  --app-danger: var(--app-error);
+  --app-info: #06b6d4;
+  --app-accent-purple: #8b5cf6;
+  --chart-1: #0a3868;
+  --chart-2: #06b6d4;
+  --chart-3: #f59e0b;
+  --chart-4: #16a34a;
+  --chart-5: #8b5cf6;
+  --chart-6: #ec4899;
+  --chart-other: #64748b;
+  --app-disabled: #64748b;
+  --app-outline: #64748b;
+  --app-outline-variant: #e2e8f0;
+  --app-shadow: 0 12px 30px
+    color-mix(in srgb, var(--app-text) 5%, transparent);
 }
 
 :root.dark {
@@ -34,24 +104,48 @@
   --app-bg: #020617;
   --app-surface: #0f172a;
   --app-surface-soft: #111c31;
+  --app-surface-container: #0f172a;
+  --app-surface-container-high: #18243a;
+  --app-surface-container-highest: #24324a;
   --app-border: #24324a;
+  --app-outline: #475569;
+  --app-outline-variant: #64748b;
   --app-text: #e5e7eb;
   --app-muted: #94a3b8;
+  --app-disabled: #64748b;
   --app-heading: #f8fafc;
   --app-input: #111827;
   --app-primary: #60a5fa;
+  --app-primary-hover: #93c5fd;
+  --app-on-primary: #020617;
+  --app-on-media: #ffffff;
+  --app-media-overlay: #0f172a;
   --app-primary-soft: #102a43;
+  --app-primary-extra-soft: #0b1f35;
+  --app-secondary: #94a3b8;
+  --app-error: #f2918a;
+  --app-danger: var(--app-error);
+  --app-warning: #f5b873;
+  --app-on-warning: #0b1120;
+  --app-success: #86d996;
+  --app-info: #7dd8e8;
+  --app-accent-purple: #8b5cf6;
   --app-shadow: 0 12px 30px rgb(0 0 0 / 0.28);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  font-family: var(--app-font-family);
 }
 
 html,
 body,
 #__nuxt {
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background: var(--app-bg);
   color: var(--app-text);
 }
@@ -69,15 +163,6 @@ input,
 select,
 textarea {
   font: inherit;
-}
-
-html:lang(km),
-html:lang(km) body,
-html:lang(km) button,
-html:lang(km) input,
-html:lang(km) select,
-html:lang(km) textarea {
-  font-family: var(--app-khmer-font-family);
 }
 
 a {

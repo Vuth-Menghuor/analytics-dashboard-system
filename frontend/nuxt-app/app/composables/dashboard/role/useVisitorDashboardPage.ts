@@ -1,10 +1,19 @@
 import { visitorPublicDashboardCopy } from "~/constants/roleDashboards";
 import {
   getPopularCourses,
+  getStudentActivityTrend,
   getStudentGenderDistribution,
   getStudentsByDepartment,
 } from "~/services/analytics.service";
 import type { AnalyticsChart } from "~/types/analytics";
+import { formatStudentDepartmentLabel } from "~/utils/studentDepartment";
+
+const dashboardMetricLabels = [
+  "Total Students",
+  "Total Courses",
+  "Total Enrollments",
+  "Active Students",
+] as const;
 
 export const useVisitorDashboardPage = () => {
   const {
@@ -20,21 +29,44 @@ export const useVisitorDashboardPage = () => {
     chartsLoading.value = true;
     chartError.value = "";
 
-    const [gender, departments, popularCourses] = await Promise.allSettled([
-      getStudentGenderDistribution(),
-      getStudentsByDepartment(),
-      getPopularCourses(),
-    ]);
+    const [gender, departments, popularCourses, activityTrend] =
+      await Promise.allSettled([
+        getStudentGenderDistribution(),
+        getStudentsByDepartment(),
+        getPopularCourses(),
+        getStudentActivityTrend({ period: "year" }),
+      ]);
 
     const loadedCharts: AnalyticsChart[] = [];
+
+    if (activityTrend.status === "fulfilled") {
+      loadedCharts.push({
+        title: "Student Login Activity",
+        description: "Public summary of student login trend by year.",
+        icon: "i-lucide-activity",
+        type: "line",
+        height: "340px",
+        wide: true,
+        labels: activityTrend.value.map((point) => point.period),
+        series: [
+          {
+            name: "Students",
+            data: activityTrend.value.map((point) => point.totalStudents),
+          },
+        ],
+      });
+    }
 
     if (departments.status === "fulfilled") {
       loadedCharts.push({
         title: "Top Departments",
         description: "Public summary of the largest Moodle departments.",
         icon: "i-lucide-list-ordered",
-        type: "horizontalBar",
-        labels: departments.value.slice(0, 8).map((point) => point.department),
+        type: "bar",
+        height: "320px",
+        labels: departments.value
+          .slice(0, 8)
+          .map((point) => formatStudentDepartmentLabel(point.department)),
         series: [
           {
             name: "Students",
@@ -50,8 +82,9 @@ export const useVisitorDashboardPage = () => {
       loadedCharts.push({
         title: "Gender Distribution",
         description: "Public student gender distribution summary.",
-        icon: "i-lucide-pie-chart",
-        type: "donut",
+        icon: "i-lucide-chart-column",
+        type: "bar",
+        height: "320px",
         labels: gender.value.map((point) => point.gender),
         series: [
           {
@@ -68,6 +101,7 @@ export const useVisitorDashboardPage = () => {
         description: "Public course popularity by enrollments.",
         icon: "i-lucide-trending-up",
         type: "horizontalBar",
+        height: "340px",
         labels: popularCourses.value
           .slice(0, 8)
           .map((course) => course.courseName),
@@ -99,7 +133,11 @@ export const useVisitorDashboardPage = () => {
           ...moodleDashboard.value,
           title: "Public Moodle Analytics",
           copy: visitorPublicDashboardCopy,
-          metrics: moodleDashboard.value.metrics.slice(0, 4),
+          metrics: moodleDashboard.value.metrics.filter((metric) =>
+            dashboardMetricLabels.includes(
+              metric.label as (typeof dashboardMetricLabels)[number],
+            ),
+          ),
           charts: charts.value,
         }
       : null,

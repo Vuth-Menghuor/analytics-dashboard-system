@@ -12,5 +12,12 @@ export type Metric = {
   trend: string
   icon: string
   color?: string
+  breakdown?: Array<{
+    label: string
+    value: string
+  }>
+  change?: string
+  changePeriod?: string
+  changeDirection?: 'up' | 'down' | 'neutral'
   sparkline?: number[]
 }

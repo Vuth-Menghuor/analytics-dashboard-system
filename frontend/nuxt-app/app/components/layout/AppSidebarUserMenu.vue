@@ -14,6 +14,7 @@ const { accountMenuUi, userMenuItems } = useAccountMenu();
 <template>
   <UDropdownMenu
     :items="userMenuItems"
+    :modal="false"
     :content="{ align: 'start', collisionPadding: 12, sideOffset: 10 }"
     :ui="accountMenuUi"
   >
@@ -96,8 +97,9 @@ const { accountMenuUi, userMenuItems } = useAccountMenu();
   justify-content: center;
   border: 2px solid var(--app-surface);
   border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
-  color: #ffffff;
+  box-shadow: 0 8px 18px
+    color-mix(in srgb, var(--app-text) 12%, transparent);
+  color: var(--app-on-primary);
   font-size: 0.95rem;
   font-weight: 800;
   line-height: 1;
@@ -188,7 +190,7 @@ const { accountMenuUi, userMenuItems } = useAccountMenu();
   height: 10px;
   border: 2px solid var(--app-surface);
   border-radius: 999px;
-  background: #22c55e;
+  background: var(--app-success);
 }
 
 .sidebar-user-menu-account {
@@ -207,14 +209,14 @@ const { accountMenuUi, userMenuItems } = useAccountMenu();
 
 .sidebar-user-menu-name {
   color: var(--app-heading);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 750;
   line-height: 1.25;
 }
 
 .sidebar-user-menu-email {
   color: var(--app-muted);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 500;
   line-height: 1.2;
 }

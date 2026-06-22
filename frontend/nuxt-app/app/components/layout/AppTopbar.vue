@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import LanguageSwitcher from "~/components/common/LanguageSwitcher.vue";
 import ThemeToggle from "~/components/common/ThemeToggle.vue";
+import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import { useAccountDisplay } from "~/composables/account/useAccountDisplay";
 import { useAccountMenu } from "~/composables/account/useAccountMenu";
 
 const auth = useAuthStore();
 const { t } = useI18n();
-const { avatarSrc, displayEmail, displayName, userInitial } =
+const { avatarSrc, displayEmail, displayName, displayRole, userInitial } =
   useAccountDisplay();
 const { accountMenuUi, userMenuItems } = useAccountMenu();
 const pageTitle = usePageTitle();
+const searchQuery = ref("");
+
+const formattedRole = computed(() =>
+  String(displayRole.value)
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()),
+);
+
 </script>
 
 <template>
@@ -17,21 +26,22 @@ const pageTitle = usePageTitle();
     <h1 class="topbar-title">{{ pageTitle }}</h1>
 
     <div class="topbar-actions">
+      <AppSearchInput
+        v-model="searchQuery"
+        class="topbar-search"
+        :aria-label="t('common.search')"
+        :placeholder="t('common.searchPlaceholder')"
+        shortcut
+      />
+
       <LanguageSwitcher />
 
       <ThemeToggle />
 
-      <UButton
-        icon="i-lucide-bell"
-        color="neutral"
-        variant="ghost"
-        :aria-label="t('common.notifications')"
-        class="topbar-icon-button"
-      />
-
       <UDropdownMenu
         v-if="auth.user"
         :items="userMenuItems"
+        :modal="false"
         :content="{ align: 'end', collisionPadding: 12, sideOffset: 10 }"
         :ui="accountMenuUi"
       >
@@ -66,6 +76,10 @@ const pageTitle = usePageTitle();
             :alt="displayName"
             class="topbar-account-avatar"
           />
+          <span class="topbar-account-copy">
+            <strong>{{ displayName }}</strong>
+            <small>{{ formattedRole }}</small>
+          </span>
         </UButton>
       </UDropdownMenu>
     </div>
@@ -76,7 +90,8 @@ const pageTitle = usePageTitle();
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 40;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -106,27 +121,90 @@ const pageTitle = usePageTitle();
   flex: 1 1 auto;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
-.topbar-icon-button,
-.topbar-account-button {
+.topbar-search {
+  width: clamp(180px, 20vw, 260px);
+}
+
+.topbar-icon-button {
   flex: 0 0 auto;
 }
 
-.topbar-account-button {
-  width: 36px;
-  height: 36px;
+.topbar-actions :deep(.topbar-icon-button) {
+  width: 38px;
+  height: 38px;
   justify-content: center;
-  border-radius: 999px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
   padding: 0;
+  background: var(--app-surface);
+}
+
+.topbar-actions :deep(.topbar-language-control) {
+  height: 38px;
+  border-color: var(--app-border);
+  border-radius: 8px;
+}
+
+.topbar-account-button {
+  min-width: 0;
+  min-height: 42px;
+  justify-content: flex-start;
+  gap: 8px;
+  border: 0 !important;
+  border-radius: 8px;
+  padding: 3px 6px;
+  background: transparent;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 transparent;
+  --tw-ring-offset-shadow: 0 0 transparent;
+}
+
+.topbar-account-button:hover,
+.topbar-account-button:active,
+.topbar-account-button[data-state="open"] {
+  background: transparent !important;
 }
 
 .topbar-account-avatar {
-  width: 30px;
-  height: 30px;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid var(--app-border);
+  box-shadow: none;
+}
+
+.topbar-account-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  padding-right: 4px;
+  text-align: left;
+}
+
+.topbar-account-copy strong,
+.topbar-account-copy small {
+  overflow: hidden;
+  max-width: 130px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-account-copy strong {
+  color: var(--app-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.topbar-account-copy small {
+  color: var(--app-muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
 .topbar-account-menu-header {
@@ -156,7 +234,7 @@ const pageTitle = usePageTitle();
   height: 10px;
   border: 2px solid var(--app-surface);
   border-radius: 999px;
-  background: #22c55e;
+  background: var(--app-success);
 }
 
 .topbar-account-menu-details {
@@ -175,16 +253,26 @@ const pageTitle = usePageTitle();
 
 .topbar-account-menu-name {
   color: var(--app-text);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 750;
   line-height: 1.25;
 }
 
 .topbar-account-menu-email {
   color: var(--app-muted);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 500;
   line-height: 1.2;
+}
+
+@media (max-width: 980px) {
+  .topbar-search {
+    width: min(220px, 28vw);
+  }
+
+  .topbar-account-copy {
+    display: none;
+  }
 }
 
 @media (max-width: 680px) {
@@ -199,6 +287,15 @@ const pageTitle = usePageTitle();
 
   .topbar-actions {
     width: 100%;
+  }
+
+  .topbar-search {
+    flex: 1;
+    width: auto;
+  }
+
+  .topbar-account-copy {
+    display: none;
   }
 }
 </style>

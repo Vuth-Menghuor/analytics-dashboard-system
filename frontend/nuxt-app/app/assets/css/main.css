@@ -2,14 +2,17 @@
 @import "@nuxt/ui";
 
 @theme {
-  --color-primary: #0C447C;
-  --color-primary-hover: #0A3868;
-  --color-primary-soft: #f3f8fc;
-  --color-primary-muted: #e8f2fa;
-  --color-secondary: #64748b;
-  --color-success: #0f8b57;
-  --color-warning: #d97706;
-  --color-accent-purple: #8847d8;
+  --color-primary: var(--app-primary);
+  --color-primary-hover: var(--app-primary-hover);
+  --color-primary-soft: var(--app-primary-extra-soft);
+  --color-primary-muted: var(--app-primary-soft);
+  --color-secondary: var(--app-secondary);
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+  --color-warning-text: var(--app-on-warning);
+  --color-error: var(--app-error);
+  --color-info: var(--app-info);
+  --color-accent-purple: var(--app-accent-purple);
 }
 
 @import "./base/base.css";
@@ -43,8 +46,21 @@
 
 .app-sidebar .router-link-active:not(.sidebar-brand),
 .app-sidebar [aria-current="page"]:not(.sidebar-brand) {
-  background: var(--app-primary-soft) !important;
-  color: var(--app-primary) !important;
+  background: var(--color-primary-hover) !important;
+  color: var(--app-on-primary) !important;
+  box-shadow: none;
+}
+
+.app-sidebar .router-link-active:not(.sidebar-brand) span,
+.app-sidebar [aria-current="page"]:not(.sidebar-brand) span {
+  color: inherit !important;
+}
+
+:root.dark .app-sidebar .router-link-active:not(.sidebar-brand),
+:root.dark .app-sidebar [aria-current="page"]:not(.sidebar-brand) {
+  background: color-mix(in srgb, var(--app-primary) 10%, transparent) !important;
+  color: var(--app-primary-hover) !important;
+  box-shadow: none;
 }
 
 .app-sidebar .sidebar-brand,
@@ -183,7 +199,7 @@ thead th {
 
 .btn.primary {
   background: var(--app-primary);
-  color: #fff;
+  color: var(--app-on-primary);
   border-color: var(--app-primary);
 }
 
@@ -226,6 +242,11 @@ thead th {
   border-color: var(--app-border) !important;
 }
 
+:root.dark .divide-y.divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+:root.dark .divide-y.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-top-color: var(--app-border) !important;
+}
+
 :root.dark .ring-slate-200 {
   --tw-ring-color: var(--app-border) !important;
 }
@@ -255,8 +276,18 @@ thead th {
 
 /* Account settings modal scoped theme compatibility */
 .account-settings-root {
+  --account-settings-divider: var(--app-border);
+
   background: var(--app-bg) !important;
   color: var(--app-text) !important;
+}
+
+:root.dark .account-settings-root {
+  --account-settings-divider: color-mix(
+    in srgb,
+    var(--app-on-media) 8%,
+    transparent
+  );
 }
 
 .account-settings-root .bg-white {
@@ -286,7 +317,32 @@ thead th {
 .account-settings-root .border-slate-300,
 .account-settings-root .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 .account-settings-root .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--app-border) !important;
+  border-color: var(--account-settings-divider) !important;
+}
+
+.account-settings-root .divide-y.divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.account-settings-root .divide-y.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-opacity: 1 !important;
+  border-top-color: var(--account-settings-divider) !important;
+}
+
+.account-settings-root .border-t.border-slate-100,
+.account-settings-root .border-t.border-slate-200,
+.account-settings-root .border-b.border-slate-100,
+.account-settings-root .border-b.border-slate-200 {
+  border-color: var(--account-settings-divider) !important;
+}
+
+.account-settings-root .account-overview-detail-list {
+  border-top: 1px solid var(--account-settings-divider);
+}
+
+.account-settings-root .account-overview-detail-row {
+  border-bottom: 1px solid var(--account-settings-divider);
+}
+
+.account-settings-root .account-settings-section-row + .account-settings-section-row {
+  border-top: 1px solid var(--account-settings-divider);
 }
 
 .account-settings-root .ring-slate-100,

@@ -102,15 +102,13 @@ export const useAuthStore = defineStore("auth", () => {
     error.value = "";
 
     try {
-      const { data } = await api.post<{ token: string; user: AuthUser }>(
+      const { data } = await api.post<{ token?: string; user: AuthUser }>(
         "/register",
         {
           ...payload,
           role: "visitor",
         },
       );
-
-      setSession(data.token, data.user);
 
       return data.user;
     } catch (err) {

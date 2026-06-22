@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import AppButton from "~/components/common/AppButton.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import { useReportsPage } from "~/composables/reports/useReportsPage";
 
 const {
   partnerInstituteLabel,
-  previewExport,
   reportCards,
   reportSummaryItems,
 } = useReportsPage();
@@ -14,16 +14,16 @@ const { translateText } = useTranslateText();
 <template>
   <div class="page-stack">
     <PageHeader
-      eyebrow="Reporting"
-      title="Reports"
-      copy="Review the export layout before backend export APIs are connected."
+      :eyebrow="String(translateText('Reporting'))"
+      :title="String(translateText('Reports'))"
+      :copy="String(translateText('Open each analytics page and export the visible dashboard data as CSV.'))"
     >
       <div class="toolbar">
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
           {{ partnerInstituteLabel }}
         </UBadge>
-        <UBadge color="warning" variant="soft">
-          Export UI only — backend export API later
+        <UBadge color="success" variant="soft">
+          {{ translateText("CSV export available on feature pages") }}
         </UBadge>
       </div>
     </PageHeader>
@@ -33,11 +33,12 @@ const { translateText } = useTranslateText();
         v-for="item in reportSummaryItems"
         :key="item.label"
         as="article"
+        class="report-summary-shell"
         :ui="{ body: 'report-summary-card' }"
       >
-        <span>{{ item.label }}</span>
+        <span>{{ translateText(item.label) }}</span>
         <strong>{{ item.value }}</strong>
-        <p>{{ item.detail }}</p>
+        <p>{{ translateText(item.detail) }}</p>
       </UCard>
     </section>
 
@@ -46,49 +47,40 @@ const { translateText } = useTranslateText();
         v-for="report in reportCards"
         :key="report.key"
         as="article"
-        class="analytics-card"
+        class="analytics-card report-export-shell"
         :ui="{ body: 'report-export-card' }"
       >
         <div class="report-export-icon">
           <UIcon :name="report.icon" />
         </div>
         <div>
-          <h2>{{ report.title }}</h2>
-          <p>{{ report.description }}</p>
+          <h2>{{ translateText(report.title) }}</h2>
+          <p>{{ translateText(report.description) }}</p>
         </div>
         <div class="report-export-meta">
           <UBadge color="neutral" variant="soft">{{ report.format }}</UBadge>
-          <UBadge color="warning" variant="soft">API later</UBadge>
+          <UBadge color="success" variant="soft">{{ translateText("Ready") }}</UBadge>
         </div>
         <div class="toolbar">
-          <UButton
+          <AppButton
+            action="details"
             :to="report.route"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-eye"
-            label="View data"
-          />
-          <UButton
-            color="neutral"
+            :label="String(translateText('Open page'))"
             variant="outline"
-            icon="i-lucide-download"
-            label="Export CSV"
-            @click="previewExport(report.key)"
           />
         </div>
       </UCard>
     </section>
 
-    <UCard as="article" :ui="{ body: 'report-preview-card' }">
+    <UCard as="article" class="report-preview-shell" :ui="{ body: 'report-preview-card' }">
       <div>
         <p class="eyebrow">{{ translateText("Preview") }}</p>
-        <h2>{{ translateText("Moodle Learning Analytics Report") }}</h2>
+        <h2>{{ translateText("Moodle Learning Activity Report") }}</h2>
         <p>
-          Export buttons are static UI controls for review. CSV generation will
-          be connected first; PDF can be added later if needed.
+          {{ translateText("CSV export buttons are now placed inside the analytics feature pages next to the data they export.") }}
         </p>
       </div>
-      <UBadge color="warning" variant="soft">Static preview</UBadge>
+      <UBadge color="success" variant="soft">{{ translateText("Ready") }}</UBadge>
     </UCard>
   </div>
 </template>

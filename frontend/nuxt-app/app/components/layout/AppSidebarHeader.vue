@@ -25,7 +25,7 @@ const toggleLabel = computed(() =>
     <NuxtLink v-if="!collapsed" class="sidebar-brand" :to="dashboardPath">
       <img class="sidebar-brand-image" src="/ccun-logo.png" alt="" />
       <span class="sidebar-brand-copy">
-        <strong class="font-helvetica">CCUN Insights</strong>
+        <strong>CCUN Insights</strong>
       </span>
     </NuxtLink>
 
@@ -62,6 +62,7 @@ const toggleLabel = computed(() =>
 .sidebar-brand {
   display: flex;
   flex: 1;
+  overflow: hidden;
   min-width: 0;
   align-items: center;
   gap: 8px;
@@ -75,15 +76,23 @@ const toggleLabel = computed(() =>
 }
 
 .sidebar-brand-copy {
+  overflow: hidden;
   min-width: 0;
 }
 
 .sidebar-brand-copy strong {
   display: block;
+  overflow: hidden;
   color: var(--app-heading);
-  font-size: 1.15rem;
-  font-weight: 900;
-  line-height: 1;
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  font-weight: 800;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root.dark .sidebar-brand-copy strong {
+  color: var(--app-heading);
 }
 
 .sidebar-toggle {
@@ -94,8 +103,8 @@ const toggleLabel = computed(() =>
   border-radius: 8px;
   color: var(--app-text);
   box-shadow: none;
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 transparent;
+  --tw-ring-offset-shadow: 0 0 transparent;
 }
 
 .sidebar-toggle :deep([data-slot="leadingIcon"]) {

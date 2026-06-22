@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import AppSearchInput from "~/components/common/AppSearchInput.vue";
+import AppButton from "~/components/common/AppButton.vue";
+import AppSelect from "~/components/common/AppSelect.vue";
+import AppDataTable from "~/components/common/AppDataTable.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import { usePartnerRequestsPage } from "~/composables/admin/usePartnerRequestsPage";
 
 const { t } = useI18n();
+const { translateText } = useTranslateText();
 
 const {
   detailsOpen,
@@ -13,10 +17,11 @@ const {
   isReviewing,
   pagination,
   paginationLabel,
-  pendingCount,
+  pendingBadgeLabel,
   rows,
   searchQuery,
   selectedIdCardUrl,
+  selectedSubmittedAtLabel,
   selectedRequest,
   rejectionReason,
   rejectModalOpen,
@@ -24,6 +29,7 @@ const {
   statusOptions,
   table,
   approveRequest,
+  clearFilters,
   confirmRejectRequest,
   fetchRequests,
   openRejectModal,
@@ -43,12 +49,10 @@ const {
     >
       <div class="toolbar">
         <UBadge color="warning" variant="soft">
-          {{ pendingCount }} pending
+          {{ pendingBadgeLabel }}
         </UBadge>
-        <UButton
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-refresh-cw"
+        <AppButton
+          action="refresh"
           :label="t('text.refresh')"
           @click="fetchRequests"
         />
@@ -58,25 +62,32 @@ const {
     <UCard :ui="{ body: 'analytics-filter-bar' }">
       <div class="analytics-filter-field wide">
         <label>{{ t("common.search") }}</label>
-        <UInput
+        <AppSearchInput
           v-model="searchQuery"
-          icon="i-lucide-search"
-          placeholder="Search name, email, or institute"
-          @keydown.enter="submitSearch"
+          :placeholder="String(translateText('Search name, email, or institute'))"
+          :aria-label="t('common.search')"
+          clearable
+          @submit="submitSearch"
+          @clear="submitSearch"
         />
       </div>
       <div class="analytics-filter-field">
         <label>{{ t("text.status") }}</label>
-        <USelect v-model="statusFilter" :items="statusOptions" />
+        <AppSelect
+          v-model="statusFilter"
+          :items="statusOptions"
+          value-key="value"
+          :searchable="false"
+          :aria-label="t('text.status')"
+        />
       </div>
-      <div class="analytics-filter-field">
-        <label>&nbsp;</label>
-        <UButton
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-search"
-          label="Search"
-          @click="submitSearch"
+      <div class="analytics-filter-field compact">
+        <AppButton
+          action="clear"
+          label=""
+          square
+          :aria-label="String(translateText('Clear filters'))"
+          @click="clearFilters"
         />
       </div>
     </UCard>
@@ -85,46 +96,45 @@ const {
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
-      <DashboardDataTable
+      <AppDataTable
         :title="table.title"
         :icon="table.icon"
         :description="table.description"
         :columns="table.columns"
         :rows="rows"
         :row-key="table.rowKey"
-        min-width="1180px"
+        min-width="1490px"
       >
+        <template #actions>
+          <AppSearchInput
+            v-model="searchQuery"
+            class="dashboard-table-search"
+            :placeholder="String(translateText('Search requests'))"
+            :aria-label="t('common.search')"
+            clearable
+            @submit="submitSearch"
+            @clear="submitSearch"
+          />
+        </template>
         <template #cell-action="{ row }">
           <div class="toolbar table-actions">
-            <UButton
-              size="sm"
-              color="neutral"
-              variant="outline"
-              icon="i-lucide-eye"
-              label="View"
+            <AppButton
+              action="view"
               @click="openRequestDetails(row)"
             />
-            <UButton
-              size="sm"
-              color="success"
-              variant="soft"
-              icon="i-lucide-check"
-              label="Approve"
+            <AppButton
+              action="approve"
               :disabled="row.status !== 'pending' || isReviewing"
               @click="approveRequest(row)"
             />
-            <UButton
-              size="sm"
-              color="error"
-              variant="soft"
-              icon="i-lucide-x"
-              label="Reject"
+            <AppButton
+              action="reject"
               :disabled="row.status !== 'pending' || isReviewing"
               @click="openRejectModal(row)"
             />
           </div>
         </template>
-      </DashboardDataTable>
+      </AppDataTable>
 
       <div class="student-pagination">
         <span>{{ paginationLabel }}</span>
@@ -150,7 +160,7 @@ const {
               @click="setPage(pagination.currentPage - 1)"
             />
             <span class="text-sm text-gray-500">
-              Page {{ pagination.currentPage }} of {{ pagination.lastPage }}
+              {{ t("text.pageOf", { current: pagination.currentPage, total: pagination.lastPage }) }}
             </span>
             <UButton
               color="neutral"
@@ -167,15 +177,15 @@ const {
 
     <UModal
       v-model:open="detailsOpen"
-      title="Partner request details"
-      description="Review the signup information before approving institute access."
+      :title="String(translateText('Partner request details'))"
+      :description="String(translateText('Review the signup information before approving institute access.'))"
       :ui="{ content: 'max-w-2xl rounded-md' }"
     >
       <template #body>
         <div v-if="selectedRequest" class="grid gap-4">
           <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-default p-4">
             <div>
-              <p class="text-sm text-muted">Applicant</p>
+              <p class="text-sm text-muted">{{ translateText("Applicant") }}</p>
               <h3 class="text-lg font-semibold text-highlighted">
                 {{ selectedRequest.name }}
               </h3>
@@ -191,33 +201,33 @@ const {
               "
               variant="soft"
             >
-              {{ selectedRequest.status }}
+              {{ translateText(selectedRequest.status) }}
             </UBadge>
           </div>
 
           <div class="grid gap-3 md:grid-cols-2">
             <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">Institute</p>
+              <p class="text-xs uppercase text-muted">{{ translateText("Institute") }}</p>
               <p class="font-medium text-highlighted">
                 {{ selectedRequest.institution_name }}
               </p>
             </div>
             <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">Province</p>
+              <p class="text-xs uppercase text-muted">{{ translateText("Province") }}</p>
               <p class="font-medium text-highlighted">
                 {{ selectedRequest.state_province }}
               </p>
             </div>
             <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">Phone</p>
+              <p class="text-xs uppercase text-muted">{{ translateText("Phone") }}</p>
               <p class="font-medium text-highlighted">
                 {{ selectedRequest.phone_number }}
               </p>
             </div>
             <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">Submitted</p>
+              <p class="text-xs uppercase text-muted">{{ translateText("Submitted") }}</p>
               <p class="font-medium text-highlighted">
-                {{ selectedRequest.created_at || "Not available" }}
+                {{ selectedSubmittedAtLabel }}
               </p>
             </div>
           </div>
@@ -225,19 +235,16 @@ const {
           <div class="rounded-md border border-default p-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p class="font-medium text-highlighted">ID card document</p>
+                <p class="font-medium text-highlighted">{{ translateText("ID card document") }}</p>
                 <p class="text-sm text-muted">
-                  {{ selectedRequest.id_card_path ? "Uploaded by applicant" : "No document uploaded" }}
+                  {{ translateText(selectedRequest.id_card_path ? "Uploaded by applicant" : "No document uploaded") }}
                 </p>
               </div>
-              <UButton
+              <AppButton
                 v-if="selectedIdCardUrl"
+                action="open"
                 :to="selectedIdCardUrl"
                 target="_blank"
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-external-link"
-                label="Open file"
               />
             </div>
           </div>
@@ -246,7 +253,7 @@ const {
             v-if="selectedRequest.rejection_reason"
             class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
           >
-            <strong>Rejection reason:</strong>
+            <strong>{{ translateText("Rejection reason:") }}</strong>
             {{ selectedRequest.rejection_reason }}
           </div>
         </div>
@@ -254,21 +261,16 @@ const {
 
       <template #footer="{ close }">
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" label="Close" @click="close" />
-          <UButton
+          <AppButton action="cancel" :label="String(translateText('Close'))" @click="close" />
+          <AppButton
             v-if="selectedRequest?.status === 'pending'"
-            color="error"
-            variant="soft"
-            icon="i-lucide-x"
-            label="Reject"
+            action="reject"
             :disabled="isReviewing"
             @click="openRejectModal(selectedRequest)"
           />
-          <UButton
+          <AppButton
             v-if="selectedRequest?.status === 'pending'"
-            color="success"
-            icon="i-lucide-check"
-            label="Approve"
+            action="approve"
             :loading="isReviewing"
             @click="approveRequest(selectedRequest)"
           />
@@ -278,21 +280,21 @@ const {
 
     <UModal
       v-model:open="rejectModalOpen"
-      title="Reject partner request?"
-      description="Add a short reason so the review decision is clear later."
+      :title="String(translateText('Reject partner request?'))"
+      :description="String(translateText('Add a short reason so the review decision is clear later.'))"
       :ui="{ content: 'max-w-lg rounded-md' }"
     >
       <template #body>
         <div class="grid gap-4">
           <div class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            Reject <strong>{{ selectedRequest?.name }}</strong> from partner access?
+            {{ t("text.rejectPartnerAccessConfirm", { name: selectedRequest?.name ?? "" }) }}
           </div>
 
-          <UFormField label="Reason">
+          <UFormField :label="String(translateText('Reason'))">
             <UTextarea
               v-model="rejectionReason"
               :rows="4"
-              placeholder="Unable to verify institute affiliation."
+              :placeholder="String(translateText('Unable to verify institute affiliation.'))"
             />
           </UFormField>
         </div>
@@ -300,11 +302,10 @@ const {
 
       <template #footer="{ close }">
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" label="Cancel" @click="close" />
-          <UButton
-            color="error"
-            icon="i-lucide-x"
-            label="Reject request"
+          <AppButton action="cancel" @click="close" />
+          <AppButton
+            action="reject"
+            :label="String(translateText('Reject request'))"
             :loading="isReviewing"
             @click="confirmRejectRequest"
           />

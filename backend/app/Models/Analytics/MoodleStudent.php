@@ -4,7 +4,7 @@ namespace App\Models\Analytics;
 
 class MoodleStudent extends AnalyticsModel
 {
-    protected $table = 'vw_moodle_students';
+    protected $table = 'analytics_clean.students';
 
     protected $primaryKey = 'id';
 }

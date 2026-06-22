@@ -4,8 +4,7 @@ export type AccountSettingsSectionValue =
   | "overview"
   | "profile"
   | "security"
-  | "preferences"
-  | "notifications";
+  | "preferences";
 
 export type AccountSettingsSection = {
   label: string;
@@ -20,7 +19,6 @@ export type AccountRoleCapabilities = {
   canDeleteAccount: boolean;
   canSeeAdminAccess: boolean;
   canEditPreferences: boolean;
-  canEditNotifications: boolean;
 };
 
 export type AccountAccessItem = {
@@ -54,18 +52,9 @@ export type AccountSettingsFormState = {
   position: string;
   institution: string;
   reportSignature: string;
-  newPassword: string;
-  confirmPassword: string;
   language: string;
   chartType: string;
   defaultFilter: string;
-  notifyEmail: boolean;
-  notifyApproval: boolean;
-  notifyReports: boolean;
-  notifySystem: boolean;
-  securityAlerts: boolean;
-  dataExports: boolean;
-  accessRequests: boolean;
   theme: string;
   density: string;
 };
@@ -92,23 +81,6 @@ export type AccountOverviewDetailItem =
       value: string;
     };
 
-export type AccountNotificationOption = {
-  key: keyof Pick<
-    AccountSettingsFormState,
-    | "notifyEmail"
-    | "notifyApproval"
-    | "notifyReports"
-    | "notifySystem"
-    | "securityAlerts"
-    | "dataExports"
-    | "accessRequests"
-  >;
-  label: string;
-  description: string;
-  visibleFor?: AuthRole[];
-  hiddenFor?: AuthRole[];
-};
-
 export const accountSettingsInitialFormState: AccountSettingsFormState = {
   displayName: "",
   username: "moodle.analyst",
@@ -117,18 +89,9 @@ export const accountSettingsInitialFormState: AccountSettingsFormState = {
   position: "",
   institution: "Institute of Technology of Cambodia",
   reportSignature: "",
-  newPassword: "",
-  confirmPassword: "",
   language: "en",
   chartType: "bar",
   defaultFilter: "institute",
-  notifyEmail: true,
-  notifyApproval: true,
-  notifyReports: true,
-  notifySystem: true,
-  securityAlerts: true,
-  dataExports: true,
-  accessRequests: true,
   theme: "system",
   density: "comfortable",
 };
@@ -166,12 +129,6 @@ export const accountSettingsSections: AccountSettingsSection[] = [
     icon: "i-lucide-sliders-horizontal",
     description: "UI defaults",
   },
-  {
-    label: "Notifications",
-    value: "notifications",
-    icon: "i-lucide-bell-ring",
-    description: "Alert settings",
-  },
 ];
 
 export const accountRoleCapabilities: Record<
@@ -184,7 +141,6 @@ export const accountRoleCapabilities: Record<
     canDeleteAccount: false,
     canSeeAdminAccess: true,
     canEditPreferences: true,
-    canEditNotifications: true,
   },
   partner: {
     canEditInstitute: true,
@@ -192,7 +148,6 @@ export const accountRoleCapabilities: Record<
     canDeleteAccount: false,
     canSeeAdminAccess: false,
     canEditPreferences: true,
-    canEditNotifications: true,
   },
   visitor: {
     canEditInstitute: false,
@@ -200,7 +155,6 @@ export const accountRoleCapabilities: Record<
     canDeleteAccount: false,
     canSeeAdminAccess: false,
     canEditPreferences: true,
-    canEditNotifications: true,
   },
 };
 
@@ -335,51 +289,4 @@ export const accountProfileFields: AccountSettingsFormField[] = [
   { label: "Phone", key: "phone", type: "tel" },
   { label: "Institution", key: "institution" },
   { label: "Report signature", key: "reportSignature" },
-];
-
-export const accountSecurityFields: AccountSettingsFormField[] = [
-  { label: "New password", key: "newPassword", type: "password" },
-  { label: "Confirm password", key: "confirmPassword", type: "password" },
-];
-
-export const accountNotificationOptions: AccountNotificationOption[] = [
-  {
-    key: "notifyEmail",
-    label: "Email notifications",
-    description: "Receive important account updates by email.",
-  },
-  {
-    key: "notifyApproval",
-    label: "Partner approval requests",
-    description: "Notify when a partner account needs review.",
-    visibleFor: ["manager"],
-  },
-  {
-    key: "notifyReports",
-    label: "Report update notification",
-    description: "Notify when dashboard or institute reports change.",
-    hiddenFor: ["visitor"],
-  },
-  {
-    key: "accessRequests",
-    label: "Access request status",
-    description: "Track partner access or role change requests.",
-  },
-  {
-    key: "dataExports",
-    label: "Data export finished",
-    description: "Notify when report exports are ready.",
-    hiddenFor: ["visitor"],
-  },
-  {
-    key: "securityAlerts",
-    label: "Security alerts",
-    description: "Warn me about sign-in and session changes.",
-  },
-  {
-    key: "notifySystem",
-    label: "System alert notification",
-    description: "Receive platform announcements and system alerts.",
-    hiddenFor: ["partner"],
-  },
 ];

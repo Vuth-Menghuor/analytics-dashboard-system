@@ -35,7 +35,7 @@ const {
       class="app-sidebar"
       :class="{ 'is-collapsed': !sidebarOpen }"
       :ui="{
-        root: 'bg-[var(--app-surface)] border-r border-[var(--app-border)] shadow-none',
+        root: 'bg-[var(--app-surface)] shadow-none',
         header: sidebarOpen
           ? 'px-4 py-4 border-b border-[var(--app-border)]'
           : 'w-16 justify-center px-0 py-4 border-b border-[var(--app-border)]',
@@ -74,11 +74,36 @@ const {
 .app-sidebar {
   height: 100vh;
   min-height: 100vh;
+  --sidebar-divider: var(--app-border);
+  --ui-border: var(--sidebar-divider);
+  --ui-border-muted: var(--sidebar-divider);
+  --ui-border-accented: var(--sidebar-divider);
 }
 
 .app-sidebar :deep([data-slot="inner"]) {
   background: var(--app-surface);
   color: var(--app-text);
+}
+
+.app-sidebar :deep([data-slot="container"]),
+.app-sidebar :deep([data-slot="header"]),
+.app-sidebar :deep([data-slot="footer"]),
+.app-sidebar :deep(.border-default),
+.app-sidebar :deep(.border-e),
+.app-sidebar :deep([data-slot="inner"] > :not([hidden]) ~ :not([hidden])) {
+  border-color: var(--sidebar-divider) !important;
+}
+
+.app-sidebar :deep([data-slot="container"]) {
+  border-inline-end-color: var(--sidebar-divider) !important;
+}
+
+.app-sidebar :deep(.divide-default > :not([hidden]) ~ :not([hidden])) {
+  border-color: var(--sidebar-divider) !important;
+}
+
+:root.dark .app-sidebar {
+  --sidebar-divider: var(--app-outline);
 }
 
 .app-sidebar.is-collapsed {

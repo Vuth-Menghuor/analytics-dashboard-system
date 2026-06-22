@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppSearchInput from "~/components/common/AppSearchInput.vue";
+import AppSelect from "~/components/common/AppSelect.vue";
 import type { AnalyticsFilter } from "~/types/analytics";
 
 const props = defineProps<{
@@ -30,13 +32,14 @@ watch(
       class="analytics-filter-field"
     >
       <label>{{ translateText(filter.label) }}</label>
-      <UInput
+      <AppSearchInput
         v-if="filter.type === 'search'"
         v-model="model[filter.key]"
-        icon="i-lucide-search"
         :placeholder="String(translateText(filter.placeholder || 'Search...'))"
+        :aria-label="String(translateText(filter.label))"
+        clearable
       />
-      <USelect
+      <AppSelect
         v-else
         v-model="model[filter.key]"
         :items="
@@ -45,6 +48,8 @@ watch(
             value: item,
           }))
         "
+        value-key="value"
+        :searchable="false"
         :aria-label="String(translateText(filter.label))"
       />
     </div>

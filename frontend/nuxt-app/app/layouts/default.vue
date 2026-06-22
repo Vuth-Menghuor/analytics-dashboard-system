@@ -8,7 +8,9 @@ import AppTopbar from "~/components/layout/AppTopbar.vue";
     <AppSidebar />
     <main class="app-main">
       <AppTopbar />
-      <slot />
+      <div class="app-content">
+        <slot />
+      </div>
     </main>
   </div>
 </template>

@@ -1,5 +1,6 @@
 import type { ECharts, EChartsOption } from "echarts";
 import type { Ref } from "vue";
+import { darkColors, lightColors } from "~/constants/colors";
 
 export const useEChart = (option: Ref<EChartsOption>) => {
   const chartEl = ref<HTMLElement | null>(null);
@@ -10,20 +11,20 @@ export const useEChart = (option: Ref<EChartsOption>) => {
   const chartTheme = computed(() =>
     themeStore.isDark
       ? {
-          surface: "#0f172a",
-          border: "#24324a",
-          text: "#e5e7eb",
-          heading: "#f8fafc",
-          muted: "#94a3b8",
-          grid: "#24324a",
+          surface: darkColors.surface,
+          border: darkColors.border,
+          text: darkColors.text,
+          heading: darkColors.heading,
+          muted: darkColors.muted,
+          grid: darkColors.border,
         }
       : {
-          surface: "#ffffff",
-          border: "#d9e1ec",
-          text: "#0f172a",
-          heading: "#020617",
-          muted: "#64748b",
-          grid: "#edf1f6",
+          surface: lightColors.surface,
+          border: lightColors.border,
+          text: lightColors.text,
+          heading: lightColors.heading,
+          muted: lightColors.muted,
+          grid: lightColors.surfaceSoft,
         },
   );
 
@@ -144,6 +145,11 @@ export const useEChart = (option: Ref<EChartsOption>) => {
 
   function renderChart() {
     chart?.setOption(themedOption(option.value), true);
+    requestAnimationFrame(() => chart?.resize());
+  }
+
+  function hasChartSize() {
+    return Boolean(chartEl.value?.clientWidth && chartEl.value?.clientHeight);
   }
 
   onMounted(async () => {
@@ -152,8 +158,13 @@ export const useEChart = (option: Ref<EChartsOption>) => {
     }
 
     const echarts = await import("echarts");
+    if (!hasChartSize()) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+
     chart = echarts.init(chartEl.value, null, { renderer: "canvas" });
     renderChart();
+    window.setTimeout(renderChart, 120);
 
     resizeObserver = new ResizeObserver(() => chart?.resize());
     resizeObserver.observe(chartEl.value);

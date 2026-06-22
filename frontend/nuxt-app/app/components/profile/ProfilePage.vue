@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppButton from "~/components/common/AppButton.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import { useProfilePage } from "~/composables/profile/useProfilePage";
 
@@ -41,18 +42,8 @@ const { t } = useI18n();
           </div>
 
           <div class="hero-actions">
-            <UButton
-              icon="i-lucide-lock"
-              color="neutral"
-              variant="soft"
-              size="sm"
-              :label="t('text.security')"
-            />
-            <UButton
-              icon="i-lucide-log-out"
-              color="error"
-              variant="solid"
-              size="sm"
+            <AppButton
+              action="logout"
               :label="t('common.logout')"
               @click="handleLogout"
             />
@@ -103,10 +94,9 @@ const { t } = useI18n();
                 <strong>{{ translateText(item.title) }}</strong>
                 <span>{{ translateText(item.description) }}</span>
               </div>
-              <UButton
+              <AppButton
+                action="logout"
                 :color="item.color"
-                variant="soft"
-                size="xs"
                 :label="String(translateText(item.actionLabel))"
                 @click="item.action === 'logout' ? handleLogout() : undefined"
               />
@@ -138,7 +128,12 @@ const { t } = useI18n();
 
 .hero-cover {
   height: 100px;
-  background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%);
+  background: linear-gradient(
+    135deg,
+    var(--app-primary-extra-soft) 0%,
+    var(--app-surface-soft) 50%,
+    color-mix(in srgb, var(--app-info) 12%, var(--app-surface)) 100%
+  );
 }
 
 .hero-body {
@@ -160,8 +155,9 @@ const { t } = useI18n();
 
 .hero-avatar {
   flex-shrink: 0;
-  border: 4px solid #fff;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  border: 4px solid var(--app-surface);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--app-text) 12%, transparent);
 }
 
 .hero-meta {
@@ -180,14 +176,14 @@ const { t } = useI18n();
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--app-text);
   line-height: 1.3;
 }
 
 .hero-email {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--app-muted);
   overflow-wrap: anywhere;
 }
 
@@ -219,9 +215,9 @@ const { t } = useI18n();
   align-items: center;
   gap: 0.875rem;
   padding: 0.875rem;
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--app-border);
   border-radius: 0.875rem;
-  background: #f8fafc;
+  background: var(--app-surface-soft);
 }
 
 .info-icon {
@@ -231,8 +227,8 @@ const { t } = useI18n();
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.75rem;
-  background: #eef2ff;
-  color: #4f46e5;
+  background: var(--app-primary-extra-soft);
+  color: var(--app-primary);
   font-size: 1.1rem;
 }
 
@@ -246,7 +242,7 @@ const { t } = useI18n();
 .info-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--app-muted);
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
@@ -254,7 +250,7 @@ const { t } = useI18n();
 .info-value {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--app-text);
   overflow-wrap: anywhere;
 }
 
@@ -273,9 +269,9 @@ const { t } = useI18n();
   justify-content: space-between;
   gap: 1rem;
   padding: 0.875rem;
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--app-border);
   border-radius: 0.875rem;
-  background: #f8fafc;
+  background: var(--app-surface-soft);
 }
 
 .security-text {
@@ -287,12 +283,12 @@ const { t } = useI18n();
 .security-text strong {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--app-text);
 }
 
 .security-text span {
   font-size: 0.8125rem;
-  color: #64748b;
+  color: var(--app-muted);
   line-height: 1.4;
 }
 

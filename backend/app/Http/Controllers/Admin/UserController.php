@@ -71,11 +71,6 @@ class UserController extends Controller
         return response()->json($this->serializeUser($user), 201);
     }
 
-    public function show(User $user): JsonResponse
-    {
-        return response()->json($this->serializeUser($user));
-    }
-
     public function update(Request $request, User $user): JsonResponse
     {
         $validated = $request->validate([
@@ -109,17 +104,6 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json(status: 204);
-    }
-
-    public function updateRole(Request $request, User $user): JsonResponse
-    {
-        $validated = $request->validate([
-            'role' => ['required', 'string', Rule::in(['manager', 'partner', 'visitor'])],
-        ]);
-
-        $user->update($validated);
-
-        return response()->json($this->serializeUser($user->refresh()));
     }
 
     public function updatePassword(Request $request, User $user): JsonResponse

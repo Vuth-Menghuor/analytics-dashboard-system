@@ -95,7 +95,7 @@ defineProps<{
 
 <style scoped>
 .settings-scrollbar {
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: var(--app-outline-variant) transparent;
   scrollbar-width: thin;
 }
 
@@ -109,11 +109,11 @@ defineProps<{
 }
 
 .settings-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--app-outline-variant);
   border-radius: 999px;
 }
 
 .settings-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--app-disabled);
 }
 </style>

@@ -1,0 +1,49 @@
+@startuml
+title Figure 56: CCUN Dashboard Request Sequence Diagram
+
+actor "User / Admin" as User
+participant "Nuxt Page /\nVue Component" as Frontend
+participant "Frontend API Service\n(Axios)" as ApiClient
+participant "Laravel API Route /\nMiddleware" as Route
+participant "Dashboard Controller" as Controller
+participant "Analytics Service" as Service
+database "Model /\nPostgres Database" as Database
+
+User -> Frontend: Open dashboard / apply filter
+activate Frontend
+
+Frontend -> ApiClient: Prepare query parameters
+activate ApiClient
+
+ApiClient -> Route: Send HTTP request with token
+activate Route
+
+Route -> Route: Check authentication and role
+Route -> Controller: Forward valid request
+activate Controller
+
+Controller -> Service: Call analytics method
+activate Service
+
+Service -> Database: Query model / database view
+activate Database
+Database --> Service: Return Moodle analytics records
+deactivate Database
+
+Service --> Controller: Return processed analytics data
+deactivate Service
+
+Controller --> Route: Return JSON response
+deactivate Controller
+
+Route --> ApiClient: JSON response
+deactivate Route
+
+ApiClient --> Frontend: Parsed analytics data
+deactivate ApiClient
+
+Frontend -> Frontend: Update charts, cards, and tables
+Frontend --> User: Display dashboard visualization
+deactivate Frontend
+
+@enduml

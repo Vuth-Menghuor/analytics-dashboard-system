@@ -1,20 +1,20 @@
 import type { AnalyticsTableColumn } from "~/types/analytics";
 
 export const courseCategoryAllOption = "All categories";
+export const courseInstituteAllOption = "All institutes";
 
-export const courseStatusOptions = [
-  "All statuses",
-  "Visible",
-  "Hidden",
+export const courseEngagementOptions = [
+  "All engagement",
+  "No enrollments",
+  "Has enrollments",
 ];
 
 export const courseTableColumns: AnalyticsTableColumn[] = [
-  { key: "name", label: "Course", rowHeader: true },
-  { key: "shortName", label: "Short name", tone: "muted" },
+  { key: "id", label: "Course ID" },
+  { key: "name", label: "Course name", rowHeader: true },
   { key: "category", label: "Category" },
-  { key: "status", label: "Status", type: "status", warningValues: ["Hidden"] },
-  { key: "enrolled", label: "Enrolled" },
-  { key: "completed", label: "Completed" },
-  { key: "completionRate", label: "Completion" },
-  { key: "views", label: "Views" },
+  { key: "institute", label: "Institute" },
+  { key: "courseCount", label: "Moodle course records" },
+  { key: "enrolled", label: "Enrollment records" },
+  { key: "action", label: "Action", type: "action" },
 ];

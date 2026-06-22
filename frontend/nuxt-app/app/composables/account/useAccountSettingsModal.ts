@@ -66,9 +66,6 @@ export const useAccountSettingsModal = ({
       if (section.value === "preferences") {
         return roleCapabilities.value.canEditPreferences;
       }
-      if (section.value === "notifications") {
-        return roleCapabilities.value.canEditNotifications;
-      }
 
       return true;
     }),
@@ -98,8 +95,6 @@ export const useAccountSettingsModal = ({
           ? "Public access"
           : formState.institution;
       formState.reportSignature = name.value || displayName.value;
-      formState.newPassword = "";
-      formState.confirmPassword = "";
       formState.theme = colorMode.preference;
     },
     { immediate: true },

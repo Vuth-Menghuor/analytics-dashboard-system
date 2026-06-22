@@ -12,7 +12,13 @@ export type AnalyticsFilter = {
   options?: string[];
 };
 
-export type ChartType = "line" | "bar" | "horizontalBar" | "pie" | "donut";
+export type ChartType =
+  | "line"
+  | "bar"
+  | "horizontalBar"
+  | "pie"
+  | "donut"
+  | "halfDonut";
 
 export type ChartSeries = {
   name: string;
@@ -27,6 +33,8 @@ export type AnalyticsChart = {
   labels: string[];
   series: ChartSeries[];
   height?: string;
+  wide?: boolean;
+  showAllCategories?: boolean;
 };
 
 export type AnalyticsTableColumn = {
@@ -67,37 +75,14 @@ export type AnalyticsPageConfig = {
   emptyDescription?: string;
 };
 
-export type ImportedMetric = {
-  label: string;
-  value: string;
-  trend: string;
-  icon: string;
-};
-
-export type TopCategory = {
-  name: string;
-  coursecount: number;
-};
-
-export type RecentCourse = {
-  fullname: string;
-  shortname: string;
-  visible: boolean;
-  updated_at: string | null;
-};
-
-export type ImportedOverview = {
-  metrics: ImportedMetric[];
-  top_categories: TopCategory[];
-  recent_courses: RecentCourse[];
-};
-
 export type Student = {
   id: number;
   studentCode?: string;
   name: string;
   username: string;
   email: string;
+  avatarUrl?: string | null;
+  avatarAlt?: string | null;
   institute: string;
   department: string;
   city: string;
@@ -119,12 +104,28 @@ export type Student = {
 export type Course = {
   id: number;
   name: string;
+  rawName?: string;
+  nameAdjusted?: boolean;
+  qualityStatus?: string;
   shortName: string;
   category: string;
+  categories?: string[];
+  categoryCount?: number;
+  courseCount?: number;
   institute: string;
-  status: "Visible" | "Hidden";
+  institutes?: string[];
+  instituteCount?: number;
+  status: "Active" | "No enrollments";
   enrolled: number;
   completed: number;
   completionRate: number;
   views: number;
+  moodleCourses?: Array<{
+    id: number;
+    originalName: string;
+    cleanName: string;
+    shortName: string;
+    category: string;
+    enrollments: number;
+  }>;
 };

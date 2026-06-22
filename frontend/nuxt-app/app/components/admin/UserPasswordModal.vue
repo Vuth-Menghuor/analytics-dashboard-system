@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppButton from "~/components/common/AppButton.vue";
+import AppInput from "~/components/common/AppInput.vue";
 import type { AdminUser } from "~/types/admin";
 
 const open = defineModel<boolean>("open", { default: false });
@@ -11,6 +13,7 @@ defineProps<{
 const emit = defineEmits<{
   submit: [password: string, passwordConfirmation: string];
 }>();
+const { t } = useI18n();
 
 const form = reactive({
   password: "",
@@ -32,8 +35,8 @@ const submit = () => {
 <template>
   <UModal
     v-model:open="open"
-    title="Reset password"
-    description="Set a new Laravel application password for this user."
+    :title="t('text.resetPassword')"
+    :description="t('text.resetPasswordDescription')"
     :ui="{ content: 'max-w-md rounded-md' }"
   >
     <template #body>
@@ -43,8 +46,8 @@ const submit = () => {
           <p class="text-muted">{{ user?.email }}</p>
         </div>
 
-        <UFormField label="New password" required>
-          <UInput
+        <UFormField :label="t('text.newPassword')" required>
+          <AppInput
             v-model="form.password"
             autocomplete="new-password"
             required
@@ -52,8 +55,8 @@ const submit = () => {
           />
         </UFormField>
 
-        <UFormField label="Confirm password" required>
-          <UInput
+        <UFormField :label="t('text.confirmPassword')" required>
+          <AppInput
             v-model="form.passwordConfirmation"
             autocomplete="new-password"
             required
@@ -65,11 +68,11 @@ const submit = () => {
 
     <template #footer="{ close }">
       <div class="flex w-full justify-end gap-2">
-        <UButton color="neutral" variant="ghost" label="Cancel" @click="close" />
-        <UButton
+        <AppButton action="cancel" @click="close" />
+        <AppButton
           :loading="loading"
           icon="i-lucide-key-round"
-          label="Reset password"
+          :label="t('text.resetPassword')"
           @click="submit"
         />
       </div>

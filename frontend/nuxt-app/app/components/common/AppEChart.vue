@@ -6,6 +6,7 @@ const props = withDefaults(
   defineProps<{
     option: EChartsOption;
     height?: string;
+    minWidth?: string;
     ariaLabel?: string;
   }>(),
   {
@@ -19,11 +20,25 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div
-    ref="chartEl"
-    class="echart"
-    role="img"
-    :aria-label="ariaLabel || t('text.dataVisualization')"
-    :style="{ height }"
-  />
+  <div class="echart-scroll">
+    <div
+      ref="chartEl"
+      class="echart"
+      role="img"
+      :aria-label="ariaLabel || t('text.dataVisualization')"
+      :style="{ height, minWidth }"
+    />
+  </div>
 </template>
+
+<style scoped>
+.echart-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.echart {
+  width: 100%;
+}
+</style>

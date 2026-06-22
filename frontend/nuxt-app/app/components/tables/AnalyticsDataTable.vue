@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import DashboardDataTable from "~/components/common/DashboardDataTable.vue";
+import AppDataTable from "~/components/common/AppDataTable.vue";
+import AppButton from "~/components/common/AppButton.vue";
 import type { AnalyticsTable } from "~/types/analytics";
 
 defineProps<{
@@ -10,15 +11,12 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <DashboardDataTable v-bind="table" min-width="920px">
+  <AppDataTable v-bind="table" min-width="920px">
     <template #cell-action>
-      <UButton
-        size="sm"
-        color="neutral"
-        variant="outline"
-        icon="i-lucide-eye"
+      <AppButton
+        action="view"
         :label="t('text.view')"
       />
     </template>
-  </DashboardDataTable>
+  </AppDataTable>
 </template>

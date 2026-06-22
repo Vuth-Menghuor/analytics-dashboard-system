@@ -1,0 +1,53 @@
+@startuml
+title Figure 57: Data Visualization Processing Flowchart of CCUN
+
+start
+
+:Start data visualization process;
+:Import Moodle database dump;
+:Store imported data in Postgres database;
+
+:Understand Moodle data structure;
+note right
+  Identify useful data:
+  students, courses, enrollments,
+  activity logs, grades, completions
+end note
+
+:Select required analytics data;
+:Clean data;
+note right
+  Handle missing, duplicated,
+  incomplete, and unnecessary records
+end note
+
+if (Data valid and usable?) then (Yes)
+  :Transform data into analytics-ready format;
+else (No)
+  :Fix or remove invalid records;
+  :Recheck cleaned data;
+endif
+
+if (Data ready for analytics?) then (Yes)
+:Create analytics views and queries;
+else (No)
+  :Clean data again;
+  :Transform data into analytics-ready format;
+endif
+
+:Backend processes statistics;
+note right
+  Examples:
+  totals, percentages,
+  distributions, trends
+end note
+
+:Return JSON response through Laravel API;
+:Frontend receives analytics data;
+:Render visualizations with Apache ECharts;
+:Display summary cards, charts, tables, and reports;
+:End data visualization process;
+
+stop
+
+@enduml

@@ -19,18 +19,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
         return $request->user()->only(['id', 'name', 'email', 'role', 'institution_name']);
     });
 
-    Route::get('/manager/dashboard', function () {
-        return response()->json([
-            'message' => 'Manager dashboard',
-        ]);
-    })->middleware('role:manager');
-
     Route::get('/analytics/imported/overview', [DashboardAnalyticsController::class, 'importedOverview'])
     ->middleware('role:manager,partner');
 
     Route::middleware('role:manager')->prefix('admin')->group(function (): void {
-        Route::apiResource('users', AdminUserController::class);
-        Route::patch('/users/{user}/role', [AdminUserController::class, 'updateRole']);
+        Route::get('/users', [AdminUserController::class, 'index']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::put('/users/{user}', [AdminUserController::class, 'update']);
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
         Route::patch('/users/{user}/password', [AdminUserController::class, 'updatePassword']);
         Route::get('/partner-requests', [AdminPartnerRequestController::class, 'index']);
         Route::patch('/partner-requests/{partnerRequest}/approve', [AdminPartnerRequestController::class, 'approve']);
@@ -39,14 +35,17 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::middleware('role:manager,partner,visitor')->prefix('dashboard')->group(function (): void {
         Route::get('/summary', [DashboardAnalyticsController::class, 'summary']);
+        Route::get('/institutes', [DashboardAnalyticsController::class, 'institutes']);
 
         Route::get('/students', [DashboardAnalyticsController::class, 'students']);
         Route::get('/students/by-institution', [DashboardAnalyticsController::class, 'studentsByInstitution']);
         Route::get('/students/by-department', [DashboardAnalyticsController::class, 'studentsByDepartment']);
         Route::get('/students/by-city', [DashboardAnalyticsController::class, 'studentsByCity']);
         Route::get('/students/gender', [DashboardAnalyticsController::class, 'studentGender']);
+        Route::get('/students/{student}/avatar', [DashboardAnalyticsController::class, 'studentAvatar'])->whereNumber('student');
         Route::get('/students/{student}', [DashboardAnalyticsController::class, 'student'])->whereNumber('student');
         Route::get('/students/activity', [DashboardAnalyticsController::class, 'studentActivity']);
+        Route::get('/students/activity-trend', [DashboardAnalyticsController::class, 'studentActivityTrend']);
 
         Route::get('/courses', [DashboardAnalyticsController::class, 'courses']);
         Route::get('/courses/popular', [DashboardAnalyticsController::class, 'popularCourses']);
@@ -54,17 +53,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/courses/views', [DashboardAnalyticsController::class, 'courseViews']);
 
         Route::get('/users/activity', [DashboardAnalyticsController::class, 'userActivity']);
+        Route::get('/learning-activity', [DashboardAnalyticsController::class, 'learningActivity']);
     });
-
-    Route::get('/partner/dashboard', function () {
-        return response()->json([
-            'message' => 'Partner dashboard',
-        ]);
-    })->middleware('role:partner');
-
-    Route::get('/visitor/dashboard', function () {
-        return response()->json([
-            'message' => 'Visitor dashboard',
-        ]);
-    })->middleware('role:visitor');
 });

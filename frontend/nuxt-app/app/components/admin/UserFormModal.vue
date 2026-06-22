@@ -4,6 +4,8 @@ import type {
   AdminUserFormPayload,
   AdminUserRole,
 } from "~/types/admin";
+import AppButton from "~/components/common/AppButton.vue";
+import AppInput from "~/components/common/AppInput.vue";
 import { schoolInstituteOptions } from "~/constants/auth";
 
 const open = defineModel<boolean>("open", { default: false });
@@ -16,12 +18,14 @@ const props = defineProps<{
 const emit = defineEmits<{
   submit: [payload: AdminUserFormPayload];
 }>();
+const { t } = useI18n();
+const { translateText } = useTranslateText();
 
-const roleItems = [
-  { label: "Manager", value: "manager" },
-  { label: "Partner", value: "partner" },
-  { label: "Visitor", value: "visitor" },
-] as const;
+const roleItems = computed(() => [
+  { label: String(translateText("Manager")), value: "manager" },
+  { label: String(translateText("Partner")), value: "partner" },
+  { label: String(translateText("Visitor")), value: "visitor" },
+]);
 
 const form = reactive({
   name: "",
@@ -53,6 +57,15 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => form.role,
+  (role) => {
+    if (role !== "partner") {
+      form.institution_name = "";
+    }
+  },
+);
+
 const submit = () => {
   const payload: AdminUserFormPayload = {
     name: form.name,
@@ -74,22 +87,22 @@ const submit = () => {
 <template>
   <UModal
     v-model:open="open"
-    :title="isEditing ? 'Edit user' : 'Create user'"
+    :title="isEditing ? t('text.editUser') : t('text.createUser')"
     :description="
       isEditing
-        ? 'Update a Laravel application account.'
-        : 'Create a Laravel application account.'
+        ? t('text.updateUserDescription')
+        : t('text.createUserDescription')
     "
     :ui="{ content: 'max-w-xl rounded-md' }"
   >
     <template #body>
       <form class="grid gap-4" @submit.prevent="submit">
-        <UFormField label="Name" required>
-          <UInput v-model="form.name" autocomplete="name" required />
+        <UFormField :label="t('text.name')" required>
+          <AppInput v-model="form.name" autocomplete="name" required />
         </UFormField>
 
-        <UFormField label="Email" required>
-          <UInput
+        <UFormField :label="t('text.email')" required>
+          <AppInput
             v-model="form.email"
             autocomplete="email"
             required
@@ -97,15 +110,15 @@ const submit = () => {
           />
         </UFormField>
 
-        <UFormField label="Role" required>
+        <UFormField :label="t('text.role')" required>
           <USelect v-model="form.role" :items="roleItems" />
         </UFormField>
 
-        <UFormField v-if="form.role === 'partner'" label="Institute">
+        <UFormField v-if="form.role === 'partner'" :label="t('text.institute')">
           <USelect
             v-model="form.institution_name"
             :items="schoolInstituteOptions"
-            placeholder="Select institute"
+            :placeholder="t('text.selectInstitute')"
           />
         </UFormField>
 
@@ -113,12 +126,11 @@ const submit = () => {
           v-else
           class="rounded-md border border-default bg-muted/20 p-3 text-sm text-muted"
         >
-          Managers and visitors use system-wide access. Institute scope is only
-          applied to partner accounts.
+          {{ t("text.managersVisitorsSystemWide") }}
         </div>
 
-        <UFormField :label="isEditing ? 'New password' : 'Password'" :required="!isEditing">
-          <UInput
+        <UFormField :label="isEditing ? t('text.newPassword') : t('text.password')" :required="!isEditing">
+          <AppInput
             v-model="form.password"
             autocomplete="new-password"
             :required="!isEditing"
@@ -126,8 +138,8 @@ const submit = () => {
           />
         </UFormField>
 
-        <UFormField label="Confirm password" :required="!isEditing">
-          <UInput
+        <UFormField :label="t('text.confirmPassword')" :required="!isEditing">
+          <AppInput
             v-model="form.password_confirmation"
             autocomplete="new-password"
             :required="!isEditing"
@@ -139,11 +151,11 @@ const submit = () => {
 
     <template #footer="{ close }">
       <div class="flex w-full justify-end gap-2">
-        <UButton color="neutral" variant="ghost" label="Cancel" @click="close" />
-        <UButton
+        <AppButton action="cancel" @click="close" />
+        <AppButton
+          action="save"
           :loading="loading"
-          icon="i-lucide-save"
-          :label="isEditing ? 'Save changes' : 'Create user'"
+          :label="isEditing ? t('text.saveChanges') : t('text.createUser')"
           @click="submit"
         />
       </div>

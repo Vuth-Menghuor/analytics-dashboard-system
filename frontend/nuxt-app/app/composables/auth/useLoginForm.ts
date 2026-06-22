@@ -22,6 +22,12 @@ export const useLoginForm = () => {
   const selectedRoleConfig = computed(
     () => loginRoleConfigByValue[selectedRole.value],
   );
+  const partnerRequestSubmitted = computed(
+    () => route.query.submitted === "1" && selectedRole.value === "partner",
+  );
+  const visitorAccountCreated = computed(
+    () => route.query.registered === "1" && selectedRole.value === "visitor",
+  );
 
   const isRoleLanding = computed(() => !routeRole.value);
 
@@ -56,8 +62,10 @@ export const useLoginForm = () => {
     form,
     handleLogin,
     isRoleLanding,
+    partnerRequestSubmitted,
     selectAccessRole,
     selectedRole,
     selectedRoleConfig,
+    visitorAccountCreated,
   };
 };

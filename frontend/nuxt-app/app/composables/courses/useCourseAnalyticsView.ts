@@ -1,29 +1,22 @@
 import {
   courseCategoryAllOption,
-  courseStatusOptions,
+  courseEngagementOptions,
+  courseInstituteAllOption,
   courseTableColumns,
 } from "~/constants/courseAnalytics";
-import type { AnalyticsChart, AnalyticsTable } from "~/types/analytics";
+import type { AnalyticsChart, AnalyticsTable, Course } from "~/types/analytics";
 import type { Metric } from "~/types/dashboard";
-import { appColors } from "~/constants/colors";
 import {
-  getCourseCompletion,
-  getCourseViews,
-  getPopularCourses,
-  type CourseCompletionApi,
-  type CourseViewsApi,
-  type PopularCourseApi,
-} from "~/services/analytics.service";
+  appColors,
+  chartColors,
+  chartOtherColor,
+} from "~/constants/colors";
+import { useCsvExport } from "~/composables/common/useCsvExport";
 
-const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number) =>
-  Promise.race([
-    promise,
-    new Promise<never>((_, reject) => {
-      window.setTimeout(() => reject(new Error("Request timed out")), timeoutMs);
-    }),
-  ]);
+type CourseAnalyticsTab = "overview" | "institutes" | "enrollment";
 
 export const useCourseAnalyticsView = () => {
+  const { exportWithToast } = useCsvExport();
   const auth = useAuthStore();
   const {
     courses,
@@ -31,117 +24,149 @@ export const useCourseAnalyticsView = () => {
     filteredCourses,
     filters,
     isLoading,
-    refresh,
+    refresh: refreshCourses,
   } = useCourses();
-  const popularCourses = ref<PopularCourseApi[]>([]);
-  const completionCourses = ref<CourseCompletionApi[]>([]);
-  const viewedCourses = ref<CourseViewsApi[]>([]);
-  const chartError = ref("");
-  const chartsLoading = ref(true);
   const currentPage = ref(1);
   const perPage = ref(10);
+  const activeTab = ref<CourseAnalyticsTab>("overview");
+  const tabs: Array<{ label: string; value: CourseAnalyticsTab }> = [
+    { label: "Overview", value: "overview" },
+    { label: "Institutes", value: "institutes" },
+    { label: "Enrollment", value: "enrollment" },
+  ];
+  const selectedCourse = ref<Course | null>(null);
+  const courseDetailOpen = ref(false);
   const partnerInstituteLabel = computed(() =>
     auth.user?.role === "partner" && auth.user.institution_name
       ? `Institute: ${auth.user.institution_name}`
       : "",
   );
 
-  const loadLiveCourseCharts = async () => {
-    chartsLoading.value = true;
-    chartError.value = "";
-
-    const [popular, completion, views] = await Promise.allSettled([
-      getPopularCourses(),
-      getCourseCompletion(),
-      withTimeout(getCourseViews(), 8000),
-    ]);
-
-    if (popular.status === "fulfilled") {
-      popularCourses.value = popular.value;
-    }
-
-    if (completion.status === "fulfilled") {
-      completionCourses.value = completion.value;
-    }
-
-    if (views.status === "fulfilled") {
-      viewedCourses.value = views.value;
-    }
-
-    if (
-      popular.status === "rejected" &&
-      completion.status === "rejected" &&
-      views.status === "rejected"
-    ) {
-      chartError.value = "Unable to load live course charts.";
-    }
-
-    chartsLoading.value = false;
+  const refresh = async () => {
+    await refreshCourses();
   };
 
-  onMounted(loadLiveCourseCharts);
+  const clearFilters = () => {
+    filters.query = "";
+    filters.category = courseCategoryAllOption;
+    filters.institute = courseInstituteAllOption;
+    filters.engagement = "All engagement";
+    currentPage.value = 1;
+  };
 
+  const coursesInSelectedInstitute = computed(() =>
+    filters.institute === courseInstituteAllOption
+      ? courses.value
+      : courses.value.filter(
+          (course) =>
+            course.institute === filters.institute ||
+            course.institutes?.includes(filters.institute),
+        ),
+  );
   const categories = computed(() => [
     courseCategoryAllOption,
-    ...new Set(courses.value.map((course) => course.category)),
+    ...new Set(
+      coursesInSelectedInstitute.value.flatMap(
+        (course) => course.categories ?? [course.category],
+      ),
+    ),
   ]);
+  const institutes = computed(() => [
+    courseInstituteAllOption,
+    ...new Set(
+      courses.value.flatMap((course) => course.institutes ?? [course.institute]),
+    ),
+  ]);
+  const changeInstitute = (institute: unknown) => {
+    if (typeof institute === "string") {
+      filters.institute = institute;
+    }
 
-  const visibleCourses = computed(() =>
-    courses.value.filter((course) => course.status === "Visible"),
+    filters.category = courseCategoryAllOption;
+    currentPage.value = 1;
+  };
+
+  const analysisCourses = computed(() =>
+    filteredCourses.value.filter((course) => {
+      if (filters.engagement === "No enrollments") return course.enrolled === 0;
+      if (filters.engagement === "Has enrollments") return course.enrolled > 0;
+
+      return true;
+    }),
   );
-  const hiddenCourses = computed(() =>
-    courses.value.filter((course) => course.status === "Hidden"),
+  const activeFilterChips = computed(() =>
+    [
+      filters.query.trim()
+        ? { key: "query", label: `Search: ${filters.query.trim()}` }
+        : null,
+      filters.category !== courseCategoryAllOption
+        ? { key: "category", label: `Category: ${filters.category}` }
+        : null,
+      filters.institute !== courseInstituteAllOption
+        ? { key: "institute", label: `Institute: ${filters.institute}` }
+        : null,
+      filters.engagement !== "All engagement"
+        ? { key: "engagement", label: `Enrollment: ${filters.engagement}` }
+        : null,
+    ].filter(
+      (item): item is { key: keyof typeof filters; label: string } =>
+        item !== null,
+    ),
+  );
+  const activeFilterCount = computed(() => activeFilterChips.value.length);
+  const hasFilters = computed(() => activeFilterCount.value > 0);
+  const removeFilter = (key: keyof typeof filters) => {
+    const defaults = {
+      query: "",
+      category: courseCategoryAllOption,
+      institute: courseInstituteAllOption,
+      engagement: "All engagement",
+    };
+
+    filters[key] = defaults[key] as never;
+  };
+
+  const sortedCourses = computed(() =>
+    [...analysisCourses.value].sort((a, b) => b.enrolled - a.enrolled),
+  );
+
+  const totalCourseRecords = computed(() =>
+    analysisCourses.value.reduce(
+      (sum, course) => sum + (course.courseCount ?? 1),
+      0,
+    ),
   );
   const totalEnrollments = computed(() =>
-    courses.value.reduce((sum, course) => sum + course.enrolled, 0),
+    analysisCourses.value.reduce((sum, course) => sum + course.enrolled, 0),
   );
-  const totalCompleted = computed(() =>
-    courses.value.reduce((sum, course) => sum + course.completed, 0),
-  );
-  const completionGap = computed(() =>
-    Math.max(totalEnrollments.value - totalCompleted.value, 0),
-  );
+  const groupedFamilies = computed(() => analysisCourses.value.length);
 
   const courseSummaryItems = computed<Metric[]>(() => [
     {
-      label: "Total Courses",
-      value: courses.value.length.toLocaleString(),
-      trend: "Imported Moodle courses",
+      label: "Clean Course Families",
+      value: groupedFamilies.value.toLocaleString(),
+      trend: "Grouped analytics course names",
       icon: "BookOpen",
       color: appColors.purple,
     },
     {
-      label: "Visible Courses",
-      value: visibleCourses.value.length.toLocaleString(),
-      trend: "Available to learners",
-      icon: "Eye",
-      color: appColors.success,
-    },
-    {
-      label: "Hidden Courses",
-      value: hiddenCourses.value.length.toLocaleString(),
-      trend: "Hidden Moodle course shells",
-      icon: "EyeOff",
-      color: appColors.warning,
+      label: "Original Moodle Course Records",
+      value: totalCourseRecords.value.toLocaleString(),
+      trend: "Raw course rows represented in clean groups",
+      icon: "Layers",
+      color: appColors.blue,
     },
     {
       label: "Total Enrollments",
       value: totalEnrollments.value.toLocaleString(),
-      trend: "Distinct enrolled learners",
+      trend: "Learner-course enrollment records",
       icon: "Users",
-      color: appColors.primaryHover,
-    },
-    {
-      label: "Total Completions",
-      value: totalCompleted.value.toLocaleString(),
-      trend: `${completionGap.value.toLocaleString()} learners in progress`,
-      icon: "Check",
       color: appColors.success,
     },
   ]);
 
   const pagination = computed(() => {
-    const total = filteredCourses.value.length;
+    const total = analysisCourses.value.length;
     const lastPage = Math.max(Math.ceil(total / perPage.value), 1);
 
     return {
@@ -155,12 +180,12 @@ export const useCourseAnalyticsView = () => {
   const paginatedCourses = computed(() => {
     const start = (pagination.value.currentPage - 1) * pagination.value.perPage;
 
-    return filteredCourses.value.slice(start, start + pagination.value.perPage);
+    return sortedCourses.value.slice(start, start + pagination.value.perPage);
   });
 
   const paginationLabel = computed(() => {
     if (pagination.value.total === 0) {
-      return "No courses found";
+      return "No course families found";
     }
 
     const start =
@@ -170,7 +195,7 @@ export const useCourseAnalyticsView = () => {
       pagination.value.total,
     );
 
-    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${pagination.value.total.toLocaleString()}`;
+    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${pagination.value.total.toLocaleString()} course families`;
   });
 
   const goToPage = (page: number) => {
@@ -181,6 +206,17 @@ export const useCourseAnalyticsView = () => {
     perPage.value = nextPerPage;
     currentPage.value = 1;
   };
+
+  const coursePageOptions = [10, 25, 50, 100];
+  const coursePage = computed({
+    get: () => pagination.value.currentPage,
+    set: (page: number) => goToPage(page),
+  });
+  const coursePerPage = computed({
+    get: () => pagination.value.perPage,
+    set: (nextPerPage: number) => setPerPage(nextPerPage),
+  });
+  const courseTotal = computed(() => pagination.value.total);
 
   watch(
     () => ({ ...filters }),
@@ -198,100 +234,195 @@ export const useCourseAnalyticsView = () => {
     },
   );
 
+  const countCourseValues = (
+    getValues: (course: Course) => string[] | undefined,
+    fallbackValue: (course: Course) => string,
+    emptyLabel: string,
+  ) => {
+    const counts = new Map<string, number>();
+
+    analysisCourses.value.forEach((course) => {
+      const values = getValues(course)?.filter(Boolean);
+      const labels = values?.length ? values : [fallbackValue(course)];
+
+      labels.forEach((label) => {
+        const cleanLabel = label?.trim() || emptyLabel;
+
+        counts.set(cleanLabel, (counts.get(cleanLabel) ?? 0) + 1);
+      });
+    });
+
+    return [...counts.entries()]
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const categoryCounts = computed(() =>
+    countCourseValues(
+      (course) => course.categories,
+      (course) => course.category,
+      "No category",
+    ),
+  );
+
+  const instituteDistribution = computed(() => {
+    const rawItems = countCourseValues(
+      (course) => course.institutes,
+      (course) => course.institute,
+      "No institute",
+    );
+    const items =
+      rawItems.length > chartColors.length
+        ? [
+            ...rawItems.slice(0, chartColors.length - 1),
+            {
+              label: "Other",
+              count: rawItems
+                .slice(chartColors.length - 1)
+                .reduce((sum, item) => sum + item.count, 0),
+            },
+          ]
+        : rawItems;
+    const total = items.reduce((sum, item) => sum + item.count, 0) || 1;
+    let offset = 0;
+
+    return items.map((item, index) => {
+      const arcPercentage = (item.count * 100) / total;
+      const distributionItem = {
+        ...item,
+        arcOffset: offset,
+        arcPercentage,
+        color:
+          item.label === "Other"
+            ? chartOtherColor
+            : chartColors[index],
+        percentage: Math.round((item.count * 1000) / total) / 10,
+      };
+
+      offset += arcPercentage;
+
+      return distributionItem;
+    });
+  });
+
+  const instituteDistributionTotal = computed(() =>
+    instituteDistribution.value.reduce((sum, item) => sum + item.count, 0),
+  );
+
   const charts = computed<AnalyticsChart[]>(() => {
-    const chartItems: AnalyticsChart[] = [
+    return [
       {
-        title: "Popular Courses",
-        description: "Top courses by total enrollments",
+        title: "Courses by Category",
+        description: "Where are the clean course groups concentrated?",
+        icon: "i-lucide-folders",
+        type: "horizontalBar",
+        height: "360px",
+        labels: categoryCounts.value.map((item) => item.label),
+        series: [
+          {
+            name: "Course families",
+            data: categoryCounts.value.map((item) => item.count),
+          },
+        ],
+      },
+      {
+        title: "Courses by Enrollment",
+        description: "Which clean courses have the most enrollments?",
         icon: "i-lucide-users",
         type: "horizontalBar",
-        labels: popularCourses.value.map((course) => course.courseName),
+        height: "360px",
+        wide: true,
+        labels: sortedCourses.value.map((course) => course.name),
         series: [
           {
-            name: "Enrollments",
-            data: popularCourses.value.map((course) => course.totalEnrollments),
-          },
-        ],
-      },
-      {
-        title: "Course Completion Rate",
-        description: "Top courses by course completion percentage",
-        icon: "i-lucide-check-circle-2",
-        type: "bar",
-        labels: completionCourses.value.map((course) => course.courseName),
-        series: [
-          {
-            name: "Completion",
-            data: completionCourses.value.map(
-              (course) => course.completionRatePercentage,
-            ),
-          },
-        ],
-      },
-      {
-        title: "Visible vs Hidden Courses",
-        description: "Visible courses compared with hidden course shells",
-        icon: "i-lucide-eye",
-        type: "donut",
-        labels: ["Visible", "Hidden"],
-        series: [
-          {
-            name: "Courses",
-            data: [visibleCourses.value.length, hiddenCourses.value.length],
+            name: "Enrollment records",
+            data: sortedCourses.value.map((course) => course.enrolled),
           },
         ],
       },
     ];
-
-    if (viewedCourses.value.length) {
-      chartItems.splice(2, 0, {
-        title: "Most Viewed Courses",
-        description: "Top courses by Moodle log views",
-        icon: "i-lucide-trending-up",
-        type: "horizontalBar",
-        labels: viewedCourses.value.map((course) => course.courseName),
-        series: [
-          {
-            name: "Views",
-            data: viewedCourses.value.map((course) => course.totalViews),
-          },
-        ],
-      });
-    }
-
-    return chartItems;
   });
 
+  const openCourseDetail = (
+    row: Record<string, string | number | boolean | null>,
+  ) => {
+    const courseId = Number(row.id);
+    selectedCourse.value =
+      courses.value.find((course) => course.id === courseId) ?? null;
+    courseDetailOpen.value = Boolean(selectedCourse.value);
+  };
+
   const table = computed<AnalyticsTable>(() => ({
-    title: "Course List",
-    icon: "i-lucide-book-open",
+    title: "Course Families",
+    icon: "i-lucide-layers-3",
     description:
-      "Course records from mdl_course with enrollment, completion, visibility, and view activity.",
+      "Cleaned course-family analytics. Each row can represent one or more original Moodle course records.",
     rowKey: "id",
     columns: courseTableColumns,
     rows: paginatedCourses.value.map((course) => ({
-      ...course,
-      completionRate: `${course.completionRate}%`,
-      views: course.views.toLocaleString(),
+      id: course.id,
+      name: course.name,
+      category: course.category,
+      institute: course.institute,
+      courseCount: course.courseCount ?? 1,
+      enrolled: course.enrolled,
+      action: "View detail",
     })),
   }));
 
+  const exportCourses = () => {
+    const rows = sortedCourses.value.map((course) => ({
+      name: course.name,
+      category: course.category,
+      institute: course.institute,
+      courseCount: course.courseCount ?? 1,
+      enrolled: course.enrolled,
+    }));
+
+    void exportWithToast({
+      filename: "ccun-course-families.csv",
+      label: "Course CSV file",
+      columns: courseTableColumns.map((column) => ({
+        key: column.key,
+        label: column.label,
+      })),
+      rows,
+    });
+  };
+
   return {
+    activeTab,
+    activeFilterChips,
+    activeFilterCount,
     categories,
-    chartError,
+    chartError: ref(""),
     charts,
-    chartsLoading,
-    courseStatusOptions: [...courseStatusOptions],
+    chartsLoading: ref(false),
+    changeInstitute,
+    courseDetailOpen,
+    courseEngagementOptions: [...courseEngagementOptions],
+    instituteDistribution,
+    instituteDistributionTotal,
+    coursePage,
+    coursePageOptions,
+    coursePerPage,
     courseSummaryItems,
+    courseTotal,
+    clearFilters,
     error,
+    exportCourses,
     filters,
-    goToPage,
+    hasFilters,
+    institutes,
     isLoading,
+    openCourseDetail,
     pagination,
     paginationLabel,
     partnerInstituteLabel,
     refresh,
-    setPerPage,
+    removeFilter,
+    selectedCourse,
     table,
+    tabs,
   };
 };

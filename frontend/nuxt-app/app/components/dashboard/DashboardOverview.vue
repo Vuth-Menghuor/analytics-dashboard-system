@@ -17,11 +17,10 @@ defineProps<{
       :title="config.title"
       :copy="config.copy"
     >
-      <div class="toolbar">
-        <UBadge v-if="scopeLabel" color="success" variant="soft">
+      <div v-if="scopeLabel" class="toolbar">
+        <UBadge color="success" variant="soft">
           {{ scopeLabel }}
         </UBadge>
-        <UBadge color="primary" variant="soft">{{ config.endpoint }}</UBadge>
       </div>
     </PageHeader>
 
@@ -38,6 +37,7 @@ defineProps<{
         v-for="chart in config.charts"
         :key="chart.title"
         :chart="chart"
+        :class="{ 'analytics-chart-wide': chart.wide }"
       />
     </section>
   </div>

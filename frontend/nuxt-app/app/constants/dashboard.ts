@@ -16,6 +16,13 @@ export const dashboardNavItems: NavItem[] = [
     roles: ["manager", "partner"],
   },
   {
+    label: "Institutes",
+    path: "/institutes",
+    icon: "Building2",
+    priority: "high",
+    roles: ["manager"],
+  },
+  {
     label: "Courses",
     path: "/courses",
     icon: "BookOpen",
@@ -23,18 +30,11 @@ export const dashboardNavItems: NavItem[] = [
     roles: ["manager", "partner", "visitor"],
   },
   {
-    label: "User Activity",
-    path: "/activity",
+    label: "Learning Activity",
+    path: "/learning-activity",
     icon: "Activity",
     priority: "medium",
     roles: ["manager", "partner", "visitor"],
-  },
-  {
-    label: "Learning Analytics",
-    path: "/learning-performance",
-    icon: "GraduationCap",
-    priority: "medium",
-    roles: ["manager", "partner"],
   },
   {
     label: "Reports",
@@ -49,13 +49,6 @@ export const dashboardNavItems: NavItem[] = [
     icon: "Shield",
     priority: "high",
     roles: ["manager"],
-  },
-  {
-    label: "Profile",
-    path: "/profile",
-    icon: "UserRound",
-    priority: "medium",
-    roles: ["manager", "partner", "visitor"],
   },
   {
     label: "Settings",

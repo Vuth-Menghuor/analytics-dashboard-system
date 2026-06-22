@@ -11,7 +11,7 @@ const emit = defineEmits<{
   navigate: [];
 }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 const navigationLabelKeys: Record<string, string> = {
   Admin: "navigation.admin",
@@ -19,21 +19,22 @@ const navigationLabelKeys: Record<string, string> = {
   Analytics: "navigation.analytics",
   Courses: "navigation.courses",
   Dashboard: "navigation.dashboard",
-  "Learning Analytics": "navigation.learningAnalytics",
-  "Learning Performance": "navigation.learningPerformance",
+  Institutes: "navigation.institutes",
+  "Learning Activity": "navigation.learningActivity",
   Main: "navigation.main",
-  Permissions: "navigation.permissions",
   "Partner Requests": "navigation.partnerRequests",
   Profile: "navigation.profile",
   Reports: "navigation.reports",
-  Roles: "navigation.roles",
   Settings: "navigation.settings",
   Students: "navigation.students",
   Users: "navigation.users",
-  "User Activity": "navigation.userActivity",
 };
 
 const getNavigationLabel = (label: string) => {
+  if (label.includes(".") && te(label)) {
+    return t(label);
+  }
+
   const key = navigationLabelKeys[label];
 
   return key ? t(key) : label;
@@ -50,7 +51,10 @@ const { isItemOpen, onNavigationClick, toggleItem } =
     @click.capture="onNavigationClick"
   >
     <section v-for="group in groups" :key="group.label" class="sidebar-section">
-      <p v-if="!collapsed" class="sidebar-section-label">
+      <p
+        v-if="!collapsed && group.label !== 'Main'"
+        class="sidebar-section-label"
+      >
         {{ getNavigationLabel(group.label) }}
       </p>
       <nav
@@ -276,14 +280,43 @@ const { isItemOpen, onNavigationClick, toggleItem } =
 }
 
 .sidebar-nav-link:hover {
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
+  background: color-mix(in srgb, var(--color-primary-hover) 12%, transparent);
+  color: var(--color-primary-hover);
+}
+
+:root.dark .sidebar-nav-link:hover {
+  background: color-mix(in srgb, var(--app-primary) 8%, transparent);
+  color: var(--app-primary-hover);
 }
 
 .sidebar-nav-link.active,
 .sidebar-nav-parent.open {
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
+  background: var(--color-primary-hover);
+  color: var(--app-on-primary);
+  box-shadow: none;
+}
+
+.sidebar-nav-link.active:hover,
+.sidebar-nav-parent.open:hover {
+  background: var(--color-primary-hover);
+  color: var(--app-on-primary);
+}
+
+:root.dark .sidebar-nav-link.active,
+:root.dark .sidebar-nav-parent.open,
+:root.dark .sidebar-nav-link.active:hover,
+:root.dark .sidebar-nav-parent.open:hover {
+  background: color-mix(in srgb, var(--app-primary) 10%, transparent);
+  color: var(--app-primary-hover);
+  box-shadow: none;
+}
+
+.sidebar-nav-link.active .sidebar-nav-icon,
+.sidebar-nav-link.active .sidebar-nav-label,
+.sidebar-nav-parent.open .sidebar-nav-icon,
+.sidebar-nav-parent.open .sidebar-nav-label,
+.sidebar-nav-parent.open .sidebar-nav-chevron {
+  color: inherit;
 }
 
 .sidebar-nav-icon {
@@ -312,8 +345,20 @@ const { isItemOpen, onNavigationClick, toggleItem } =
 }
 
 .sidebar-subnav-list {
+  position: relative;
   gap: 1px;
-  padding: 6px 0 4px 32px;
+  margin-left: 20px;
+  padding: 6px 0 4px 18px;
+}
+
+.sidebar-subnav-list::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--app-border);
+  content: "";
 }
 
 .sidebar-subnav-link {
@@ -334,7 +379,24 @@ const { isItemOpen, onNavigationClick, toggleItem } =
 
 .sidebar-subnav-link:hover,
 .sidebar-subnav-link.active {
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
+  background: color-mix(in srgb, var(--color-primary-hover) 12%, transparent);
+  color: var(--color-primary-hover);
+}
+
+.sidebar-subnav-link.active,
+.sidebar-subnav-link.active:hover {
+  background: var(--color-primary-hover);
+  color: var(--app-on-primary);
+}
+
+:root.dark .sidebar-subnav-link:hover {
+  background: color-mix(in srgb, var(--app-primary) 8%, transparent);
+  color: var(--app-primary-hover);
+}
+
+:root.dark .sidebar-subnav-link.active,
+:root.dark .sidebar-subnav-link.active:hover {
+  background: color-mix(in srgb, var(--app-primary) 10%, transparent);
+  color: var(--app-primary-hover);
 }
 </style>

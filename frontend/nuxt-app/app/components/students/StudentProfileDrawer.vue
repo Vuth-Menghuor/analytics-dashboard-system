@@ -6,10 +6,15 @@ import {
 } from "~/constants/studentAnalytics";
 import type { Student } from "~/types/analytics";
 
-defineProps<{
+const props = defineProps<{
   loading?: boolean;
   student: Student | null;
 }>();
+const propsStudent = computed(() => props.student);
+const runtimeConfig = useRuntimeConfig();
+const failedAvatarUrl = ref("");
+const { t } = useI18n();
+const { translateText } = useTranslateText();
 
 const open = defineModel<boolean>({ default: false });
 
@@ -28,12 +33,68 @@ const formatStudentValue = (
 };
 
 const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
+
+const completionRate = computed(() => {
+  const student = propsStudent.value;
+
+  if (!student || student.enrollments <= 0) {
+    return 0;
+  }
+
+  return Math.min((student.completions * 100) / student.enrollments, 100);
+});
+
+const progressTone = computed(() => {
+  if (completionRate.value >= 70) return "high";
+  if (completionRate.value >= 35) return "medium";
+  return "low";
+});
+
+const engagementSummary = computed(() => {
+  const student = propsStudent.value;
+
+  if (!student) {
+    return "";
+  }
+
+  if (student.lastLogin === "Never logged in") {
+    return "No login activity recorded. This student should be prioritized for follow-up.";
+  }
+
+  if (student.status === "Inactive") {
+    return "Inactive account status. Review confirmation or suspension state before academic follow-up.";
+  }
+
+  return "Active account with recorded Moodle login activity.";
+});
+
+const studentAvatarSrc = computed(() => {
+  const avatarUrl = propsStudent.value?.avatarUrl;
+
+  if (!avatarUrl || avatarUrl === failedAvatarUrl.value) {
+    return "";
+  }
+
+  if (/^https?:\/\//.test(avatarUrl)) {
+    return avatarUrl;
+  }
+
+  return `${String(runtimeConfig.public.apiBaseUrl).replace(/\/$/, "")}${avatarUrl}`;
+});
+
+watch(
+  () => propsStudent.value?.avatarUrl,
+  () => {
+    failedAvatarUrl.value = "";
+  },
+);
+
 </script>
 
 <template>
   <USlideover
     v-model:open="open"
-    title="Student Profile"
+    :title="t('text.studentProfile')"
     :ui="{ content: 'max-w-xl' }"
   >
     <template #body>
@@ -42,10 +103,18 @@ const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
       <div v-else-if="student" class="profile-drawer">
         <section class="student-profile-hero">
           <div class="student-profile-avatar">
-            {{ student.name.charAt(0).toUpperCase() }}
+            <img
+              v-if="studentAvatarSrc"
+              :src="studentAvatarSrc"
+              :alt="student.avatarAlt || t('text.profilePictureAlt', { name: student.name })"
+              @error="failedAvatarUrl = student.avatarUrl || ''"
+            >
+            <span v-else>
+              {{ student.name.charAt(0).toUpperCase() }}
+            </span>
           </div>
           <div class="student-profile-identity">
-            <p class="eyebrow">Moodle student</p>
+            <p class="eyebrow">{{ translateText("Moodle student") }}</p>
             <h2>{{ student.name }}</h2>
             <div class="student-profile-meta">
               <span>
@@ -76,7 +145,7 @@ const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
                   : 'i-lucide-circle-alert'
               "
             />
-            {{ student.status }}
+            {{ translateText(student.status) }}
           </UBadge>
           <UBadge color="primary" variant="soft">
             <UIcon name="i-lucide-building-2" />
@@ -84,13 +153,20 @@ const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
           </UBadge>
           <UBadge color="neutral" variant="soft">
             <UIcon name="i-lucide-users" />
-            {{ student.gender }}
+            {{ translateText(student.gender) }}
+          </UBadge>
+          <UBadge
+            :color="student.riskLevel === 'Low' ? 'success' : 'warning'"
+            variant="soft"
+          >
+            <UIcon name="i-lucide-activity" />
+            {{ translateText(`${student.riskLevel} risk`) }}
           </UBadge>
         </div>
 
         <section class="profile-stat-grid student-profile-stats">
           <div v-for="stat in studentProfileStats" :key="stat.label">
-            <span>{{ stat.label }}</span>
+            <span>{{ translateText(stat.label) }}</span>
             <strong>{{ formatStudentValue(student, stat.key, stat.suffix) }}</strong>
           </div>
         </section>
@@ -99,23 +175,56 @@ const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
           <div class="section-heading compact">
             <h3 class="section-title with-icon">
               <UIcon name="i-lucide-book-open-check" />
-              Enrollment Summary
+              {{ translateText("Learning Progress") }}
             </h3>
-            <p>Moodle enrollment and completion activity for this student.</p>
+            <p>{{ translateText("Enrollment, completion, and progress indicators for this student.") }}</p>
           </div>
 
           <div class="student-profile-summary-grid">
             <div>
-              <span>Enrollments</span>
+              <span>{{ translateText("Enrollments") }}</span>
               <strong>{{ student.enrollments }}</strong>
             </div>
             <div>
-              <span>Completed courses</span>
+              <span>{{ translateText("Completed courses") }}</span>
               <strong>{{ student.completions }}</strong>
             </div>
             <div>
-              <span>Last login</span>
+              <span>{{ translateText("Last login") }}</span>
               <strong>{{ student.lastLogin }}</strong>
+            </div>
+          </div>
+
+          <div class="student-progress-meter">
+            <div>
+              <span>{{ translateText("Completion progress") }}</span>
+              <strong>{{ completionRate.toFixed(1) }}%</strong>
+            </div>
+            <i :class="progressTone" :style="{ width: `${completionRate}%` }" />
+          </div>
+        </section>
+
+        <section class="student-profile-section">
+          <div class="section-heading compact">
+            <h3 class="section-title with-icon">
+              <UIcon name="i-lucide-activity" />
+              {{ translateText("Engagement Summary") }}
+            </h3>
+            <p>{{ translateText(engagementSummary) }}</p>
+          </div>
+
+          <div class="student-engagement-list">
+            <div>
+              <span>{{ translateText("Account status") }}</span>
+              <strong>{{ translateText(student.status) }}</strong>
+            </div>
+            <div>
+              <span>{{ translateText("Last activity") }}</span>
+              <strong>{{ student.lastLogin }}</strong>
+            </div>
+            <div>
+              <span>{{ translateText("Resource usage") }}</span>
+              <strong>{{ translateText("Requires Moodle log detail") }}</strong>
             </div>
           </div>
         </section>
@@ -124,18 +233,18 @@ const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
           <div class="section-heading compact">
             <h3 class="section-title with-icon">
               <UIcon name="i-lucide-user-round-search" />
-              Moodle Profile Fields
+              {{ translateText("Moodle Profile Fields") }}
             </h3>
-            <p>Read-only profile fields imported from Moodle.</p>
+            <p>{{ translateText("Read-only profile fields imported from Moodle.") }}</p>
           </div>
           <dl class="student-profile-details">
             <div v-for="detail in studentProfileDetails" :key="detail.label">
-              <dt>{{ detail.label }}</dt>
+              <dt>{{ translateText(detail.label) }}</dt>
               <dd>
                 {{
                   detail.type === 'boolean'
-                    ? getBooleanValue(student[detail.key])
-                    : formatStudentValue(student, detail.key)
+                    ? translateText(getBooleanValue(student[detail.key]))
+                    : translateText(formatStudentValue(student, detail.key))
                 }}
               </dd>
             </div>

@@ -1,14 +1,12 @@
 import { appColors } from "~/constants/colors";
 import type { AnalyticsPageConfig } from "~/types/analytics";
 import type { Metric } from "~/types/dashboard";
-import type { DashboardSummaryApi } from "~/types/analytics-api";
+import type {
+  DashboardMetricComparisonApi,
+  DashboardSummaryApi,
+  StudentGenderDistributionApi,
+} from "~/types/analytics-api";
 import { formatNumber } from "~/utils/formatNumber";
-
-const spark = (seed: number) =>
-  Array.from(
-    { length: 8 },
-    (_, index) => seed + Math.round(Math.sin(index + seed) * 7) + index * 4,
-  );
 
 const metric = (
   label: string,
@@ -16,20 +14,71 @@ const metric = (
   trend: string,
   icon: string,
   color: string = appColors.primaryHover,
+  options: Partial<Metric> = {},
 ): Metric => ({
   label,
   value,
   trend,
   icon,
   color,
-  sparkline: spark(Number(value.replace(/\D/g, "").slice(0, 2)) || 12),
+  ...options,
 });
+
+const formatRate = (value: number) =>
+  `${Number.isFinite(value) ? value.toFixed(1) : "0.0"}%`;
+
+const formatComparisonChange = (
+  comparison?: DashboardMetricComparisonApi,
+) => {
+  if (!comparison || comparison.percentageChange === null) {
+    return undefined;
+  }
+
+  const change = comparison.percentageChange;
+  const sign = change > 0 ? "+" : "";
+
+  return `${sign}${change.toFixed(1)}%`;
+};
+
+const comparisonOptions = (
+  comparison?: DashboardMetricComparisonApi,
+  changePeriod = "compared to previous month",
+): Partial<Metric> => {
+  const change = formatComparisonChange(comparison);
+
+  if (!change) {
+    return {};
+  }
+
+  return {
+    change,
+    changeDirection: comparison?.direction ?? "neutral",
+    changePeriod,
+  };
+};
+
+const createGenderBreakdown = (
+  genderDistribution: StudentGenderDistributionApi[],
+) => {
+  if (genderDistribution.length === 0) {
+    return [];
+  }
+
+  const getGenderCount = (genderName: "Female" | "Male") =>
+    genderDistribution.find((point) => point.gender === genderName)
+      ?.totalStudents ?? 0;
+
+  return [
+    { label: "Female", value: formatNumber(getGenderCount("Female")) },
+    { label: "Male", value: formatNumber(getGenderCount("Male")) },
+  ];
+};
 
 export const analyticsPages: Record<string, AnalyticsPageConfig> = {
   dashboard: {
     eyebrow: "Moodle learning analytics",
     title: "Dashboard Overview",
-    copy: "Global Moodle database indicators prepared from users, enrollments, completions, grades, quizzes, assignments, logs, and attendance records.",
+    copy: "Decision-support summary for student activity, enrollment scale, course completion, and institutional contribution from Moodle analytics data.",
     endpoint: "GET /api/dashboard/summary",
     roles: ["manager", "partner", "visitor"],
     metrics: [],
@@ -40,67 +89,70 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
 
 export const createLiveDashboardMetrics = (
   summary: DashboardSummaryApi,
-): Metric[] => [
-  metric(
-    "Total Students",
-    formatNumber(summary.totalStudents),
-    "Live from Moodle DB",
-    "Users",
-  ),
-  metric(
-    "Total Teachers",
-    formatNumber(summary.totalTeachers),
-    "Live Moodle teacher accounts",
-    "UserRoundCog",
-    appColors.purple,
-  ),
-  metric(
-    "Total Courses",
-    formatNumber(summary.totalCourses),
-    "Excludes site course",
-    "BookOpen",
-    appColors.purple,
-  ),
-  metric(
-    "Active Users",
-    formatNumber(summary.totalActiveUsers),
-    "Confirmed and not suspended",
-    "UserRoundCheck",
-    appColors.success,
-  ),
-  metric(
-    "Inactive Users",
-    formatNumber(summary.totalInactiveUsers),
-    "Suspended, unconfirmed, or never logged in",
-    "UserRoundX",
-    appColors.warning,
-  ),
-  metric(
-    "Total Enrollments",
-    formatNumber(summary.totalEnrollments),
-    "From Moodle enrollments",
-    "FolderTree",
-    appColors.primaryHover,
-  ),
-  metric(
-    "Course Completions",
-    formatNumber(summary.totalCourseCompletions),
-    "Completed course records",
-    "Check",
-    appColors.success,
-  ),
-  metric(
-    "Quiz Attempts",
-    formatNumber(summary.totalQuizAttempts),
-    "From Moodle quiz attempts",
-    "CircleHelp",
-    appColors.warning,
-  ),
-  metric(
-    "Assignment Submissions",
-    formatNumber(summary.totalAssignmentsSubmitted),
-    "From Moodle assignment submissions",
-    "FolderTree",
-    appColors.primaryHover,
-  ),
-];
+  genderDistribution: StudentGenderDistributionApi[] = [],
+  activeGenderDistribution: StudentGenderDistributionApi[] = [],
+): Metric[] => {
+  const completionRate =
+    summary.totalEnrollments > 0
+      ? (summary.totalCourseCompletions * 100) / summary.totalEnrollments
+      : 0;
+  const activeStudentRate =
+    summary.totalStudents > 0
+      ? (summary.totalActiveStudents * 100) / summary.totalStudents
+      : 0;
+
+  return [
+    metric(
+      "Total Students",
+      formatNumber(summary.totalStudents),
+      `${formatNumber(summary.totalInactiveStudents)} inactive students need follow-up`,
+      "Users",
+      appColors.slate,
+      {
+        ...comparisonOptions(
+          summary.comparisons?.totalStudents,
+          "student access compared to previous month",
+        ),
+        breakdown: createGenderBreakdown(genderDistribution),
+      },
+    ),
+    metric(
+      "Active Students",
+      formatNumber(summary.totalActiveStudents),
+      `${formatRate(activeStudentRate)} of students are active`,
+      "UserRoundCheck",
+      appColors.success,
+      {
+        ...comparisonOptions(summary.comparisons?.activeStudents),
+        breakdown: createGenderBreakdown(activeGenderDistribution),
+      },
+    ),
+    metric(
+      "Course Completion Rate",
+      formatRate(completionRate),
+      `${formatNumber(summary.totalCourseCompletions)} completed course records`,
+      "Check",
+      appColors.amber,
+      comparisonOptions(summary.comparisons?.courseCompletionRate),
+    ),
+    metric(
+      "Total Enrollments",
+      formatNumber(summary.totalEnrollments),
+      "Learner-course participation records",
+      "FolderTree",
+      appColors.blue,
+      comparisonOptions(summary.comparisons?.totalEnrollments),
+    ),
+    metric(
+      "Total Courses",
+      formatNumber(summary.totalCourses),
+      "Excludes Moodle site course",
+      "BookOpen",
+      appColors.purple,
+      comparisonOptions(
+        summary.comparisons?.totalCourses,
+        "courses starting this month vs previous month",
+      ),
+    ),
+  ];
+};

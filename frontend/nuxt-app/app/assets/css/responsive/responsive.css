@@ -61,6 +61,14 @@
     padding: 22px;
   }
 
+  .dashboard-data-table-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-data-table-actions {
+    justify-content: flex-start;
+  }
+
   .year-bars {
     grid-template-columns: repeat(5, minmax(44px, 1fr));
     gap: 10px;

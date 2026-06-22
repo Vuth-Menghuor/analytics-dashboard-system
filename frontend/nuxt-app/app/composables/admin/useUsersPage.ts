@@ -25,9 +25,21 @@ const statusOptions = [
   { label: "Inactive", value: "Inactive" },
 ] as const;
 
+const formatUserDate = (value: string | null) => {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
 export const useUsersPage = () => {
   const toast = useToast();
   const auth = useAuthStore();
+  const { t } = useI18n();
   const users = ref<AdminUser[]>([]);
   const isLoading = ref(true);
   const isSaving = ref(false);
@@ -103,6 +115,13 @@ export const useUsersPage = () => {
   };
 
   const submitSearch = () => refreshFromFirstPage();
+
+  const clearFilters = () => {
+    searchQuery.value = "";
+    roleFilter.value = "all";
+    statusFilter.value = "all";
+    refreshFromFirstPage();
+  };
 
   const setPage = (page: number) => {
     const nextPage = Math.min(
@@ -262,6 +281,7 @@ export const useUsersPage = () => {
       roleLabel: user.role.charAt(0).toUpperCase() + user.role.slice(1),
       instituteLabel:
         user.role === "partner" ? user.institution_name || "Not assigned" : "System-wide",
+      createdAtLabel: formatUserDate(user.created_at),
       isCurrentUser: user.id === auth.user?.id,
       action: user.id,
     })),
@@ -284,17 +304,21 @@ export const useUsersPage = () => {
         type: "status",
         warningValues: ["Inactive"],
       },
-      { key: "created_at", label: "Created", tone: "muted" },
-      { key: "action", label: "Actions", type: "action" },
+      { key: "createdAtLabel", label: "Created", tone: "muted" },
+      { key: "action", label: "Actions", type: "action", width: "72px", align: "right" },
     ],
   } as const;
 
   const paginationLabel = computed(() => {
     if (!pagination.value.total) {
-      return "No users found";
+      return t("text.noUsersFound");
     }
 
-    return `${pagination.value.from ?? 1}-${pagination.value.to ?? users.value.length} of ${pagination.value.total} users`;
+    return t("text.usersRange", {
+      from: pagination.value.from ?? 1,
+      to: pagination.value.to ?? users.value.length,
+      total: pagination.value.total,
+    });
   });
 
   return {
@@ -318,6 +342,7 @@ export const useUsersPage = () => {
     statusOptions,
     table,
     editingUser,
+    clearFilters,
     confirmDeleteUser,
     fetchUsers,
     openCreateUser,
