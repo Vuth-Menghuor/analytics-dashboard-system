@@ -49,7 +49,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
         Route::get('/courses', [DashboardAnalyticsController::class, 'courses']);
         Route::get('/courses/popular', [DashboardAnalyticsController::class, 'popularCourses']);
-        Route::get('/courses/completion', [DashboardAnalyticsController::class, 'courseCompletion']);
         Route::get('/courses/views', [DashboardAnalyticsController::class, 'courseViews']);
 
         Route::get('/users/activity', [DashboardAnalyticsController::class, 'userActivity']);

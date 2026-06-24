@@ -156,11 +156,6 @@ class DashboardAnalyticsController extends Controller
         return response()->json($this->courseAnalytics->courses($this->institutionScope()));
     }
 
-    public function courseCompletion(): JsonResponse
-    {
-        return response()->json($this->courseAnalytics->courseCompletion($this->institutionScope()));
-    }
-
     public function courseViews(): JsonResponse
     {
         return response()->json($this->courseAnalytics->courseViews($this->institutionScope()));

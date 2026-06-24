@@ -3,13 +3,11 @@
 namespace App\Services\Analytics;
 
 use App\Models\Analytics\MoodleCourse;
-use App\Models\Analytics\MoodleCourseCompletion;
 use App\Models\Analytics\MoodleEnrollment;
 use App\Models\Analytics\MoodleStudent;
 use App\Models\Analytics\MoodleTeacher;
 use App\Models\Analytics\MoodleUserActivity;
 use DateTimeInterface;
-use Illuminate\Support\Facades\DB;
 
 class SummaryAnalyticsService
 {
@@ -24,9 +22,6 @@ class SummaryAnalyticsService
 
         $totalStudents = MoodleStudent::query()->where('deleted', 0)->count();
         $totalEnrollments = $this->studentEnrollmentQuery()->count();
-        $totalCourseCompletions = $this->studentCompletionQuery()
-            ->whereNotNull('timecompleted')
-            ->count();
 
         return [
             'totalStudents' => $totalStudents,
@@ -57,17 +52,6 @@ class SummaryAnalyticsService
                 })
                 ->count(),
             'totalEnrollments' => $totalEnrollments,
-            'totalCourseCompletions' => $totalCourseCompletions,
-            'totalQuizAttempts' => DB::connection('analytics')
-                ->table('mdl_quiz_attempts as qa')
-                ->join('analytics_clean.students as s', 's.id', '=', 'qa.userid')
-                ->where('s.deleted', 0)
-                ->count(),
-            'totalAssignmentsSubmitted' => DB::connection('analytics')
-                ->table('mdl_assign_submission as sub')
-                ->join('analytics_clean.students as s', 's.id', '=', 'sub.userid')
-                ->where('s.deleted', 0)
-                ->count(),
             'comparisons' => $this->comparisons($totalEnrollments),
         ];
     }
@@ -77,11 +61,6 @@ class SummaryAnalyticsService
      */
     private function partnerSummary(string $institution): array
     {
-        $studentIds = MoodleStudent::query()
-            ->select('id')
-            ->where('deleted', 0)
-            ->where('institution', $institution);
-
         $courseIds = MoodleEnrollment::query()
             ->from('analytics_clean.enrollments as e')
             ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
@@ -94,10 +73,6 @@ class SummaryAnalyticsService
             ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
             ->where('s.deleted', 0)
             ->where('s.institution', $institution)
-            ->count();
-        $totalCourseCompletions = MoodleCourseCompletion::query()
-            ->whereIn('userid', $studentIds)
-            ->whereNotNull('timecompleted')
             ->count();
 
         return [
@@ -136,19 +111,6 @@ class SummaryAnalyticsService
                 })
                 ->count(),
             'totalEnrollments' => $totalEnrollments,
-            'totalCourseCompletions' => $totalCourseCompletions,
-            'totalQuizAttempts' => DB::connection('analytics')
-                ->table('mdl_quiz_attempts as qa')
-                ->join('analytics_clean.students as s', 's.id', '=', 'qa.userid')
-                ->where('s.deleted', 0)
-                ->where('s.institution', $institution)
-                ->count(),
-            'totalAssignmentsSubmitted' => DB::connection('analytics')
-                ->table('mdl_assign_submission as sub')
-                ->join('analytics_clean.students as s', 's.id', '=', 'sub.userid')
-                ->where('s.deleted', 0)
-                ->where('s.institution', $institution)
-                ->count(),
             'comparisons' => $this->comparisons($totalEnrollments, $institution),
         ];
     }
@@ -167,16 +129,9 @@ class SummaryAnalyticsService
         $previousActiveStudents = $this->studentPeriodCount('lastlogin', $previousMonthStartTimestamp, $currentMonthStartTimestamp, $institution);
         $currentEnrollments = $this->enrollmentPeriodCount($currentMonthStart, null, $institution);
         $previousEnrollments = $this->enrollmentPeriodCount($previousMonthStart, $currentMonthStart, $institution);
-        $currentCompletionRate = $currentEnrollments > 0
-            ? ($this->completionPeriodCount($currentMonthStartTimestamp, null, $institution) * 100) / $currentEnrollments
-            : 0;
-        $previousCompletionRate = $previousEnrollments > 0
-            ? ($this->completionPeriodCount($previousMonthStartTimestamp, $currentMonthStartTimestamp, $institution) * 100) / $previousEnrollments
-            : 0;
 
         return [
             'activeStudents' => $this->countComparison($currentActiveStudents, $previousActiveStudents),
-            'courseCompletionRate' => $this->rateComparison($currentCompletionRate, $previousCompletionRate),
             'totalEnrollments' => $this->countComparison($currentEnrollments, $previousEnrollments),
             'totalStudents' => $this->countComparison(
                 $this->studentPeriodCount('lastaccess', $currentMonthStartTimestamp, null, $institution),
@@ -206,21 +161,6 @@ class SummaryAnalyticsService
         ];
     }
 
-    /**
-     * @return array{currentValue: float, previousValue: float, percentageChange: float, direction: string}
-     */
-    private function rateComparison(float $currentValue, float $previousValue): array
-    {
-        $change = round($currentValue - $previousValue, 1);
-
-        return [
-            'currentValue' => round($currentValue, 1),
-            'previousValue' => round($previousValue, 1),
-            'percentageChange' => $change,
-            'direction' => $change > 0 ? 'up' : ($change < 0 ? 'down' : 'neutral'),
-        ];
-    }
-
     private function studentPeriodCount(string $column, int $from, ?int $to = null, ?string $institution = null): int
     {
         return MoodleStudent::query()
@@ -239,29 +179,11 @@ class SummaryAnalyticsService
             ->count();
     }
 
-    private function completionPeriodCount(int $from, ?int $to = null, ?string $institution = null): int
-    {
-        return $this->studentCompletionQuery($institution)
-            ->whereNotNull('cc.timecompleted')
-            ->where('cc.timecompleted', '>=', $from)
-            ->when($to, fn ($query, int $to) => $query->where('cc.timecompleted', '<', $to))
-            ->count();
-    }
-
     private function studentEnrollmentQuery(?string $institution = null)
     {
         return MoodleEnrollment::query()
             ->from('analytics_clean.enrollments as e')
             ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
-            ->where('s.deleted', 0)
-            ->when($institution, fn ($query, string $institution) => $query->where('s.institution', $institution));
-    }
-
-    private function studentCompletionQuery(?string $institution = null)
-    {
-        return MoodleCourseCompletion::query()
-            ->from('mdl_course_completions as cc')
-            ->join('analytics_clean.students as s', 's.id', '=', 'cc.userid')
             ->where('s.deleted', 0)
             ->when($institution, fn ($query, string $institution) => $query->where('s.institution', $institution));
     }

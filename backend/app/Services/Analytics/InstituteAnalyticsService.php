@@ -200,6 +200,8 @@ class InstituteAnalyticsService
 
     private function topCourses(array $filters, ?string $institution): Collection
     {
+        $courseGroupExpression = $this->courseGroupExpression();
+
         return $this->applyEnrollmentFilters(
             DB::connection('analytics')
                 ->table('analytics_clean.enrollments as e')
@@ -211,10 +213,10 @@ class InstituteAnalyticsService
                 'institution' => $institution,
             ],
         )
-            ->selectRaw("coalesce(nullif(btrim(c.proposed_course_family), ''), c.course_name) as course")
+            ->selectRaw("coalesce(nullif(btrim($courseGroupExpression), ''), c.course_name) as course")
             ->selectRaw('count(*) as enrollment_records')
             ->selectRaw('count(distinct e.userid) as students')
-            ->groupByRaw("coalesce(nullif(btrim(c.proposed_course_family), ''), c.course_name)")
+            ->groupByRaw("coalesce(nullif(btrim($courseGroupExpression), ''), c.course_name)")
             ->orderByDesc('students')
             ->limit(10)
             ->get()
@@ -223,6 +225,23 @@ class InstituteAnalyticsService
                 'students' => (int) $row->students,
                 'enrollmentRecords' => (int) $row->enrollment_records,
             ]);
+    }
+
+    private function courseGroupExpression(): string
+    {
+        return $this->courseColumnExists('course_group')
+            ? 'c.course_group'
+            : 'c.proposed_course_family';
+    }
+
+    private function courseColumnExists(string $column): bool
+    {
+        return DB::connection('analytics')
+            ->table('information_schema.columns')
+            ->where('table_schema', 'analytics_clean')
+            ->where('table_name', 'courses')
+            ->where('column_name', $column)
+            ->exists();
     }
 
     private function departmentOptions(?string $institution): Collection

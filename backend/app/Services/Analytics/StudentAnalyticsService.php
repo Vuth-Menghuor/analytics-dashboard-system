@@ -2,7 +2,6 @@
 
 namespace App\Services\Analytics;
 
-use App\Models\Analytics\MoodleCourseCompletion;
 use App\Models\Analytics\MoodleEnrollment;
 use App\Models\Analytics\MoodleStudent;
 use Illuminate\Database\Eloquent\Builder;
@@ -208,14 +207,6 @@ class StudentAnalyticsService
                     ->whereColumn('e.userid', 'analytics_clean.students.id'),
                 'enrollments'
             )
-            ->selectSub(
-                MoodleCourseCompletion::query()
-                    ->from('mdl_course_completions as cc')
-                    ->selectRaw('count(*)')
-                    ->whereColumn('cc.userid', 'analytics_clean.students.id')
-                    ->whereNotNull('cc.timecompleted'),
-                'completions'
-            )
             ->where('analytics_clean.students.deleted', 0);
     }
 
@@ -245,12 +236,8 @@ class StudentAnalyticsService
                 ? now()->setTimestamp((int) $student->lastlogin)->toDateTimeString()
                 : 'Never logged in',
             'enrollments' => (int) $student->enrollments,
-            'completions' => (int) $student->completions,
-            'averageGrade' => 0,
             'learningHours' => 0,
             'attendanceRate' => 0,
-            'quizAverage' => 0,
-            'assignmentSubmissionRate' => 0,
             'riskLevel' => $isActive ? 'Low' : 'High',
         ];
     }

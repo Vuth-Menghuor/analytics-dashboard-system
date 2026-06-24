@@ -5,6 +5,7 @@ namespace App\Services\Analytics;
 use App\Models\Analytics\MoodleCourse;
 use App\Models\Analytics\MoodleEnrollment;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CourseAnalyticsService
 {
@@ -41,6 +42,7 @@ class CourseAnalyticsService
 
     public function courses(?string $institution = null): Collection
     {
+        $courseGroupExpression = $this->courseGroupExpression();
         $enrollments = MoodleEnrollment::query()
             ->from('analytics_clean.enrollments as e')
             ->select('courseid')
@@ -67,8 +69,8 @@ class CourseAnalyticsService
                 'c.raw_course_name',
                 'c.shortname',
                 'c.category_name',
-                'c.proposed_course_family',
             ])
+            ->selectRaw($courseGroupExpression.' as course_group')
             ->selectRaw('coalesce(enrollments.total_enrollments, 0) as total_enrollments')
             ->selectRaw('institutions.institutes')
             ->when($institution, fn ($query) => $query->whereRaw('coalesce(enrollments.total_enrollments, 0) > 0'))
@@ -76,8 +78,8 @@ class CourseAnalyticsService
             ->get();
 
         return $courseRows
-            ->groupBy(fn ($row) => $this->courseFamilyName($row))
-            ->map(function (Collection $rows, string $familyName) {
+            ->groupBy(fn ($row) => $this->courseGroupName($row))
+            ->map(function (Collection $rows, string $groupName) {
                 $categories = $rows
                     ->pluck('category_name')
                     ->filter()
@@ -94,8 +96,8 @@ class CourseAnalyticsService
 
                 return [
                     'id' => (int) $rows->min('id'),
-                    'name' => $familyName,
-                    'shortName' => $rows->pluck('shortname')->filter()->first() ?: $familyName,
+                    'name' => $groupName,
+                    'shortName' => $rows->pluck('shortname')->filter()->first() ?: $groupName,
                     'category' => $this->compactListLabel($categories, 'No category'),
                     'categories' => $categories->all(),
                     'categoryCount' => $categories->count(),
@@ -105,8 +107,6 @@ class CourseAnalyticsService
                     'instituteCount' => $institutes->count(),
                     'status' => $totalEnrollments > 0 ? 'Active' : 'No enrollments',
                     'enrolled' => $totalEnrollments,
-                    'completed' => 0,
-                    'completionRate' => 0,
                     'views' => 0,
                     'moodleCourses' => $rows
                         ->sortBy('id')
@@ -124,39 +124,6 @@ class CourseAnalyticsService
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
-    }
-
-    public function courseCompletion(?string $institution = null): Collection
-    {
-        return MoodleCourse::query()
-            ->from('analytics_clean.courses as c')
-            ->join('analytics_clean.enrollments as e', 'e.courseid', '=', 'c.id')
-            ->when($institution, function ($query, string $institution): void {
-                $query->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
-                    ->where('s.deleted', 0)
-                    ->where('s.institution', $institution);
-            })
-            ->leftJoin('mdl_course_completions as cc', function ($join): void {
-                $join->on('cc.course', '=', 'c.id')
-                    ->on('cc.userid', '=', 'e.userid')
-                    ->whereNotNull('cc.timecompleted');
-            })
-            ->select(['c.id', 'c.course_name'])
-            ->selectRaw('count(distinct e.userid) as total_enrolled_students')
-            ->selectRaw('count(distinct cc.userid) as completed_students')
-            ->selectRaw('round(count(distinct cc.userid)::numeric * 100 / nullif(count(distinct e.userid), 0), 2) as completion_rate_percentage')
-            ->where('c.id', '!=', 1)
-            ->groupBy('c.id', 'c.course_name')
-            ->orderByDesc('completion_rate_percentage')
-            ->limit(10)
-            ->get()
-            ->map(fn ($row) => [
-                'id' => (int) $row->id,
-                'courseName' => $row->course_name,
-                'totalEnrolledStudents' => (int) $row->total_enrolled_students,
-                'completedStudents' => (int) $row->completed_students,
-                'completionRatePercentage' => (float) $row->completion_rate_percentage,
-            ]);
     }
 
     public function courseViews(?string $institution = null): Collection
@@ -190,15 +157,32 @@ class CourseAnalyticsService
             ->where('s.institution', $institution);
     }
 
-    private function courseFamilyName($row): string
+    private function courseGroupName($row): string
     {
-        $familyName = trim((string) ($row->proposed_course_family ?: ''));
+        $groupName = trim((string) ($row->course_group ?: ''));
 
-        if ($familyName !== '') {
-            return $familyName;
+        if ($groupName !== '') {
+            return $groupName;
         }
 
         return trim((string) ($row->course_name ?: $row->shortname ?: 'Untitled course'));
+    }
+
+    private function courseGroupExpression(): string
+    {
+        return $this->courseColumnExists('course_group')
+            ? 'c.course_group'
+            : 'c.proposed_course_family';
+    }
+
+    private function courseColumnExists(string $column): bool
+    {
+        return DB::connection('analytics')
+            ->table('information_schema.columns')
+            ->where('table_schema', 'analytics_clean')
+            ->where('table_name', 'courses')
+            ->where('column_name', $column)
+            ->exists();
     }
 
     private function compactListLabel(Collection $values, string $emptyLabel): string

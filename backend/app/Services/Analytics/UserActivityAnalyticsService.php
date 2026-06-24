@@ -13,10 +13,6 @@ class UserActivityAnalyticsService
         'Logins' => "l.component = 'core' and l.action = 'loggedin'",
         'Course Views' => "l.component = 'core' and l.target = 'course' and l.action = 'viewed'",
         'Resource Views' => "l.component = 'mod_resource' and l.action = 'viewed'",
-        'Assignment Activity' => "l.component = 'mod_assign'",
-        'Assignment Submissions' => "l.component = 'mod_assign' and l.action = 'submitted'",
-        'Quiz Activity' => "l.component = 'mod_quiz'",
-        'Quiz Attempts' => "l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed')",
         'Forum Activity' => "l.component = 'mod_forum'",
         'SCORM Activity' => "l.component = 'mod_scorm'",
         'H5P Activity' => "l.component in ('mod_hvp', 'mod_h5pactivity')",
@@ -199,9 +195,7 @@ class UserActivityAnalyticsService
                 count(*)::bigint as total_activities,
                 count(distinct l.userid)::bigint as active_users,
                 count(*) filter (where l.component = 'core' and l.action = 'loggedin')::bigint as total_logins,
-                count(*) filter (where l.component = 'core' and l.target = 'course' and l.action = 'viewed')::bigint as course_views,
-                count(*) filter (where l.component = 'mod_assign' and l.action = 'submitted')::bigint as assignment_submissions,
-                count(*) filter (where l.component = 'mod_quiz' and l.action = 'submitted')::bigint as quiz_submissions
+                count(*) filter (where l.component = 'core' and l.target = 'course' and l.action = 'viewed')::bigint as course_views
             {$base['from']}
             {$base['where']}
         ", $base['bindings']);
@@ -211,8 +205,8 @@ class UserActivityAnalyticsService
             'activeUsers' => (int) ($row->active_users ?? 0),
             'totalLogins' => (int) ($row->total_logins ?? 0),
             'courseViews' => (int) ($row->course_views ?? 0),
-            'assignmentSubmissions' => (int) ($row->assignment_submissions ?? 0),
-            'quizSubmissions' => (int) ($row->quiz_submissions ?? 0),
+            'assignmentSubmissions' => 0,
+            'quizSubmissions' => 0,
         ];
     }
 
@@ -253,14 +247,6 @@ class UserActivityAnalyticsService
 
             if ($component === 'core' && $target === 'course' && $action === 'viewed') {
                 $summary['courseViews'] += $total;
-            }
-
-            if ($component === 'mod_assign' && $action === 'submitted') {
-                $summary['assignmentSubmissions'] += $total;
-            }
-
-            if ($component === 'mod_quiz' && $action === 'submitted') {
-                $summary['quizSubmissions'] += $total;
             }
 
             $label = $this->activityTypeLabel($component, $action, $target);
@@ -313,8 +299,6 @@ class UserActivityAnalyticsService
                 to_char(date_trunc('{$bucket['unit']}', to_timestamp(l.timecreated)), '{$bucket['format']}') as period,
                 count(*) filter (where l.component = 'core' and l.action = 'loggedin')::bigint as logins,
                 count(*) filter (where l.component = 'core' and l.action = 'viewed')::bigint as course_views,
-                count(*) filter (where l.component = 'mod_assign' and l.action = 'submitted')::bigint as assignment_submissions,
-                count(*) filter (where l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed'))::bigint as quiz_attempts,
                 count(*) filter (where l.component = 'mod_forum')::bigint as forum_activity
             {$base['from']}
             {$base['where']}
@@ -324,8 +308,8 @@ class UserActivityAnalyticsService
             'period' => $row->period,
             'logins' => (int) $row->logins,
             'courseViews' => (int) $row->course_views,
-            'assignmentSubmissions' => (int) $row->assignment_submissions,
-            'quizAttempts' => (int) $row->quiz_attempts,
+            'assignmentSubmissions' => 0,
+            'quizAttempts' => 0,
             'forumActivity' => (int) $row->forum_activity,
         ])->values()->all();
     }
@@ -366,10 +350,6 @@ class UserActivityAnalyticsService
                 case
                     when l.component = 'core' and l.action = 'loggedin' then 'Logins'
                     when l.component = 'core' and l.action = 'viewed' then 'Course Views'
-                    when l.component = 'mod_assign' and l.action = 'submitted' then 'Assignment Submissions'
-                    when l.component = 'mod_assign' then 'Assignment Activity'
-                    when l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed') then 'Quiz Attempts'
-                    when l.component = 'mod_quiz' then 'Quiz Activity'
                     when l.component = 'mod_forum' then 'Forum Activity'
                     when l.component = 'mod_scorm' then 'SCORM Activity'
                     when l.component in ('mod_hvp', 'mod_h5pactivity') then 'H5P Activity'
@@ -393,10 +373,6 @@ class UserActivityAnalyticsService
             $component === 'core' && $action === 'loggedin' => 'Logins',
             $component === 'core' && $target === 'course' && $action === 'viewed' => 'Course Views',
             $component === 'mod_resource' && $action === 'viewed' => 'Resource Views',
-            $component === 'mod_assign' && $action === 'submitted' => 'Assignment Submissions',
-            $component === 'mod_assign' => 'Assignment Activity',
-            $component === 'mod_quiz' && in_array($action, ['started', 'submitted', 'reviewed'], true) => 'Quiz Attempts',
-            $component === 'mod_quiz' => 'Quiz Activity',
             $component === 'mod_forum' => 'Forum Activity',
             $component === 'mod_scorm' => 'SCORM Activity',
             in_array($component, ['mod_hvp', 'mod_h5pactivity'], true) => 'H5P Activity',
@@ -509,17 +485,8 @@ class UserActivityAnalyticsService
                 c.id,
                 c.fullname as course,
                 count(*) filter (where l.action = 'viewed')::bigint as views,
-                count(*) filter (where l.component = 'mod_assign' and l.action = 'submitted')::bigint as assignments,
-                count(*) filter (where l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed'))::bigint as quizzes,
-                max(coalesce(cc.completed_students, 0))::bigint as completion_records,
                 count(*) over()::bigint as total_rows
             {$base['from']}
-            left join (
-                select course, count(*) as completed_students
-                from mdl_course_completions
-                where timecompleted is not null
-                group by course
-            ) cc on cc.course = c.id
             {$base['where']}
             group by c.id, c.fullname
             having c.id > 1
@@ -534,9 +501,6 @@ class UserActivityAnalyticsService
                 'id' => (int) $row->id,
                 'course' => $row->course,
                 'views' => (int) $row->views,
-                'assignments' => (int) $row->assignments,
-                'quizzes' => (int) $row->quizzes,
-                'completionRecords' => (int) $row->completion_records,
             ])->values()->all(),
             'meta' => $this->paginationMeta($total, $filters),
         ];
@@ -558,14 +522,10 @@ class UserActivityAnalyticsService
                 max(c.fullname) as course,
                 max(u.lastlogin) as last_login,
                 count(*)::bigint as activities,
-                count(*) filter (where l.component = 'mod_assign' and l.action = 'submitted')::bigint as assignment_submissions,
-                count(*) filter (where l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed'))::bigint as quiz_attempts,
                 count(distinct nullif(l.courseid, 0))::bigint as courses_accessed,
-                count(cc.id)::bigint as course_completions,
                 case when u.deleted = 0 and u.suspended = 0 then 'Active' else 'Inactive' end as status,
                 count(*) over()::bigint as total_rows
             {$base['from']}
-            left join mdl_course_completions cc on cc.userid = u.id and cc.course = l.courseid
             {$base['where']}
             group by u.id, u.firstname, u.lastname, u.email, s.institution, s.department, s.city, u.lastlogin, u.deleted, u.suspended
             order by student
@@ -585,10 +545,7 @@ class UserActivityAnalyticsService
                 'course' => $row->course ?: '-',
                 'lastLogin' => $this->formatUnixDate($row->last_login),
                 'activities' => (int) $row->activities,
-                'assignmentSubmissions' => (int) $row->assignment_submissions,
-                'quizAttempts' => (int) $row->quiz_attempts,
                 'coursesAccessed' => (int) $row->courses_accessed,
-                'courseCompletions' => (int) $row->course_completions,
                 'status' => $row->status,
             ])->values()->all(),
             'meta' => $this->paginationMeta($total, $filters),
@@ -635,8 +592,6 @@ class UserActivityAnalyticsService
                     when l.component = 'core' and l.action = 'loggedin' then 'Login'
                     when l.component = 'core' and l.target = 'course' and l.action = 'viewed' then 'Course View'
                     when l.component = 'mod_resource' and l.action = 'viewed' then 'Resource View'
-                    when l.component = 'mod_quiz' and l.action in ('started', 'submitted', 'reviewed') then 'Quiz Attempt'
-                    when l.component = 'mod_assign' and l.action = 'submitted' then 'Assignment Submission'
                     when l.component = 'mod_forum' and l.action = 'created' then 'Forum Post'
                     else initcap(replace(l.component, '_', ' ')) || ' ' || initcap(l.action)
                 end as activity_type,
@@ -723,7 +678,12 @@ class UserActivityAnalyticsService
      */
     private function baseLogSql(array $filters): array
     {
-        $where = ['l.userid > 0', 'u.deleted = 0', 's.deleted = 0'];
+        $where = [
+            'l.userid > 0',
+            'u.deleted = 0',
+            's.deleted = 0',
+            "l.component not in ('mod_assign', 'mod_quiz')",
+        ];
         $bindings = [];
 
         if (! empty($filters['dateFrom'])) {

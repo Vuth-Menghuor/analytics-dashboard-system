@@ -8,8 +8,8 @@ SELECT
     to_timestamp(c.startdate::double precision) AS start_date,
     to_timestamp(c.enddate::double precision) AS end_date,
     c.fullname AS raw_course_name,
-    m.proposed_course_family,
-    m.family_status,
+    m.proposed_course_family AS course_group,
+    m.family_status AS course_group_status,
     m.data_quality_status,
     coalesce(m.recommended_action, 'keep') AS recommended_action,
     coalesce(cat.name, 'Uncategorized')::varchar(255) AS category_name
