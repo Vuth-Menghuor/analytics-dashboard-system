@@ -54,6 +54,14 @@
   src: url("/fonts/open-sauce-fon/OpenSauceSans-Black.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: "Khmer OS Siemreap";
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+  src: url("/fonts/Khmer OS Siemreap-Kh Auto.ttf") format("truetype");
+}
+
 :root {
   color-scheme: light;
   --app-font-family: "Open Sauce Sans", sans-serif;
@@ -96,6 +104,10 @@
   --app-outline-variant: #e2e8f0;
   --app-shadow: 0 12px 30px
     color-mix(in srgb, var(--app-text) 5%, transparent);
+}
+
+html[lang="km"] {
+  --app-font-family: "Khmer OS Siemreap", "Open Sauce Sans", sans-serif;
 }
 
 :root.dark {

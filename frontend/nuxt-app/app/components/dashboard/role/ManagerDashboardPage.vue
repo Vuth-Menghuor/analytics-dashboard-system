@@ -23,8 +23,7 @@ const {
   institutionDistributionHeight,
   departmentDistributionHeight,
   topDepartmentsOption,
-  popularCoursesOption,
-  popularCoursesHeight,
+  popularCoursesChart,
   genderDistributionOption,
   studentActivityOption,
   metrics,
@@ -167,14 +166,7 @@ const { translateText } = useTranslateText();
         </AnalyticsChartCard>
 
         <AnalyticsChartCard
-          title="Courses by Enrollment"
-          icon="i-lucide-trending-up"
-          description="Courses ranked by total Moodle enrollment records."
-          :badge="t('text.topCourses')"
-          badge-color="warning"
-          :option="popularCoursesOption"
-          :height="popularCoursesHeight"
-          aria-label="Courses by Enrollment"
+          :chart="popularCoursesChart"
           class="analytics-chart-wide"
         >
           <template #actions>

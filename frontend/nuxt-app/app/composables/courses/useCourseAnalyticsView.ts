@@ -139,12 +139,12 @@ export const useCourseAnalyticsView = () => {
   const totalEnrollments = computed(() =>
     analysisCourses.value.reduce((sum, course) => sum + course.enrolled, 0),
   );
-  const groupedFamilies = computed(() => analysisCourses.value.length);
+  const groupedCourses = computed(() => analysisCourses.value.length);
 
   const courseSummaryItems = computed<Metric[]>(() => [
     {
-      label: "Clean Course Families",
-      value: groupedFamilies.value.toLocaleString(),
+      label: "Clean Course Groups",
+      value: groupedCourses.value.toLocaleString(),
       trend: "Grouped analytics course names",
       icon: "BookOpen",
       color: appColors.purple,
@@ -185,7 +185,7 @@ export const useCourseAnalyticsView = () => {
 
   const paginationLabel = computed(() => {
     if (pagination.value.total === 0) {
-      return "No course families found";
+      return "No course groups found";
     }
 
     const start =
@@ -195,7 +195,7 @@ export const useCourseAnalyticsView = () => {
       pagination.value.total,
     );
 
-    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${pagination.value.total.toLocaleString()} course families`;
+    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${pagination.value.total.toLocaleString()} course groups`;
   });
 
   const goToPage = (page: number) => {
@@ -320,7 +320,7 @@ export const useCourseAnalyticsView = () => {
         labels: categoryCounts.value.map((item) => item.label),
         series: [
           {
-            name: "Course families",
+            name: "Course groups",
             data: categoryCounts.value.map((item) => item.count),
           },
         ],
@@ -353,10 +353,10 @@ export const useCourseAnalyticsView = () => {
   };
 
   const table = computed<AnalyticsTable>(() => ({
-    title: "Course Families",
+    title: "Course Groups",
     icon: "i-lucide-layers-3",
     description:
-      "Cleaned course-family analytics. Each row can represent one or more original Moodle course records.",
+      "Cleaned course-group analytics. Each row can represent one or more original Moodle course records.",
     rowKey: "id",
     columns: courseTableColumns,
     rows: paginatedCourses.value.map((course) => ({
@@ -380,7 +380,7 @@ export const useCourseAnalyticsView = () => {
     }));
 
     void exportWithToast({
-      filename: "ccun-course-families.csv",
+      filename: "ccun-course-groups.csv",
       label: "Course CSV file",
       columns: courseTableColumns.map((column) => ({
         key: column.key,

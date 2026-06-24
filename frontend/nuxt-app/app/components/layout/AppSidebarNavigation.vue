@@ -237,7 +237,7 @@ const { isItemOpen, onNavigationClick, toggleItem } =
   margin: 0;
   color: var(--app-muted);
   font-size: 0.78rem;
-  line-height: 1.2;
+  line-height: 1.5;
 }
 
 .sidebar-nav-list,
@@ -271,7 +271,7 @@ const { isItemOpen, onNavigationClick, toggleItem } =
   font: inherit;
   font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.5;
   text-align: left;
   text-decoration: none;
   transition:
@@ -326,10 +326,16 @@ const { isItemOpen, onNavigationClick, toggleItem } =
 }
 
 .sidebar-nav-label {
+  display: block;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+:global(html[lang="km"]) .sidebar-nav-label {
+  margin-block: -0.2em;
+  padding-block: 0.2em;
 }
 
 .sidebar-nav-chevron {
@@ -370,7 +376,7 @@ const { isItemOpen, onNavigationClick, toggleItem } =
   color: var(--app-text);
   font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.5;
   text-decoration: none;
   transition:
     background-color 0.18s ease,

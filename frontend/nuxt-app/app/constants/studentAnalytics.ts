@@ -30,7 +30,6 @@ export const studentTableColumns: AnalyticsTableColumn[] = [
     width: "108px",
   },
   { key: "enrollments", label: "Enrollments", align: "right", width: "112px" },
-  { key: "completions", label: "Completions", align: "right", width: "118px" },
   { key: "action", label: "Profile", type: "action", align: "center", width: "96px" },
 ];
 
@@ -41,7 +40,6 @@ export const studentProfileStats: Array<{
 }> = [
   { label: "Last login", key: "lastLogin" },
   { label: "Enrollments", key: "enrollments" },
-  { label: "Completions", key: "completions" },
   { label: "Status", key: "status" },
 ];
 

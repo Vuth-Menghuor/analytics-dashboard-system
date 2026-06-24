@@ -78,7 +78,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
   dashboard: {
     eyebrow: "Moodle learning analytics",
     title: "Dashboard Overview",
-    copy: "Decision-support summary for student activity, enrollment scale, course completion, and institutional contribution from Moodle analytics data.",
+    copy: "Decision-support summary for student activity, active/inactive status, enrollment scale, and institutional contribution from Moodle analytics data.",
     endpoint: "GET /api/dashboard/summary",
     roles: ["manager", "partner", "visitor"],
     metrics: [],
@@ -92,10 +92,6 @@ export const createLiveDashboardMetrics = (
   genderDistribution: StudentGenderDistributionApi[] = [],
   activeGenderDistribution: StudentGenderDistributionApi[] = [],
 ): Metric[] => {
-  const completionRate =
-    summary.totalEnrollments > 0
-      ? (summary.totalCourseCompletions * 100) / summary.totalEnrollments
-      : 0;
   const activeStudentRate =
     summary.totalStudents > 0
       ? (summary.totalActiveStudents * 100) / summary.totalStudents
@@ -128,12 +124,11 @@ export const createLiveDashboardMetrics = (
       },
     ),
     metric(
-      "Course Completion Rate",
-      formatRate(completionRate),
-      `${formatNumber(summary.totalCourseCompletions)} completed course records`,
-      "Check",
+      "Inactive Students",
+      formatNumber(summary.totalInactiveStudents),
+      `${formatRate(100 - activeStudentRate)} may need follow-up`,
+      "UserRoundX",
       appColors.amber,
-      comparisonOptions(summary.comparisons?.courseCompletionRate),
     ),
     metric(
       "Total Enrollments",

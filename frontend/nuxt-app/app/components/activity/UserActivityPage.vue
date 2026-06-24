@@ -64,17 +64,12 @@ const { translateText } = useTranslateText();
     <PageHeader
       :eyebrow="String(translateText('Moodle learning engagement'))"
       :title="String(translateText('Learning Activity'))"
-      :copy="String(translateText('Analyze logins, course views, assignment activity, quiz activity, forum usage, completions, and student engagement from Moodle activity logs.'))"
+      :copy="String(translateText('Analyze logins, course views, forum usage, and student active/inactive engagement from Moodle activity logs.'))"
     >
       <div class="toolbar">
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
           {{ partnerInstituteLabel }}
         </UBadge>
-        <AppButton
-          action="refresh"
-          :label="t('text.refresh')"
-          @click="refresh"
-        />
       </div>
     </PageHeader>
 

@@ -132,7 +132,7 @@ export const usePartnerDashboardPage = () => {
       ? {
           ...moodleDashboard.value,
           title: "Partner Dashboard",
-          copy: "Institute-scoped Moodle analytics for students, courses, completions, and learning activity.",
+          copy: "Institute-scoped Moodle analytics for student activity, active/inactive status, courses, and enrollment engagement.",
           metrics: moodleDashboard.value.metrics.filter((metric) =>
             dashboardMetricLabels.includes(
               metric.label as (typeof dashboardMetricLabels)[number],

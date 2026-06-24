@@ -81,11 +81,6 @@ const { translateText } = useTranslateText();
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
           {{ partnerInstituteLabel }}
         </UBadge>
-        <AppButton
-          action="refresh"
-          :label="t('text.refresh')"
-          @click="refresh"
-        />
       </div>
     </PageHeader>
 

@@ -158,7 +158,8 @@ const computedOption = computed<EChartsOption>(() => {
   const isVerticalBar = chart.type === "bar";
   const isLine = chart.type === "line";
   const horizontalLabelWidth = chart.wide ? 220 : 156;
-  const visibleHorizontalItems = chart.wide ? 10 : 8;
+  const visibleHorizontalItems =
+    chart.visibleItems ?? (chart.wide ? 10 : 8);
   const hasHorizontalScroll =
     isHorizontal && chart.labels.length > visibleHorizontalItems;
   const visibleCategoryItems = chart.wide ? 12 : 8;

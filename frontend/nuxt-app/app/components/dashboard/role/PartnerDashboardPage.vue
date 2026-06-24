@@ -11,6 +11,7 @@ const {
   partnerDashboardLoading,
   partnerInstituteLabel,
 } = usePartnerDashboardPage();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
@@ -32,8 +33,8 @@ const {
         color="neutral"
         variant="soft"
         icon="i-lucide-loader"
-        title="Loading scoped charts"
-        description="Summary metrics are ready. Charts will appear when the analytics API responds."
+        :title="String(translateText('Loading scoped charts'))"
+        :description="String(translateText('Summary metrics are ready. Charts will appear when the analytics API responds.'))"
       />
 
       <UAlert
@@ -41,7 +42,7 @@ const {
         color="warning"
         variant="soft"
         icon="i-lucide-triangle-alert"
-        title="Charts unavailable"
+        :title="String(translateText('Charts unavailable'))"
         :description="chartError"
       />
     </template>

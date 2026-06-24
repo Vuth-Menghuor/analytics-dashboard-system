@@ -34,6 +34,7 @@ export type AnalyticsChart = {
   series: ChartSeries[];
   height?: string;
   wide?: boolean;
+  visibleItems?: number;
   showAllCategories?: boolean;
 };
 
@@ -92,12 +93,8 @@ export type Student = {
   lastLogin: string;
   lastCourse?: string;
   enrollments: number;
-  completions: number;
-  averageGrade: number;
   learningHours: number;
   attendanceRate?: number;
-  quizAverage?: number;
-  assignmentSubmissionRate?: number;
   riskLevel?: "Low" | "Medium" | "High";
 };
 
@@ -117,8 +114,6 @@ export type Course = {
   instituteCount?: number;
   status: "Active" | "No enrollments";
   enrolled: number;
-  completed: number;
-  completionRate: number;
   views: number;
   moodleCourses?: Array<{
     id: number;

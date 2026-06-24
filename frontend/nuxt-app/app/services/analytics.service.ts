@@ -5,7 +5,6 @@ import type {
   AnalyticsPageConfig,
 } from "~/types/analytics";
 import type {
-  CourseCompletionApi,
   CourseViewsApi,
   DashboardChartFilters,
   DashboardSummaryApi,
@@ -39,7 +38,6 @@ export const getDashboardSummary = async () => {
     activeGender,
     studentActivity,
     popularCourses,
-    courseCompletion,
     userActivity,
   ] = await Promise.allSettled([
     getStudentsByInstitution(),
@@ -48,7 +46,6 @@ export const getDashboardSummary = async () => {
     getStudentGenderDistribution({ status: "Active" }),
     getStudentActivityTrend(),
     getPopularCourses(),
-    getCourseCompletion(),
     getUserActivity(),
   ]);
 
@@ -69,8 +66,6 @@ export const getDashboardSummary = async () => {
         studentActivity.status === "fulfilled" ? studentActivity.value : [],
       popularCourses:
         popularCourses.status === "fulfilled" ? popularCourses.value : [],
-      courseCompletion:
-        courseCompletion.status === "fulfilled" ? courseCompletion.value : [],
       userActivity:
         userActivity.status === "fulfilled" ? userActivity.value : [],
     }),
@@ -83,7 +78,6 @@ const createDashboardCharts = ({
   gender,
   studentActivity,
   popularCourses,
-  courseCompletion,
   userActivity,
 }: {
   institutions: StudentInstitutionDistributionApi[];
@@ -91,7 +85,6 @@ const createDashboardCharts = ({
   gender: StudentGenderDistributionApi[];
   studentActivity: StudentActivityTrendApi[];
   popularCourses: PopularCourseApi[];
-  courseCompletion: CourseCompletionApi[];
   userActivity: UserActivityApi[];
 }): AnalyticsChart[] => [
   {
@@ -172,22 +165,6 @@ const createDashboardCharts = ({
     ],
   },
   {
-    title: "Course Completion",
-    description: "Are students successfully completing courses?",
-    icon: "i-lucide-check-circle-2",
-    type: "line",
-    height: "320px",
-    labels: courseCompletion.slice(0, 8).map((course) => course.courseName),
-    series: [
-      {
-        name: "Completion rate",
-        data: courseCompletion
-          .slice(0, 8)
-          .map((course) => course.completionRatePercentage),
-      },
-    ],
-  },
-  {
     title: "User Login Status",
     description: "How many users are active, inactive, or never logged in?",
     icon: "i-lucide-activity",
@@ -262,13 +239,6 @@ export const getPopularCourses = async (
   const { data } = await api.get<PopularCourseApi[]>(
     "/dashboard/courses/popular",
     { params },
-  );
-  return data;
-};
-
-export const getCourseCompletion = async () => {
-  const { data } = await api.get<CourseCompletionApi[]>(
-    "/dashboard/courses/completion",
   );
   return data;
 };

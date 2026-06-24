@@ -16,12 +16,8 @@ export type DashboardSummaryApi = {
   totalActiveStudents: number;
   totalInactiveStudents: number;
   totalEnrollments: number;
-  totalCourseCompletions: number;
-  totalQuizAttempts: number;
-  totalAssignmentsSubmitted: number;
   comparisons?: {
     activeStudents?: DashboardMetricComparisonApi;
-    courseCompletionRate?: DashboardMetricComparisonApi;
     totalEnrollments?: DashboardMetricComparisonApi;
     totalStudents?: DashboardMetricComparisonApi;
     totalCourses?: DashboardMetricComparisonApi;
@@ -56,14 +52,6 @@ export type PopularCourseApi = {
   id: number;
   courseName: string;
   totalEnrollments: number;
-};
-
-export type CourseCompletionApi = {
-  id: number;
-  courseName: string;
-  totalEnrolledStudents: number;
-  completedStudents: number;
-  completionRatePercentage: number;
 };
 
 export type CourseViewsApi = {
@@ -154,9 +142,6 @@ export type LearningActivityResponse = {
     id: number;
     course: string;
     views: number;
-    assignments: number;
-    quizzes: number;
-    completionRecords: number;
   }>;
   students: LearningActivityStudentRow[];
   events: LearningActivityEventRow[];
@@ -188,10 +173,7 @@ export type LearningActivityStudentRow = {
   course: string;
   lastLogin: string;
   activities: number;
-  assignmentSubmissions: number;
-  quizAttempts: number;
   coursesAccessed: number;
-  courseCompletions: number;
   status: "Active" | "Inactive";
 };
 

@@ -363,8 +363,7 @@ export const useUserActivityPage = () => {
         activeUsers: 0,
         totalLogins: 0,
         courseViews: 0,
-        assignmentSubmissions: 0,
-        quizSubmissions: 0,
+        averageActivitiesPerStudent: 0,
       },
   );
 
@@ -398,25 +397,18 @@ export const useUserActivityPage = () => {
       color: appColors.slate,
     },
     {
-      label: "Assignment Submissions",
-      value: formatCompact(summary.value.assignmentSubmissions),
-      trend: "Submitted assignment events",
-      icon: "ClipboardCheck",
+      label: "Average Activities",
+      value: formatCompact(summary.value.averageActivitiesPerStudent ?? 0),
+      trend: "Average activity per active user",
+      icon: "Gauge",
       color: appColors.warning,
-    },
-    {
-      label: "Quiz Submissions",
-      value: formatCompact(summary.value.quizSubmissions),
-      trend: "Submitted quiz events",
-      icon: "CircleHelp",
-      color: appColors.amber,
     },
   ]);
 
   const charts = computed<AnalyticsChart[]>(() => [
     {
       title: "Learning Activity Trend",
-      description: "Logins, course views, submissions, quiz attempts, and forum activity.",
+      description: "Logins, course views, forum activity, and overall Moodle engagement.",
       icon: "i-lucide-chart-line",
       type: "line",
       wide: true,
@@ -430,17 +422,6 @@ export const useUserActivityPage = () => {
         {
           name: "Course Views",
           data: activity.value?.trend.map((point) => point.courseViews) ?? [],
-        },
-        {
-          name: "Assignments",
-          data:
-            activity.value?.trend.map(
-              (point) => point.assignmentSubmissions,
-            ) ?? [],
-        },
-        {
-          name: "Quiz Attempts",
-          data: activity.value?.trend.map((point) => point.quizAttempts) ?? [],
         },
         {
           name: "Forum Activity",
@@ -528,16 +509,13 @@ export const useUserActivityPage = () => {
   const courseTable = computed<AnalyticsTable>(() => ({
     title: "Most Active Courses",
     description:
-      "Courses ranked by views, with assessment and completion activity for context.",
+      "Courses ranked by Moodle views and learning activity volume.",
     icon: "i-lucide-book-open",
     rowKey: "id",
     columns: [
       { key: "rank", label: "Rank", tone: "muted" },
       { key: "course", label: "Course", rowHeader: true },
       { key: "views", label: "Views", tone: "strong" },
-      { key: "assignments", label: "Assignments" },
-      { key: "quizzes", label: "Quizzes" },
-      { key: "completions", label: "Completions" },
     ],
     rows:
       activity.value?.courses.map((row, index) => ({
@@ -549,9 +527,6 @@ export const useUserActivityPage = () => {
           1,
         course: row.course,
         views: row.views.toLocaleString(),
-        assignments: row.assignments.toLocaleString(),
-        quizzes: row.quizzes.toLocaleString(),
-        completions: row.completionRecords.toLocaleString(),
       })) ?? [],
   }));
   const studentTable = computed<AnalyticsTable>(() => ({

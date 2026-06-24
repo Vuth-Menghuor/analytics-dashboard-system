@@ -8,15 +8,19 @@ const {
   moodleDashboardLoading,
   publicMoodleDashboard,
 } = useVisitorDashboardPage();
+const { translateText } = useTranslateText();
 </script>
 
 <template>
   <div class="page-stack">
     <section class="visitor-dashboard-intro">
-      <h1>Cambodia Higher Education Statistics</h1>
+      <h1>{{ translateText("Cambodia Higher Education Statistics") }}</h1>
       <p>
-        Explore public statistics about higher education institutions, student
-        enrollment, and academic achievements across Cambodia.
+        {{
+          translateText(
+            "Explore public statistics about higher education institutions, student enrollment, and academic achievements across Cambodia.",
+          )
+        }}
       </p>
     </section>
 

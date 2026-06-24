@@ -34,22 +34,6 @@ const formatStudentValue = (
 
 const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
 
-const completionRate = computed(() => {
-  const student = propsStudent.value;
-
-  if (!student || student.enrollments <= 0) {
-    return 0;
-  }
-
-  return Math.min((student.completions * 100) / student.enrollments, 100);
-});
-
-const progressTone = computed(() => {
-  if (completionRate.value >= 70) return "high";
-  if (completionRate.value >= 35) return "medium";
-  return "low";
-});
-
 const engagementSummary = computed(() => {
   const student = propsStudent.value;
 
@@ -174,10 +158,10 @@ watch(
         <section class="student-profile-section">
           <div class="section-heading compact">
             <h3 class="section-title with-icon">
-              <UIcon name="i-lucide-book-open-check" />
-              {{ translateText("Learning Progress") }}
+              <UIcon name="i-lucide-activity" />
+              {{ translateText("Student Activity") }}
             </h3>
-            <p>{{ translateText("Enrollment, completion, and progress indicators for this student.") }}</p>
+            <p>{{ translateText("Login and account-status indicators for active/inactive student monitoring.") }}</p>
           </div>
 
           <div class="student-profile-summary-grid">
@@ -186,21 +170,13 @@ watch(
               <strong>{{ student.enrollments }}</strong>
             </div>
             <div>
-              <span>{{ translateText("Completed courses") }}</span>
-              <strong>{{ student.completions }}</strong>
+              <span>{{ translateText("Account status") }}</span>
+              <strong>{{ translateText(student.status) }}</strong>
             </div>
             <div>
               <span>{{ translateText("Last login") }}</span>
               <strong>{{ student.lastLogin }}</strong>
             </div>
-          </div>
-
-          <div class="student-progress-meter">
-            <div>
-              <span>{{ translateText("Completion progress") }}</span>
-              <strong>{{ completionRate.toFixed(1) }}%</strong>
-            </div>
-            <i :class="progressTone" :style="{ width: `${completionRate}%` }" />
           </div>
         </section>
 

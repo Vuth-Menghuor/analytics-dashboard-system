@@ -83,11 +83,6 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
       copy="Manage Laravel application users for manager, partner, and visitor access. Moodle users remain read-only analytics data."
     >
       <div class="toolbar">
-        <AppButton
-          action="refresh"
-          :label="t('text.refresh')"
-          @click="fetchUsers"
-        />
         <AppButton action="create" label="Create user" @click="openCreateUser" />
       </div>
     </PageHeader>

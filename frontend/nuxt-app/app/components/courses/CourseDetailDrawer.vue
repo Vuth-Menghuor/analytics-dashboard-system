@@ -174,7 +174,7 @@ const categoriesLabel = computed(() => {
               {{ translateText("Cleanup Information") }}
             </h3>
             <p>
-              {{ translateText("This course group is generated from cleaned Moodle data. Original Moodle course records remain unchanged. Multiple course names with similar meaning are grouped into a single analytics course family for reporting.") }}
+              {{ translateText("This course group is generated from cleaned Moodle data. Original Moodle course records remain unchanged. Multiple course names with similar meaning are grouped into a single analytics course group for reporting.") }}
             </p>
           </div>
         </section>

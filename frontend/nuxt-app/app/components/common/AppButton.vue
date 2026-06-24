@@ -192,7 +192,7 @@ const buttonClasses = computed(() => ({
   font-weight: 500;
   height: 36px;
   min-height: 36px;
-  line-height: 1;
+  line-height: 1.5;
   box-shadow: none;
 }
 
@@ -228,5 +228,10 @@ const buttonClasses = computed(() => ({
 .app-button--square :deep([data-slot="leadingIcon"]),
 .app-button--square :deep([data-slot="trailingIcon"]) {
   margin: 0;
+}
+
+:global(html[lang="km"]) .app-button :deep([data-slot="label"]) {
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 </style>

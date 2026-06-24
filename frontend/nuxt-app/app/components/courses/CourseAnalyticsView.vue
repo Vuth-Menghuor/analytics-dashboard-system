@@ -124,7 +124,6 @@ const submitSearch = () => {
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
           {{ partnerInstituteLabel }}
         </UBadge>
-        <AppButton action="refresh" :label="t('text.refresh')" @click="refresh" />
       </div>
     </PageHeader>
 
@@ -144,8 +143,8 @@ const submitSearch = () => {
         color="primary"
         variant="soft"
         icon="i-lucide-database-zap"
-        :title="String(translateText('Course-family analytics active'))"
-        :description="String(translateText('Courses are grouped by cleaned family name. Demo or test records are excluded from analytics without changing the original Moodle database.'))"
+        :title="String(translateText('Course-group analytics active'))"
+        :description="String(translateText('Courses are grouped by cleaned group name. Demo or test records are excluded from analytics without changing the original Moodle database.'))"
       />
 
       <UCard
@@ -241,7 +240,7 @@ const submitSearch = () => {
         variant="soft"
         icon="i-lucide-loader"
         :title="String(translateText('Loading course charts'))"
-        :description="String(translateText('Course records are ready. Popularity, completion, and view charts will update as Moodle analytics responds.'))"
+        :description="String(translateText('Course records are ready. Enrollment and view charts will update as Moodle analytics responds.'))"
       />
 
       <UAlert
@@ -306,7 +305,7 @@ const submitSearch = () => {
             <div class="course-institute-chart-center">
               <span>{{ translateText("Total") }}</span>
               <strong>{{ instituteDistributionTotal.toLocaleString() }}</strong>
-              <small>{{ translateText("course families") }}</small>
+              <small>{{ translateText("course groups") }}</small>
             </div>
           </div>
 

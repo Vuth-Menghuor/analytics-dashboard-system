@@ -60,11 +60,7 @@ const { translateText } = useTranslateText();
       eyebrow="Institute analytics"
       title="Institutes Analytics"
       copy="Compare enrollment, snapshot engagement, and department coverage across institutes."
-    >
-      <div class="toolbar">
-        <AppButton action="refresh" @click="loadInstitutes" />
-      </div>
-    </PageHeader>
+    />
 
     <UCard
       as="section"

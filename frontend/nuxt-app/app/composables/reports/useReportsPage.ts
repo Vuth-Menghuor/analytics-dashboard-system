@@ -40,7 +40,7 @@ const reportCards: Array<{
   {
     key: "courses",
     title: "Courses Report",
-    description: "Courses, completions, views, and visibility status.",
+    description: "Courses, enrollments, views, and visibility status.",
     icon: "i-lucide-book-open",
     route: "/courses",
     format: "CSV first",

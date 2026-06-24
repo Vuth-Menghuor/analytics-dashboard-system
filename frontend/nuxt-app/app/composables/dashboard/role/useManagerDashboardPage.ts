@@ -1,6 +1,6 @@
 import type { EChartsOption } from "echarts";
 import { appColors } from "~/constants/colors";
-import type { AnalyticsTable } from "~/types/analytics";
+import type { AnalyticsChart, AnalyticsTable } from "~/types/analytics";
 import {
   getPopularCourses,
   getStudentActivityTrend,
@@ -79,8 +79,7 @@ const dashboardMetricLabels = [
   "Total Courses",
   "Total Enrollments",
   "Active Students",
-  "Course Completions",
-  "Quiz Attempts",
+  "Inactive Students",
 ] as const;
 
 const activityPeriodOptions: Array<{
@@ -416,68 +415,24 @@ export const useManagerDashboardPage = () => {
     ],
   }));
 
-  const popularCoursesOption = computed<EChartsOption>(() => ({
-    color: [appColors.warning],
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (params) => {
-        const item = Array.isArray(params) ? params[0] : params;
-        const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
-        const course = popularCourses.value[index];
-
-        if (!course) return "";
-
-        return [
-          `<strong>${getCourseDisplayName(course.courseName)}</strong>`,
-          `Enrollments: ${course.totalEnrollments.toLocaleString()}`,
-        ].join("<br />");
-      },
-    },
-    grid: {
-      top: 16,
-      right: 18,
-      bottom: 24,
-      left: 12,
-      containLabel: true,
-    },
-    xAxis: {
-      type: "value",
-      axisTick: { show: false },
-      axisLabel: { color: appColors.secondary },
-      splitLine: {
-        lineStyle: { color: appColors.grid, type: "dashed" },
-      },
-    },
-    yAxis: {
-      type: "category",
-      inverse: true,
-      data: popularCourses.value.map((course) =>
-        getCourseDisplayName(course.courseName),
-      ),
-      axisTick: { show: false },
-      axisLine: { show: false },
-      axisLabel: {
-        color: appColors.secondary,
-        width: 240,
-        overflow: "break",
-      },
-    },
+  const popularCoursesChart = computed<AnalyticsChart>(() => ({
+    title: "Courses by Enrollment",
+    description: "Which clean courses have the most enrollments?",
+    icon: "i-lucide-users",
+    type: "horizontalBar",
+    height: "300px",
+    wide: true,
+    visibleItems: 7,
+    labels: popularCourses.value.map((course) =>
+      getCourseDisplayName(course.courseName),
+    ),
     series: [
       {
-        name: "Enrollments",
-        type: "bar",
-        barMaxWidth: 24,
+        name: "Enrollment records",
         data: popularCourses.value.map((course) => course.totalEnrollments),
-        itemStyle: {
-          borderRadius: [0, 6, 6, 0],
-        },
       },
     ],
   }));
-  const popularCoursesHeight = computed(() =>
-    `${Math.max(292, popularCourses.value.length * 36 + 64)}px`,
-  );
 
   const studentActivityLabels = computed(() =>
     studentActivityTrend.value.map((point) => point.period),
@@ -591,8 +546,7 @@ export const useManagerDashboardPage = () => {
     departmentDistributionHeight,
     topDepartmentsOption,
     cityDistributionTable,
-    popularCoursesOption,
-    popularCoursesHeight,
+    popularCoursesChart,
     genderDistributionOption,
     studentActivityOption,
     metrics,

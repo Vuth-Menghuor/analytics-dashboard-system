@@ -7,6 +7,7 @@ const props = defineProps<{
   role: AuthRole;
   roleMeta: AccessRoleCard;
 }>();
+const { translateText } = useTranslateText();
 
 const summary = computed(() => accountAccessSummaries[props.role]);
 
@@ -41,16 +42,16 @@ const badgeClass = computed(() =>
           <UIcon :name="roleMeta.icon" class="size-5" />
         </span>
         <div>
-          <h4 class="font-bold text-slate-950">Access summary</h4>
+          <h4 class="font-bold text-slate-950">{{ translateText("Access summary") }}</h4>
           <p class="mt-1 text-sm text-slate-500">
-            {{ roleMeta.label }} · {{ roleMeta.access }}
+            {{ translateText(roleMeta.label) }} · {{ translateText(roleMeta.access) }}
           </p>
         </div>
       </div>
       <span
         class="w-fit rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600"
       >
-        Read only
+        {{ translateText("Read only") }}
       </span>
     </div>
 
@@ -62,10 +63,10 @@ const badgeClass = computed(() =>
           <p
             class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
           >
-            {{ summary.scopeLabel }}
+            {{ translateText(summary.scopeLabel) }}
           </p>
           <p class="mt-1 text-sm font-semibold text-slate-950">
-            {{ scopeValue }}
+            {{ translateText(scopeValue) }}
           </p>
         </div>
         <div
@@ -78,7 +79,7 @@ const badgeClass = computed(() =>
             class="size-4"
           />
           <span v-else class="size-2 rounded-full bg-emerald-500" />
-          {{ summary.badgeLabel }}
+          {{ translateText(summary.badgeLabel) }}
         </div>
       </div>
 
@@ -98,7 +99,7 @@ const badgeClass = computed(() =>
             class="mt-0.5 size-4 shrink-0"
             :class="item.muted ? '' : 'text-slate-500'"
           />
-          <span class="text-sm">{{ item.label }}</span>
+          <span class="text-sm">{{ translateText(item.label) }}</span>
         </div>
       </div>
 
@@ -118,7 +119,7 @@ const badgeClass = computed(() =>
             :name="item.icon"
             class="mt-0.5 size-4 shrink-0 text-slate-500"
           />
-          <span class="text-sm">{{ item.label }}</span>
+          <span class="text-sm">{{ translateText(item.label) }}</span>
         </UButton>
       </div>
     </div>

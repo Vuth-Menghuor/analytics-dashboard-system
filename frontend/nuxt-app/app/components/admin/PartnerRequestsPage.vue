@@ -51,11 +51,6 @@ const {
         <UBadge color="warning" variant="soft">
           {{ pendingBadgeLabel }}
         </UBadge>
-        <AppButton
-          action="refresh"
-          :label="t('text.refresh')"
-          @click="fetchRequests"
-        />
       </div>
     </PageHeader>
 

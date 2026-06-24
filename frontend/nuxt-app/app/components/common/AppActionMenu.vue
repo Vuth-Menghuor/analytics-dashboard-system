@@ -2,31 +2,33 @@
 import type { DropdownMenuItem } from "@nuxt/ui";
 import AppButton from "~/components/common/AppButton.vue";
 
+type DropdownMenuItems = DropdownMenuItem[] | DropdownMenuItem[][];
+
 const props = defineProps<{
-  items: DropdownMenuItem[] | DropdownMenuItem[][];
+  items: DropdownMenuItems;
   ariaLabel: string;
   title?: string;
 }>();
 const { translateText } = useTranslateText();
 
-const translatedItems = computed(() => {
-  const translateItem = (item: DropdownMenuItem): DropdownMenuItem => {
-    if (!item || typeof item !== "object" || Array.isArray(item)) {
-      return item;
-    }
+const translateItem = (item: DropdownMenuItem): DropdownMenuItem => ({
+  ...item,
+  label:
+    typeof item.label === "string"
+      ? String(translateText(item.label))
+      : item.label,
+});
 
-    return {
-      ...item,
-      label:
-        typeof item.label === "string"
-          ? String(translateText(item.label))
-          : item.label,
-    };
-  };
+const isGroupedMenu = (
+  items: DropdownMenuItems,
+): items is DropdownMenuItem[][] => items.length > 0 && Array.isArray(items[0]);
 
-  return props.items.map((item) =>
-    Array.isArray(item) ? item.map(translateItem) : translateItem(item),
-  );
+const translatedItems = computed<DropdownMenuItems>(() => {
+  if (isGroupedMenu(props.items)) {
+    return props.items.map((group) => group.map(translateItem));
+  }
+
+  return props.items.map(translateItem);
 });
 
 const actionMenuUi = {
