@@ -1,15 +1,15 @@
 const pageTitles: Record<string, string> = {
   "/courses": "navigation.courses",
   "/institutes": "navigation.institutes",
-  "/learning-activity": "navigation.learningActivity",
   "/manager/dashboard": "pageTitle.managerDashboard",
   "/partner-requests": "navigation.partnerRequests",
   "/partner/dashboard": "pageTitle.partnerDashboard",
   "/profile": "pageTitle.profile",
-  "/reports": "pageTitle.reports",
   "/students": "navigation.students",
   "/users": "pageTitle.userManagement",
+  "/visitor/courses": "navigation.courses",
   "/visitor/dashboard": "pageTitle.visitorDashboard",
+  "/visitor/institutions": "navigation.institutes",
 };
 
 export const usePageTitle = () => {

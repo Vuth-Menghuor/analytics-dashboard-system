@@ -82,20 +82,14 @@ export const submitPartnerRequest = async (
   const formData = new FormData();
 
   formData.append("state_province", payload.stateProvince);
-  formData.append("first_name", payload.firstName);
-  formData.append("last_name", payload.lastName);
+  formData.append("name", payload.name);
   formData.append("email", payload.email);
-  formData.append("phone_number", payload.phoneNumber);
   formData.append("institution_name", payload.institutionName);
   formData.append("password", payload.password);
   formData.append("password_confirmation", payload.passwordConfirmation);
 
   if (payload.googleIdToken) {
     formData.append("google_id_token", payload.googleIdToken);
-  }
-
-  if (payload.idCard) {
-    formData.append("id_card", payload.idCard);
   }
 
   const { data } = await api.post<PartnerRequest>(

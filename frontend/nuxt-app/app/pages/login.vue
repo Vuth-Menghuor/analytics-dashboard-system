@@ -13,7 +13,6 @@ const {
   selectAccessRole,
   selectedRole,
   selectedRoleConfig,
-  visitorAccountCreated,
 } = useLoginForm();
 
 const { t } = useI18n();
@@ -79,12 +78,14 @@ const { translateText } = useTranslateText();
             {{
               selectedRole === "manager"
                 ? t("auth.managerLoginDescription")
+                : selectedRole === "visitor"
+                ? t("auth.visitorLoginDescription")
                 : t("auth.standardLoginDescription")
             }}
           </p>
         </div>
 
-        <div v-if="selectedRole !== 'manager'" class="auth-mode-links">
+        <div v-if="selectedRole === 'partner' || selectedRole === 'visitor'" class="auth-mode-links">
           <NuxtLink :to="`/login?role=${selectedRole}`" class="active">
             {{ t("auth.alreadyHaveAccount") }}
           </NuxtLink>
@@ -92,7 +93,7 @@ const { translateText } = useTranslateText();
             {{
               selectedRole === "partner"
                 ? t("auth.createPartnerAccount")
-                : t("auth.createAccount")
+                : t("auth.createVisitorAccount")
             }}
           </NuxtLink>
         </div>
@@ -101,10 +102,6 @@ const { translateText } = useTranslateText();
           <p v-if="partnerRequestSubmitted" class="auth-success">
             {{ t("auth.partnerRequestSubmitted") }}
           </p>
-          <p v-if="visitorAccountCreated" class="auth-success">
-            {{ t("auth.visitorAccountCreated") }}
-          </p>
-
           <UFormField :label="t('auth.email')" class="field">
             <UInput
               v-model="form.email"

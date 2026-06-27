@@ -182,7 +182,7 @@ class DashboardAnalyticsController extends Controller
             'activityType' => ['sometimes', 'nullable', 'string', 'max:80'],
             'userStatus' => ['sometimes', 'nullable', 'string', 'in:Active,Inactive,active,inactive'],
             'search' => ['sometimes', 'nullable', 'string', 'max:120'],
-            'section' => ['sometimes', 'nullable', 'string', 'in:overview,institutes,departments,courses,students,events,all'],
+            'section' => ['sometimes', 'nullable', 'string', 'in:overview,trend,institutes,departments,courses,students,events,all'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'perPage' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
@@ -206,6 +206,7 @@ class DashboardAnalyticsController extends Controller
     public function institutes(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
             'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
             'department' => ['sometimes', 'nullable', 'string', 'max:255'],
             'dateFrom' => ['sometimes', 'nullable', 'date'],
@@ -221,6 +222,7 @@ class DashboardAnalyticsController extends Controller
             'department' => $requestedDepartment !== ''
                 ? $requestedDepartment
                 : null,
+            'search' => trim((string) ($validated['search'] ?? '')) ?: null,
             'dateFrom' => $validated['dateFrom'] ?? null,
             'dateTo' => $validated['dateTo'] ?? null,
         ]));

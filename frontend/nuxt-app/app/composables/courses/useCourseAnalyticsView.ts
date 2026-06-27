@@ -1,6 +1,5 @@
 import {
   courseCategoryAllOption,
-  courseEngagementOptions,
   courseInstituteAllOption,
   courseTableColumns,
 } from "~/constants/courseAnalytics";
@@ -9,9 +8,9 @@ import type { Metric } from "~/types/dashboard";
 import {
   appColors,
   chartColors,
-  chartOtherColor,
 } from "~/constants/colors";
 import { useCsvExport } from "~/composables/common/useCsvExport";
+import type { ExportFormat } from "~/utils/exportCsv";
 
 type CourseAnalyticsTab = "overview" | "institutes" | "enrollment";
 
@@ -19,6 +18,8 @@ export const useCourseAnalyticsView = () => {
   const { exportWithToast } = useCsvExport();
   const auth = useAuthStore();
   const {
+    appliedFilters,
+    applyFilters: applyCourseFilters,
     courses,
     error,
     filteredCourses,
@@ -50,23 +51,14 @@ export const useCourseAnalyticsView = () => {
     filters.query = "";
     filters.category = courseCategoryAllOption;
     filters.institute = courseInstituteAllOption;
-    filters.engagement = "All engagement";
+    applyCourseFilters();
     currentPage.value = 1;
   };
 
-  const coursesInSelectedInstitute = computed(() =>
-    filters.institute === courseInstituteAllOption
-      ? courses.value
-      : courses.value.filter(
-          (course) =>
-            course.institute === filters.institute ||
-            course.institutes?.includes(filters.institute),
-        ),
-  );
   const categories = computed(() => [
     courseCategoryAllOption,
     ...new Set(
-      coursesInSelectedInstitute.value.flatMap(
+      courses.value.flatMap(
         (course) => course.categories ?? [course.category],
       ),
     ),
@@ -81,32 +73,19 @@ export const useCourseAnalyticsView = () => {
     if (typeof institute === "string") {
       filters.institute = institute;
     }
-
-    filters.category = courseCategoryAllOption;
-    currentPage.value = 1;
   };
 
-  const analysisCourses = computed(() =>
-    filteredCourses.value.filter((course) => {
-      if (filters.engagement === "No enrollments") return course.enrolled === 0;
-      if (filters.engagement === "Has enrollments") return course.enrolled > 0;
-
-      return true;
-    }),
-  );
+  const analysisCourses = computed(() => filteredCourses.value);
   const activeFilterChips = computed(() =>
     [
-      filters.query.trim()
-        ? { key: "query", label: `Search: ${filters.query.trim()}` }
+      appliedFilters.query.trim()
+        ? { key: "query", label: `Search: ${appliedFilters.query.trim()}` }
         : null,
-      filters.category !== courseCategoryAllOption
-        ? { key: "category", label: `Category: ${filters.category}` }
+      appliedFilters.category !== courseCategoryAllOption
+        ? { key: "category", label: `Category: ${appliedFilters.category}` }
         : null,
-      filters.institute !== courseInstituteAllOption
-        ? { key: "institute", label: `Institute: ${filters.institute}` }
-        : null,
-      filters.engagement !== "All engagement"
-        ? { key: "engagement", label: `Enrollment: ${filters.engagement}` }
+      appliedFilters.institute !== courseInstituteAllOption
+        ? { key: "institute", label: `Institute: ${appliedFilters.institute}` }
         : null,
     ].filter(
       (item): item is { key: keyof typeof filters; label: string } =>
@@ -120,40 +99,49 @@ export const useCourseAnalyticsView = () => {
       query: "",
       category: courseCategoryAllOption,
       institute: courseInstituteAllOption,
-      engagement: "All engagement",
     };
 
     filters[key] = defaults[key] as never;
+    applyCourseFilters();
+    currentPage.value = 1;
+  };
+
+  const applyFilters = () => {
+    filters.query = filters.query.trim();
+    applyCourseFilters();
+    currentPage.value = 1;
   };
 
   const sortedCourses = computed(() =>
     [...analysisCourses.value].sort((a, b) => b.enrolled - a.enrolled),
   );
 
-  const totalCourseRecords = computed(() =>
-    analysisCourses.value.reduce(
-      (sum, course) => sum + (course.courseCount ?? 1),
-      0,
-    ),
-  );
   const totalEnrollments = computed(() =>
     analysisCourses.value.reduce((sum, course) => sum + course.enrolled, 0),
   );
   const groupedCourses = computed(() => analysisCourses.value.length);
+  const representedInstitutes = computed(
+    () =>
+      new Set(
+        analysisCourses.value.flatMap(
+          (course) => course.institutes ?? [course.institute],
+        ),
+      ).size,
+  );
 
   const courseSummaryItems = computed<Metric[]>(() => [
     {
-      label: "Clean Course Groups",
+      label: "Course Groups",
       value: groupedCourses.value.toLocaleString(),
-      trend: "Grouped analytics course names",
+      trend: "Cleaned course groups in this view",
       icon: "BookOpen",
       color: appColors.purple,
     },
     {
-      label: "Original Moodle Course Records",
-      value: totalCourseRecords.value.toLocaleString(),
-      trend: "Raw course rows represented in clean groups",
-      icon: "Layers",
+      label: "Institutes",
+      value: representedInstitutes.value.toLocaleString(),
+      trend: "Institutes represented by course groups",
+      icon: "Building2",
       color: appColors.blue,
     },
     {
@@ -266,23 +254,11 @@ export const useCourseAnalyticsView = () => {
   );
 
   const instituteDistribution = computed(() => {
-    const rawItems = countCourseValues(
+    const items = countCourseValues(
       (course) => course.institutes,
       (course) => course.institute,
       "No institute",
     );
-    const items =
-      rawItems.length > chartColors.length
-        ? [
-            ...rawItems.slice(0, chartColors.length - 1),
-            {
-              label: "Other",
-              count: rawItems
-                .slice(chartColors.length - 1)
-                .reduce((sum, item) => sum + item.count, 0),
-            },
-          ]
-        : rawItems;
     const total = items.reduce((sum, item) => sum + item.count, 0) || 1;
     let offset = 0;
 
@@ -292,10 +268,7 @@ export const useCourseAnalyticsView = () => {
         ...item,
         arcOffset: offset,
         arcPercentage,
-        color:
-          item.label === "Other"
-            ? chartOtherColor
-            : chartColors[index],
+        color: chartColors[index % chartColors.length],
         percentage: Math.round((item.count * 1000) / total) / 10,
       };
 
@@ -352,6 +325,11 @@ export const useCourseAnalyticsView = () => {
     courseDetailOpen.value = Boolean(selectedCourse.value);
   };
 
+  const formatCourseListValue = (
+    values: string[] | undefined,
+    fallback: string,
+  ) => (values?.length ? values.join(", ") : fallback);
+
   const table = computed<AnalyticsTable>(() => ({
     title: "Course Groups",
     icon: "i-lucide-layers-3",
@@ -362,30 +340,36 @@ export const useCourseAnalyticsView = () => {
     rows: paginatedCourses.value.map((course) => ({
       id: course.id,
       name: course.name,
-      category: course.category,
-      institute: course.institute,
+      category: formatCourseListValue(course.categories, course.category),
+      institute: formatCourseListValue(course.institutes, course.institute),
       courseCount: course.courseCount ?? 1,
       enrolled: course.enrolled,
       action: "View detail",
     })),
   }));
 
-  const exportCourses = () => {
-    const rows = sortedCourses.value.map((course) => ({
+  const exportCourses = (format: ExportFormat = "csv") => {
+    const rows = [...courses.value]
+      .sort((a, b) => b.enrolled - a.enrolled)
+      .map((course) => ({
+      id: course.id,
       name: course.name,
-      category: course.category,
-      institute: course.institute,
+      category: formatCourseListValue(course.categories, course.category),
+      institute: formatCourseListValue(course.institutes, course.institute),
       courseCount: course.courseCount ?? 1,
       enrolled: course.enrolled,
     }));
 
     void exportWithToast({
-      filename: "ccun-course-groups.csv",
-      label: "Course CSV file",
-      columns: courseTableColumns.map((column) => ({
-        key: column.key,
-        label: column.label,
-      })),
+      filename: `ccun-course-groups.${format === "excel" ? "xls" : "csv"}`,
+      format,
+      label: `All courses ${format === "excel" ? "Excel" : "CSV"} file`,
+      columns: courseTableColumns
+        .filter((column) => column.type !== "action")
+        .map((column) => ({
+          key: column.key,
+          label: column.label,
+        })),
       rows,
     });
   };
@@ -400,7 +384,6 @@ export const useCourseAnalyticsView = () => {
     chartsLoading: ref(false),
     changeInstitute,
     courseDetailOpen,
-    courseEngagementOptions: [...courseEngagementOptions],
     instituteDistribution,
     instituteDistributionTotal,
     coursePage,
@@ -424,5 +407,6 @@ export const useCourseAnalyticsView = () => {
     selectedCourse,
     table,
     tabs,
+    applyFilters,
   };
 };

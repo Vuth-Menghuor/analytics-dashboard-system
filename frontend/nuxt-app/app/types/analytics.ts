@@ -32,8 +32,10 @@ export type AnalyticsChart = {
   type: ChartType;
   labels: string[];
   series: ChartSeries[];
+  badge?: string;
   height?: string;
   wide?: boolean;
+  compact?: boolean;
   visibleItems?: number;
   showAllCategories?: boolean;
 };

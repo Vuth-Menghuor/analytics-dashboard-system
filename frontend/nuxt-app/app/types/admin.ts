@@ -18,6 +18,7 @@ export type AdminUsersQuery = {
   search?: string;
   role?: AdminUserRole;
   status?: AdminUserStatus;
+  institution?: string;
   page?: number;
   perPage?: number;
 };
@@ -45,6 +46,7 @@ export type PartnerRequest = {
 export type PartnerRequestsQuery = {
   search?: string;
   status?: PartnerRequestStatus;
+  institution?: string;
   page?: number;
   perPage?: number;
 };
@@ -56,12 +58,9 @@ export type PartnerRequestsResponse = {
 
 export type PartnerRequestFormPayload = {
   stateProvince: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  phoneNumber: string;
   institutionName: string;
-  idCard?: File | null;
   password: string;
   passwordConfirmation: string;
   googleIdToken?: string;

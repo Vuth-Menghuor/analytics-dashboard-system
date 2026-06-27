@@ -7,13 +7,6 @@ type LoginPayload = {
   password: string;
 };
 
-type RegisterVisitorPayload = {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-};
-
 const getDashboardPath = (nextUser: AuthUser | null) => {
   if (nextUser?.role === "manager") {
     return "/manager/dashboard";
@@ -23,7 +16,11 @@ const getDashboardPath = (nextUser: AuthUser | null) => {
     return "/partner/dashboard";
   }
 
-  return "/visitor/dashboard";
+  if (nextUser?.role === "visitor") {
+    return "/visitor/dashboard";
+  }
+
+  return "/login";
 };
 
 export const useAuthStore = defineStore("auth", () => {
@@ -97,27 +94,30 @@ export const useAuthStore = defineStore("auth", () => {
     }
   };
 
-  const registerVisitor = async (payload: RegisterVisitorPayload) => {
+  const registerVisitorWithGoogle = async (
+    googleIdToken: string,
+    password: string,
+    passwordConfirmation: string,
+  ) => {
     isLoading.value = true;
     error.value = "";
 
     try {
-      const { data } = await api.post<{ token?: string; user: AuthUser }>(
+      const { data } = await api.post<{ token: string; user: AuthUser }>(
         "/register",
         {
-          ...payload,
           role: "visitor",
+          google_id_token: googleIdToken,
+          password,
+          password_confirmation: passwordConfirmation,
         },
       );
 
+      setSession(data.token, data.user);
+
       return data.user;
     } catch (err) {
-      if (err instanceof AxiosError && err.response?.status === 422) {
-        error.value = "Please check the visitor account details.";
-      } else {
-        error.value = "Unable to create visitor account right now.";
-      }
-
+      error.value = "Unable to create visitor account right now.";
       throw err;
     } finally {
       isLoading.value = false;
@@ -143,7 +143,7 @@ export const useAuthStore = defineStore("auth", () => {
     isLoading,
     login,
     logout,
-    registerVisitor,
+    registerVisitorWithGoogle,
     refreshSession,
     roleDashboardPath,
     updateLocalUser,

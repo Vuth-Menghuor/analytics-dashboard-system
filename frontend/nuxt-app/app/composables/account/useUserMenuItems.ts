@@ -44,11 +44,6 @@ export const useUserMenuItems = (options: UserMenuOptions) => {
     ],
     [
       {
-        label: t("account.updates"),
-        icon: "i-lucide-box",
-        kbds: ["meta", "a"],
-      },
-      {
         label: t("common.logout"),
         icon: "i-lucide-log-out",
         kbds: ["option", "shift", "q"],

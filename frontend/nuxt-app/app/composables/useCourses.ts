@@ -11,8 +11,8 @@ export const useCourses = () => {
     query: "",
     category: "All categories",
     institute: "All institutes",
-    engagement: "All engagement",
   });
+  const appliedFilters = reactive({ ...filters });
 
   const refresh = async () => {
     isLoading.value = true;
@@ -31,7 +31,7 @@ export const useCourses = () => {
   onMounted(refresh);
 
   const filteredCourses = computed(() => {
-    const query = filters.query.trim().toLowerCase();
+    const query = appliedFilters.query.trim().toLowerCase();
 
     return courses.value.filter((course) => {
       const matchesQuery =
@@ -40,18 +40,26 @@ export const useCourses = () => {
           value.toLowerCase().includes(query),
         );
       const matchesCategory =
-        filters.category === "All categories" ||
-        course.category === filters.category;
+        appliedFilters.category === "All categories" ||
+        course.category === appliedFilters.category;
       const matchesInstitute =
-        filters.institute === "All institutes" ||
-        course.institute === filters.institute ||
-        course.institutes?.includes(filters.institute);
+        appliedFilters.institute === "All institutes" ||
+        course.institute === appliedFilters.institute ||
+        course.institutes?.includes(appliedFilters.institute);
 
       return matchesQuery && matchesCategory && matchesInstitute;
     });
   });
 
+  const applyFilters = () => {
+    appliedFilters.query = filters.query.trim();
+    appliedFilters.category = filters.category;
+    appliedFilters.institute = filters.institute;
+  };
+
   return {
+    appliedFilters,
+    applyFilters,
     courses,
     error,
     filteredCourses,

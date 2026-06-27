@@ -304,6 +304,10 @@
   grid-column: 1 / -1;
 }
 
+.analytics-chart-grid > .analytics-card.analytics-chart-compact:last-child:nth-child(odd) {
+  grid-column: auto;
+}
+
 .dashboard-insights > .analytics-card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
@@ -336,6 +340,81 @@
   color: var(--app-text);
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.analytics-filter-actions {
+  display: flex;
+  min-width: max-content;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-filter-bar {
+  display: grid;
+  align-items: end;
+  gap: 12px;
+}
+
+.admin-filter-bar--users {
+  grid-template-columns:
+    minmax(180px, 240px)
+    minmax(180px, 240px)
+    minmax(180px, 240px)
+    max-content;
+}
+
+.admin-filter-bar--requests {
+  grid-template-columns:
+    minmax(180px, 240px)
+    minmax(180px, 240px)
+    max-content;
+}
+
+.admin-filter-bar .analytics-filter-field {
+  min-width: 0;
+  flex: none;
+}
+
+.admin-filter-bar .analytics-filter-field.wide {
+  grid-column: 1 / -1;
+  flex: none;
+}
+
+.admin-filter-bar .dashboard-search-input,
+.admin-filter-bar .dashboard-select {
+  width: 100%;
+  min-width: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .analytics-filter-actions {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1023px) {
+  .admin-filter-bar,
+  .admin-filter-bar--users,
+  .admin-filter-bar--requests {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-filter-bar .analytics-filter-field.wide,
+  .admin-filter-bar .analytics-filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-filter-bar,
+  .admin-filter-bar--users,
+  .admin-filter-bar--requests {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .course-table-toolbar {
@@ -1334,6 +1413,19 @@
   font-weight: 800;
 }
 
+.admin-users-table {
+  table-layout: auto;
+}
+
+.admin-users-table th,
+.admin-users-table td,
+.admin-users-table tbody th,
+.admin-users-table .muted-text {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
 .course-moodle-records-table {
   min-width: 1120px;
 }
@@ -1369,91 +1461,11 @@
 }
 
 .course-institute-distribution-card {
-  min-height: 640px;
+  min-height: 620px;
 }
 
-.course-institute-half-doughnut {
-  position: relative;
-  max-width: 820px;
-  margin: 0 auto;
-}
-
-.course-institute-chart-center {
-  position: absolute;
-  right: 0;
-  bottom: 42px;
-  left: 0;
-  display: grid;
-  justify-items: center;
-  color: var(--app-muted);
-  text-align: center;
-  pointer-events: none;
-}
-
-.course-institute-chart-center span,
-.course-institute-chart-center small {
-  font-size: 0.86rem;
-  font-weight: 800;
-}
-
-.course-institute-chart-center strong {
-  color: var(--app-heading);
-  font-size: 2.35rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  line-height: 1.05;
-}
-
-.course-institute-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 22px;
-  margin-top: 16px;
-}
-
-.course-institute-summary-item {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.course-institute-summary-item span {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-  overflow: hidden;
-  color: var(--app-muted);
-  font-size: 0.86rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.course-institute-summary-item span i {
-  width: 10px;
-  height: 10px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-}
-
-.course-institute-summary-item strong {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--app-heading);
-  font-size: 0.95rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 900;
-}
-
-.course-institute-summary-item small {
-  color: var(--app-muted);
-  font-size: 0.75rem;
-  font-weight: 800;
+.course-institute-ranking-chart {
+  margin-top: 10px;
 }
 
 .department-ranking-card-body {
@@ -1631,7 +1643,7 @@
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: nowrap;
   gap: 10px;
 }

@@ -7,17 +7,43 @@ import type {
 import { formatStudentDepartmentLabel } from "~/utils/studentDepartment";
 import { formatStudentInstituteLabel } from "~/utils/studentInstitute";
 
-defineProps<{
+const props = defineProps<{
   loading?: boolean;
   institute: InstituteAnalyticsRow | null;
   departments: InstituteAnalyticsResponse["departments"];
-  topCourses: InstituteAnalyticsResponse["topCourses"];
+  courses: InstituteAnalyticsResponse["courses"];
   snapshotLabel: string;
 }>();
 
 const open = defineModel<boolean>({ default: false });
 const { t } = useI18n();
 const { translateText } = useTranslateText();
+const coursePage = ref(1);
+const coursePerPage = ref(10);
+const coursePageOptions = [10, 20, 50];
+const courseTotal = computed(() => props.courses.length);
+const paginatedCourses = computed(() => {
+  const start = (coursePage.value - 1) * coursePerPage.value;
+
+  return props.courses.slice(start, start + coursePerPage.value);
+});
+const coursePaginationLabel = computed(() => {
+  if (courseTotal.value === 0) {
+    return "No courses found";
+  }
+
+  const start = (coursePage.value - 1) * coursePerPage.value + 1;
+  const end = Math.min(coursePage.value * coursePerPage.value, courseTotal.value);
+
+  return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${courseTotal.value.toLocaleString()}`;
+});
+
+watch(
+  () => [props.courses, coursePerPage.value],
+  () => {
+    coursePage.value = 1;
+  },
+);
 </script>
 
 <template>
@@ -42,10 +68,6 @@ const { translateText } = useTranslateText();
                 <UIcon name="i-lucide-calendar-clock" />
                 {{ snapshotLabel }}
               </span>
-              <span>
-                <UIcon name="i-lucide-clock-3" />
-                {{ t("text.lastActivityLabel", { value: institute.lastActivity ?? t("text.notRecorded") }) }}
-              </span>
             </div>
           </div>
         </section>
@@ -62,10 +84,6 @@ const { translateText } = useTranslateText();
           <div>
             <span>{{ translateText("Departments") }}</span>
             <strong>{{ institute.departments.toLocaleString() }}</strong>
-          </div>
-          <div>
-            <span>{{ translateText("Snapshot active") }}</span>
-            <strong>{{ institute.activeStudents.toLocaleString() }}</strong>
           </div>
         </section>
 
@@ -84,7 +102,6 @@ const { translateText } = useTranslateText();
                 <tr>
                   <th scope="col">{{ translateText("Department") }}</th>
                   <th scope="col" class="number">{{ translateText("Students") }}</th>
-                  <th scope="col" class="number">{{ translateText("Share") }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,10 +110,9 @@ const { translateText } = useTranslateText();
                     {{ formatStudentDepartmentLabel(department.department) }}
                   </th>
                   <td class="number">{{ department.students.toLocaleString() }}</td>
-                  <td class="number">{{ department.share.toFixed(1) }}%</td>
                 </tr>
                 <tr v-if="!departments.length">
-                  <td colspan="3" class="muted-text">
+                  <td colspan="2" class="muted-text">
                     {{ translateText("No department data is available for this institute.") }}
                   </td>
                 </tr>
@@ -109,13 +125,13 @@ const { translateText } = useTranslateText();
           <div class="section-heading compact">
             <h3 class="section-title with-icon">
               <UIcon name="i-lucide-book-open" />
-              {{ translateText("Top courses") }}
+              {{ translateText("Courses") }}
             </h3>
-            <p>{{ translateText("Courses ranked by distinct enrolled students.") }}</p>
+            <p>{{ translateText("Course enrollment summary for this institute.") }}</p>
           </div>
 
-          <div class="dashboard-data-table-wrap">
-            <table class="dashboard-data-table">
+          <div class="dashboard-data-table-wrap institute-course-table-wrap">
+            <table class="dashboard-data-table institute-course-table">
               <thead>
                 <tr>
                   <th scope="col">{{ translateText("Course") }}</th>
@@ -124,14 +140,14 @@ const { translateText } = useTranslateText();
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="course in topCourses" :key="course.course">
+                <tr v-for="course in paginatedCourses" :key="course.course">
                   <th scope="row">{{ course.course }}</th>
                   <td class="number">{{ course.students.toLocaleString() }}</td>
                   <td class="number">
                     {{ course.enrollmentRecords.toLocaleString() }}
                   </td>
                 </tr>
-                <tr v-if="!topCourses.length">
+                <tr v-if="!courses.length">
                   <td colspan="3" class="muted-text">
                     {{ translateText("No course enrollment data is available for this institute.") }}
                   </td>
@@ -139,8 +155,57 @@ const { translateText } = useTranslateText();
               </tbody>
             </table>
           </div>
+
+          <div v-if="courses.length" class="student-pagination drawer-pagination">
+            <span>{{ coursePaginationLabel }}</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">{{ t("text.rowsPerPage") }}</span>
+                <USelect
+                  v-model="coursePerPage"
+                  :items="coursePageOptions"
+                  :aria-label="t('text.rowsPerPage')"
+                  class="max-w-[100px]"
+                />
+              </div>
+
+              <UPagination
+                v-model:page="coursePage"
+                :total="courseTotal"
+                :items-per-page="coursePerPage"
+                :ui="{ first: 'hidden', last: 'hidden' }"
+              />
+            </div>
+          </div>
         </section>
       </div>
     </template>
   </USlideover>
 </template>
+
+<style scoped>
+.institute-course-table-wrap {
+  overflow-x: auto;
+}
+
+.institute-course-table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.institute-course-table tbody th {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.institute-course-table th:first-child,
+.institute-course-table td:first-child {
+  min-width: 360px;
+}
+
+.institute-course-table .number {
+  min-width: 132px;
+}
+</style>

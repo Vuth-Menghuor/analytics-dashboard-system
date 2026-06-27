@@ -20,6 +20,7 @@ class UserController extends Controller
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
             'role' => ['sometimes', 'nullable', 'string', Rule::in(['manager', 'partner', 'visitor'])],
             'status' => ['sometimes', 'nullable', 'string', Rule::in(['active', 'inactive', 'Active', 'Inactive'])],
+            'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'perPage' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
@@ -33,6 +34,9 @@ class UserController extends Controller
                 });
             })
             ->when($validated['role'] ?? null, fn ($query, string $role) => $query->where('role', $role))
+            ->when($validated['institution'] ?? null, function ($query, string $institution): void {
+                $query->where('institution_name', InstitutionNormalizer::normalize($institution));
+            })
             ->when($validated['status'] ?? null, function ($query, string $status): void {
                 if (strtolower($status) === 'active') {
                     $query->whereNotNull('email_verified_at');

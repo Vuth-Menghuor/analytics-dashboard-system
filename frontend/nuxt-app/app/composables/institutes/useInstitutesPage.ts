@@ -1,6 +1,7 @@
 import type { EChartsOption } from "echarts";
 import { appColors } from "~/constants/colors";
 import { useCsvExport } from "~/composables/common/useCsvExport";
+import type { ExportFormat } from "~/utils/exportCsv";
 import { getInstituteAnalytics } from "~/services/analytics.service";
 import type { AnalyticsTable } from "~/types/analytics";
 import type {
@@ -10,45 +11,55 @@ import type {
 import type { Metric } from "~/types/dashboard";
 import { formatStudentDepartmentLabel } from "~/utils/studentDepartment";
 import { formatStudentInstituteLabel } from "~/utils/studentInstitute";
+import {
+  createColoredBarData,
+  formatChartValue,
+  getChartPointColor,
+} from "~/utils/chartDisplay";
 
 const allInstitutesOption = "All institutes";
 const allDepartmentsOption = "All departments";
-type InstituteTab = "overview" | "comparison" | "trends";
 
 export const useInstitutesPage = () => {
   const { exportWithToast } = useCsvExport();
+  const toast = useToast();
+  const auth = useAuthStore();
   const data = ref<InstituteAnalyticsResponse | null>(null);
   const isLoading = ref(true);
   const isFiltering = ref(false);
   const detailLoading = ref(false);
   const error = ref("");
   const detailOpen = ref(false);
-  const activeTab = ref<InstituteTab>("overview");
   const selectedInstitute = ref<InstituteAnalyticsRow | null>(null);
   const selectedDepartments = ref<InstituteAnalyticsResponse["departments"]>([]);
-  const selectedTopCourses = ref<InstituteAnalyticsResponse["topCourses"]>([]);
-  const comparisonInstituteA = ref("");
-  const comparisonInstituteB = ref("");
-  const tablePage = ref(1);
-  const tablePerPage = ref(10);
-  const tablePageOptions = [10, 20, 30, 50, 100];
+  const selectedCourses = ref<InstituteAnalyticsResponse["courses"]>([]);
   const filters = reactive({
+    search: "",
     institution: allInstitutesOption,
     department: allDepartmentsOption,
     dateFrom: "",
     dateTo: "",
   });
   let latestRequestId = 0;
-  const tabs: Array<{
-    label: string;
-    value: InstituteTab;
-  }> = [
-    { label: "Overview", value: "overview" },
-    { label: "Comparison", value: "comparison" },
-    { label: "Trends", value: "trends" },
-  ];
+  const isPartnerScoped = computed(() => auth.user?.role === "partner");
+  const partnerInstituteLabel = computed(() =>
+    auth.user?.institution_name
+      ? `Institute: ${auth.user.institution_name}`
+      : "Institute scope not assigned",
+  );
+  const partnerInstitute = computed(
+    () =>
+      data.value?.filters.selectedInstitute ||
+      auth.user?.institution_name ||
+      allInstitutesOption,
+  );
+
+  if (isPartnerScoped.value) {
+    filters.institution = auth.user?.institution_name || allInstitutesOption;
+  }
 
   const queryParams = (institution = filters.institution) => ({
+    search: filters.search.trim() || undefined,
     institution:
       institution === allInstitutesOption ? undefined : institution,
     department:
@@ -93,33 +104,34 @@ export const useInstitutesPage = () => {
     if (typeof institution === "string") {
       filters.institution = institution;
     }
-
-    filters.department = allDepartmentsOption;
-    await loadInstitutes(true);
   };
 
   const clearFilters = () => {
-    filters.institution = allInstitutesOption;
+    filters.search = "";
+    filters.institution = isPartnerScoped.value
+      ? partnerInstitute.value
+      : allInstitutesOption;
     filters.department = allDepartmentsOption;
     filters.dateFrom = "";
     filters.dateTo = "";
     void loadInstitutes();
   };
 
-  const instituteOptions = computed(() => [
-    { label: allInstitutesOption, value: allInstitutesOption },
-    ...(data.value?.options.institutes ?? []).map((institution) => ({
-      label: formatStudentInstituteLabel(institution),
-      value: institution,
-    })),
-  ]);
-  const comparisonInstituteOptions = computed(() =>
-    (data.value?.institutes ?? [])
-      .filter((row) => row.institution !== "Not filled")
-      .map((row) => ({
-        label: formatStudentInstituteLabel(row.institution),
-        value: row.institution,
-      })),
+  const instituteOptions = computed(() =>
+    isPartnerScoped.value
+      ? [
+          {
+            label: formatStudentInstituteLabel(partnerInstitute.value),
+            value: partnerInstitute.value,
+          },
+        ]
+      : [
+          { label: allInstitutesOption, value: allInstitutesOption },
+          ...(data.value?.options.institutes ?? []).map((institution) => ({
+            label: formatStudentInstituteLabel(institution),
+            value: institution,
+          })),
+        ],
   );
   const departmentOptions = computed(() => [
     { label: allDepartmentsOption, value: allDepartmentsOption },
@@ -130,8 +142,9 @@ export const useInstitutesPage = () => {
   ]);
   const hasFilters = computed(
     () =>
-      filters.institution !== allInstitutesOption ||
+      (!isPartnerScoped.value && filters.institution !== allInstitutesOption) ||
       filters.department !== allDepartmentsOption ||
+      Boolean(filters.search.trim()) ||
       Boolean(filters.dateFrom) ||
       Boolean(filters.dateTo),
   );
@@ -176,138 +189,24 @@ export const useInstitutesPage = () => {
         color: appColors.purple,
       },
       {
-        label: "Snapshot Active Rate",
-        value: `${(summary?.activityRate ?? 0).toFixed(1)}%`,
-        trend: "Logged in within 90 days of the snapshot",
-        icon: "Activity",
+        label: "Enrollments",
+        value: (summary?.enrollmentRecords ?? 0).toLocaleString(),
+        trend: "Enrollment records in the current scope",
+        icon: "FolderTree",
         color: appColors.amber,
-      },
-    ];
-  });
-
-  watch(
-    () => data.value?.institutes,
-    (institutes) => {
-      const eligibleInstitutes =
-        institutes?.filter((row) => row.institution !== "Not filled") ?? [];
-
-      if (
-        !comparisonInstituteA.value ||
-        !eligibleInstitutes.some(
-          (row) => row.institution === comparisonInstituteA.value,
-        )
-      ) {
-        comparisonInstituteA.value = eligibleInstitutes[0]?.institution ?? "";
-      }
-
-      if (
-        !comparisonInstituteB.value ||
-        comparisonInstituteB.value === comparisonInstituteA.value ||
-        !eligibleInstitutes.some(
-          (row) => row.institution === comparisonInstituteB.value,
-        )
-      ) {
-        comparisonInstituteB.value =
-          eligibleInstitutes.find(
-            (row) => row.institution !== comparisonInstituteA.value,
-          )?.institution ?? "";
-      }
-    },
-    { immediate: true },
-  );
-
-  const comparisonA = computed(
-    () =>
-      data.value?.institutes.find(
-        (row) => row.institution === comparisonInstituteA.value,
-      ) ?? null,
-  );
-  const comparisonB = computed(
-    () =>
-      data.value?.institutes.find(
-        (row) => row.institution === comparisonInstituteB.value,
-      ) ?? null,
-  );
-  const comparisonCards = computed(() =>
-    [
-      comparisonA.value
-        ? {
-            label: "Institute A",
-            row: comparisonA.value,
-          }
-        : null,
-      comparisonB.value
-        ? {
-            label: "Institute B",
-            row: comparisonB.value,
-          }
-        : null,
-    ].filter(
-      (item): item is { label: string; row: InstituteAnalyticsRow } =>
-        item !== null,
-    ),
-  );
-
-  const formatDifference = (value: number, suffix = "") => {
-    if (value === 0) return `0${suffix}`;
-
-    return `${value > 0 ? "+" : ""}${value.toLocaleString()}${suffix}`;
-  };
-  const comparisonRows = computed(() => {
-    const left = comparisonA.value;
-    const right = comparisonB.value;
-
-    if (!left || !right) {
-      return [];
-    }
-
-    return [
-      {
-        metric: "Students",
-        a: left.students.toLocaleString(),
-        b: right.students.toLocaleString(),
-        difference: formatDifference(left.students - right.students),
-      },
-      {
-        metric: "Active students",
-        a: left.activeStudents.toLocaleString(),
-        b: right.activeStudents.toLocaleString(),
-        difference: formatDifference(left.activeStudents - right.activeStudents),
-      },
-      {
-        metric: "Activity rate",
-        a: `${left.activityRate.toFixed(1)}%`,
-        b: `${right.activityRate.toFixed(1)}%`,
-        difference: formatDifference(
-          Number((left.activityRate - right.activityRate).toFixed(1)),
-          "%",
-        ),
-      },
-      {
-        metric: "Courses",
-        a: left.courses.toLocaleString(),
-        b: right.courses.toLocaleString(),
-        difference: formatDifference(left.courses - right.courses),
-      },
-      {
-        metric: "Enrollments",
-        a: left.enrollmentRecords.toLocaleString(),
-        b: right.enrollmentRecords.toLocaleString(),
-        difference: formatDifference(
-          left.enrollmentRecords - right.enrollmentRecords,
-        ),
-      },
-      {
-        metric: "Departments",
-        a: left.departments.toLocaleString(),
-        b: right.departments.toLocaleString(),
-        difference: formatDifference(left.departments - right.departments),
       },
     ];
   });
 
   const comparisonOption = computed<EChartsOption>(() => {
     const institutes = data.value?.institutes ?? [];
+    const chartDataset = institutes.map((row) => ({
+      institution: row.institution,
+      institute: formatStudentInstituteLabel(row.institution),
+      students: row.students,
+      courses: row.courses,
+      enrollmentRecords: row.enrollmentRecords,
+    }));
     const visibleItems = 12;
     const hasScroll = institutes.length > visibleItems;
     const scrollEnd = hasScroll
@@ -315,40 +214,62 @@ export const useInstitutesPage = () => {
       : 100;
 
     return {
-      color: [appColors.blue],
-      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-      grid: { top: 20, right: 42, bottom: 24, left: 18, containLabel: true },
+      dataset: {
+        source: chartDataset,
+      },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params) => {
+          const item = Array.isArray(params) ? params[0] : params;
+          const point =
+            item && typeof item === "object" && "data" in item
+              ? (item.data as (typeof chartDataset)[number] | undefined)
+              : undefined;
+
+          if (!point) return "";
+
+          return [
+            `<strong>${point.institute}</strong>`,
+            `Students: ${point.students.toLocaleString()}`,
+            `Courses: ${point.courses.toLocaleString()}`,
+            `Enrollments: ${point.enrollmentRecords.toLocaleString()}`,
+          ].join("<br />");
+        },
+      },
+      grid: { top: 28, right: 18, bottom: 104, left: 42, containLabel: true },
       xAxis: {
-        type: "value",
+        type: "category",
         axisTick: { show: false },
-        axisLabel: { color: appColors.secondary },
-        splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
+        axisLabel: {
+          color: appColors.secondary,
+          interval: 0,
+          width: 104,
+          overflow: "break",
+          rotate: 0,
+        },
       },
       yAxis: {
-        type: "category",
-        inverse: true,
-        data: institutes.map((row) =>
-          formatStudentInstituteLabel(row.institution),
-        ),
+        type: "value",
         axisTick: { show: false },
         axisLine: { show: false },
+        splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
         axisLabel: { color: appColors.secondary },
       },
       dataZoom: hasScroll
         ? [
             {
               type: "inside",
-              yAxisIndex: 0,
+              xAxisIndex: 0,
               start: 0,
               end: scrollEnd,
             },
             {
               type: "slider",
-              yAxisIndex: 0,
+              xAxisIndex: 0,
               start: 0,
               end: scrollEnd,
-              width: 16,
-              right: 10,
+              height: 16,
             },
           ]
         : undefined,
@@ -357,8 +278,25 @@ export const useInstitutesPage = () => {
           name: "Students",
           type: "bar",
           barMaxWidth: 24,
-          data: institutes.map((row) => row.students),
-          itemStyle: { borderRadius: [0, 6, 6, 0] },
+          encode: {
+            x: "institute",
+            y: "students",
+            tooltip: ["students", "courses", "enrollmentRecords"],
+            itemName: "institute",
+          },
+          label: {
+            show: true,
+            position: "top",
+            color: appColors.secondary,
+            fontWeight: 700,
+            formatter: ({ value }: { value?: Record<string, unknown> }) =>
+              formatChartValue(value?.students),
+          },
+          itemStyle: {
+            borderRadius: [6, 6, 0, 0],
+            color: ({ dataIndex }: { dataIndex?: number }) =>
+              getChartPointColor(Number(dataIndex ?? 0)),
+          },
         },
       ],
     };
@@ -408,9 +346,8 @@ export const useInstitutesPage = () => {
       : 100;
 
     return {
-      color: [appColors.success],
       tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-      grid: { top: 20, right: 42, bottom: 24, left: 18, containLabel: true },
+      grid: { top: 20, right: 58, bottom: 24, left: 18, containLabel: true },
       xAxis: {
         type: "value",
         axisTick: { show: false },
@@ -450,60 +387,47 @@ export const useInstitutesPage = () => {
           name: "Students",
           type: "bar",
           barMaxWidth: 22,
-          data: departments.map((point) => point.students),
-          itemStyle: { borderRadius: [0, 6, 6, 0] },
+          data: createColoredBarData(
+            departments.map((point) => point.students),
+            [0, 6, 6, 0],
+          ),
+          label: {
+            show: true,
+            position: "right",
+            color: appColors.secondary,
+            fontWeight: 700,
+            formatter: ({ value }: { value?: unknown }) =>
+              formatChartValue(value),
+          },
         },
       ],
     };
   });
 
   const table = computed<AnalyticsTable>(() => ({
-    title: "Institute Performance Ranking",
-    icon: "i-lucide-ranking",
+    title: "Institute List",
+    icon: "i-lucide-building-2",
     description:
-      "Named institutes are ranked by student count. Records without an institute remain visible but are not ranked.",
+      "All institutes in the current scope with aggregate students, courses, and enrollment records.",
     rowKey: "id",
     columns: [
-      { key: "rank", label: "Rank", width: "70px", tone: "muted" },
       { key: "institution", label: "Institute", rowHeader: true, width: "180px" },
       { key: "students", label: "Students", align: "right", width: "110px" },
       { key: "courses", label: "Courses", align: "right", width: "100px" },
       { key: "enrollments", label: "Enrollments", align: "right", width: "120px" },
-      { key: "activeStudents", label: "Active", align: "right", width: "100px" },
-      { key: "activityRate", label: "Activity Rate", align: "right", width: "120px" },
-      { key: "status", label: "Ranking", type: "status", width: "130px", warningValues: ["Unranked"] },
       { key: "action", label: "View", type: "action", align: "center", width: "90px" },
     ],
     rows: (data.value?.institutes ?? [])
-      .slice(
-        (tablePage.value - 1) * tablePerPage.value,
-        tablePage.value * tablePerPage.value,
-      )
       .map((row) => ({
         id: row.institution,
-        rank: row.rankEligible ? row.rank : "-",
         institution: formatStudentInstituteLabel(row.institution),
         rawInstitution: row.institution,
         students: row.students.toLocaleString(),
         courses: row.courses.toLocaleString(),
         enrollments: row.enrollmentRecords.toLocaleString(),
-        activeStudents: row.activeStudents.toLocaleString(),
-        activityRate: `${row.activityRate.toFixed(1)}%`,
-        status: row.rankEligible ? "Ranked" : "Unranked",
         action: row.institution,
       })),
   }));
-  const tableTotal = computed(() => data.value?.institutes.length ?? 0);
-  const tablePaginationLabel = computed(() => {
-    if (tableTotal.value === 0) {
-      return "No institutes found";
-    }
-
-    const start = (tablePage.value - 1) * tablePerPage.value + 1;
-    const end = Math.min(tablePage.value * tablePerPage.value, tableTotal.value);
-
-    return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${tableTotal.value.toLocaleString()}`;
-  });
 
   const viewInstitute = async (
     value: string | number | boolean | null | undefined,
@@ -520,7 +444,7 @@ export const useInstitutesPage = () => {
     try {
       const detail = await getInstituteAnalytics(queryParams(institution));
       selectedDepartments.value = detail.departments;
-      selectedTopCourses.value = detail.topCourses;
+      selectedCourses.value = detail.courses;
       selectedInstitute.value =
         detail.institutes.find((row) => row.institution === institution) ??
         selectedInstitute.value;
@@ -529,54 +453,41 @@ export const useInstitutesPage = () => {
     }
   };
 
-  const exportInstitutes = () => {
-    void exportWithToast({
-      filename: "ccun-institute-analytics.csv",
-      label: "Institute analytics CSV",
-      columns: [
-        { key: "rank", label: "Rank" },
-        { key: "institution", label: "Institute" },
-        { key: "students", label: "Students" },
-        { key: "courses", label: "Courses" },
-        { key: "enrollmentRecords", label: "Enrollment Records" },
-        { key: "activeStudents", label: "Snapshot Active Students" },
-        { key: "activityRate", label: "Snapshot Activity Rate" },
-        { key: "lastActivity", label: "Last Activity" },
-      ],
-      rows: (data.value?.institutes ?? []).map((row) => ({
-        rank: row.rank ?? "",
-        institution: row.institution,
-        students: row.students,
-        courses: row.courses,
-        enrollmentRecords: row.enrollmentRecords,
-        activeStudents: row.activeStudents,
-        activityRate: row.activityRate,
-        lastActivity: row.lastActivity ?? "",
-      })),
-    });
+  const exportInstitutes = async (format: ExportFormat = "csv") => {
+    try {
+      const exportData = await getInstituteAnalytics({});
+
+      void exportWithToast({
+        filename: `ccun-institute-analytics.${format === "excel" ? "xls" : "csv"}`,
+        format,
+        label: `All institute analytics ${format === "excel" ? "Excel" : "CSV"}`,
+        columns: [
+          { key: "institution", label: "Institute" },
+          { key: "students", label: "Students" },
+          { key: "courses", label: "Courses" },
+          { key: "enrollmentRecords", label: "Enrollment Records" },
+        ],
+        rows: exportData.institutes.map((row) => ({
+          institution: row.institution,
+          students: row.students,
+          courses: row.courses,
+          enrollmentRecords: row.enrollmentRecords,
+        })),
+      });
+    } catch {
+      toast.add({
+        title: "Export failed",
+        description: "Unable to load all institute analytics for export.",
+        icon: "i-lucide-circle-x",
+        color: "error",
+      });
+    }
   };
 
-  watch(
-    () => data.value?.institutes.length,
-    () => {
-      tablePage.value = 1;
-    },
-  );
-
-  watch(tablePerPage, () => {
-    tablePage.value = 1;
-  });
-
   return {
-    activeTab,
     clearFilters,
     changeInstitute,
-    comparisonCards,
-    comparisonInstituteA,
-    comparisonInstituteB,
-    comparisonInstituteOptions,
     comparisonOption,
-    comparisonRows,
     data,
     departmentOption,
     departmentOptions,
@@ -588,22 +499,18 @@ export const useInstitutesPage = () => {
     filters,
     hasFilters,
     instituteOptions,
+    isPartnerScoped,
     isLoading,
     isFiltering,
     loadInstitutes,
     metrics,
+    partnerInstituteLabel,
     selectedDepartments,
     selectedInstitute,
     selectedScopeLabel,
-    selectedTopCourses,
+    selectedCourses,
     snapshotLabel,
     table,
-    tablePage,
-    tablePageOptions,
-    tablePaginationLabel,
-    tablePerPage,
-    tableTotal,
-    tabs,
     viewInstitute,
   };
 };

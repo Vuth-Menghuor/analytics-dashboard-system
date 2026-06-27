@@ -59,7 +59,7 @@ defineExpose({ focus });
       type="search"
       :aria-label="String(translateText(ariaLabel))"
       :placeholder="String(translateText(placeholder))"
-      @keydown.enter="emit('submit', model)"
+      @keydown.enter.prevent="emit('submit', model)"
     />
     <button
       v-if="clearable && model"

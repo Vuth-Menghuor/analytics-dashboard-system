@@ -68,20 +68,15 @@ export const useStudents = () => {
     refresh();
   };
 
-  watch(
-    () => [
-      filters.institute,
-      filters.department,
-      filters.city,
-      filters.gender,
-      filters.status,
-    ],
-    refreshFromFirstPage,
-  );
+  const applyFilters = (
+    nextFilters: Partial<typeof filters> = {},
+  ) => {
+    Object.assign(filters, nextFilters);
+    refreshFromFirstPage();
+  };
 
   const applySearch = (query: string) => {
-    filters.query = query;
-    refreshFromFirstPage();
+    applyFilters({ query });
   };
 
   const setPage = (page: number) => {
@@ -115,6 +110,7 @@ export const useStudents = () => {
     filters,
     isLoading,
     pagination,
+    applyFilters,
     applySearch,
     refresh,
     setPage,

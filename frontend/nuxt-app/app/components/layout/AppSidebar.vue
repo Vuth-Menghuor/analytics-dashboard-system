@@ -13,6 +13,7 @@ const {
   sidebarOpen,
   toggleSidebar,
 } = useDashboardSidebar();
+const auth = useAuthStore();
 </script>
 
 <template>
@@ -59,7 +60,7 @@ const {
         />
       </template>
 
-      <template #footer="{ state }">
+      <template v-if="auth.user" #footer="{ state }">
         <AppSidebarUserMenu :collapsed="state === 'collapsed'" />
       </template>
     </USidebar>

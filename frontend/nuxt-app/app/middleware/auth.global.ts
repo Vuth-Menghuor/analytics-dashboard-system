@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to) => {
     return
   }
 
-  if (['/login', '/signup', '/privacy', '/terms'].includes(to.path)) {
+  if (['/', '/login', '/signup', '/privacy', '/terms', '/visitor/dashboard'].includes(to.path)) {
     return
   }
 

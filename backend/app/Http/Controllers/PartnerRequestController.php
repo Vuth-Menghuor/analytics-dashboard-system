@@ -17,8 +17,7 @@ class PartnerRequestController extends Controller
     {
         $validated = $request->validate([
             'state_province' => ['required', 'string', 'max:255'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'email',
@@ -26,21 +25,24 @@ class PartnerRequestController extends Controller
                 Rule::unique('users', 'email'),
                 Rule::unique('partner_requests', 'email'),
             ],
-            'phone_number' => ['required', 'string', 'max:50'],
             'institution_name' => ['required', 'string', 'max:255'],
-            'id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'google_id_token' => ['required', 'string'],
         ]);
 
         $this->ensureGoogleEmailMatches($validated['google_id_token'], $validated['email']);
 
-        $idCardPath = $request->file('id_card')?->store('partner-requests', 'public');
         $validated['institution_name'] = InstitutionNormalizer::normalize($validated['institution_name']);
 
         $partnerRequest = PartnerRequest::create([
-            ...collect($validated)->except('google_id_token')->all(),
-            'id_card_path' => $idCardPath,
+            'state_province' => $validated['state_province'],
+            'first_name' => $validated['name'],
+            'last_name' => '',
+            'email' => $validated['email'],
+            'phone_number' => '',
+            'institution_name' => $validated['institution_name'],
+            'password' => $validated['password'],
+            'id_card_path' => null,
             'status' => PartnerRequest::STATUS_PENDING,
         ]);
 

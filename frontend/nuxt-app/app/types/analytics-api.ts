@@ -75,7 +75,7 @@ export type LearningActivityFilters = {
   activityType?: string;
   userStatus?: string;
   search?: string;
-  section?: "overview" | "institutes" | "departments" | "courses" | "students" | "events" | "all";
+  section?: "overview" | "trend" | "institutes" | "departments" | "courses" | "students" | "events" | "all";
   page?: number;
   perPage?: number;
 };
@@ -178,6 +178,7 @@ export type LearningActivityStudentRow = {
 };
 
 export type InstituteAnalyticsFilters = {
+  search?: string;
   institution?: string;
   department?: string;
   dateFrom?: string;
@@ -225,7 +226,7 @@ export type InstituteAnalyticsResponse = {
     students: number;
     share: number;
   }>;
-  topCourses: Array<{
+  courses: Array<{
     course: string;
     students: number;
     enrollmentRecords: number;
@@ -236,13 +237,6 @@ export type StudentActivityApi = {
   loginStatus: string;
   totalStudents: number;
 };
-
-export type StudentActivityTrendApi = {
-  period: string;
-  totalStudents: number;
-};
-
-export type StudentActivityTrendPeriod = "week" | "month" | "year";
 
 export type StudentsQuery = {
   page?: number;
@@ -262,7 +256,6 @@ export type DashboardChartFilters = {
   city?: string;
   gender?: string;
   status?: string;
-  period?: StudentActivityTrendPeriod;
 };
 
 export type StudentsResponse = {

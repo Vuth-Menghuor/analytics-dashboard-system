@@ -2,9 +2,12 @@
 import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import AppButton from "~/components/common/AppButton.vue";
 import AppSelect from "~/components/common/AppSelect.vue";
+import AppExportMenu from "~/components/common/AppExportMenu.vue";
 import type { EChartsOption } from "echarts";
 import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
 import AppEChart from "~/components/common/AppEChart.vue";
+import { appColors } from "~/constants/colors";
+import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import AppDataTable from "~/components/common/AppDataTable.vue";
 import CourseDetailDrawer from "~/components/courses/CourseDetailDrawer.vue";
@@ -16,13 +19,13 @@ const {
   activeTab,
   activeFilterChips,
   activeFilterCount,
+  applyFilters,
   categories,
   chartError,
   charts,
   chartsLoading,
   changeInstitute,
   clearFilters,
-  courseEngagementOptions,
   courseDetailOpen,
   coursePage,
   coursePageOptions,
@@ -34,7 +37,6 @@ const {
   filters,
   hasFilters,
   instituteDistribution,
-  instituteDistributionTotal,
   institutes,
   isLoading,
   openCourseDetail,
@@ -56,53 +58,95 @@ const translatedSelectItems = (items: string[]) =>
     value: item,
   }));
 
-const instituteHalfDoughnutOption = computed<EChartsOption>(() => {
-  const total = instituteDistributionTotal.value || 1;
-  const chartData = instituteDistribution.value.map((item) => ({
-    name: item.label,
-    value: item.count,
-    itemStyle: { color: item.color },
-  }));
+const instituteRankingOption = computed<EChartsOption>(() => {
+  const rows = instituteDistribution.value;
+  const visibleItems = 10;
+  const hasScroll = rows.length > visibleItems;
+  const scrollEnd = hasScroll
+    ? Math.min(100, (visibleItems / rows.length) * 100)
+    : 100;
 
   return {
+    grid: { top: 16, right: 44, bottom: 28, left: 18, containLabel: true },
     tooltip: {
-      trigger: "item",
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
       formatter: (params: unknown) => {
-        const item = params as {
-          name?: string;
-          value?: number;
-          percent?: number;
-        };
+        const item = Array.isArray(params) ? params[0] : params;
+        const index =
+          item && typeof item === "object" && "dataIndex" in item
+            ? Number(item.dataIndex)
+            : 0;
+        const row = rows[index];
 
-        if (item.name === "__empty__") {
-          return "";
-        }
+        if (!row) return "";
 
-        return `${item.name}: <strong>${Number(item.value ?? 0).toLocaleString()}</strong> (${Number(item.percent ?? 0).toFixed(1)}%)`;
+        return [
+          `<strong>${row.label}</strong>`,
+          `Course groups: ${row.count.toLocaleString()}`,
+          `Share: ${row.percentage}%`,
+        ].join("<br />");
       },
     },
+    xAxis: {
+      type: "value",
+      axisTick: { show: false },
+      axisLine: { show: false },
+      axisLabel: { color: appColors.secondary },
+      splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
+    },
+    yAxis: {
+      type: "category",
+      inverse: true,
+      data: rows.map((item) => item.label),
+      axisTick: { show: false },
+      axisLine: { show: false },
+      axisLabel: {
+        color: appColors.secondary,
+        width: 160,
+        overflow: "truncate",
+      },
+    },
+    dataZoom: hasScroll
+      ? [
+          {
+            type: "inside",
+            yAxisIndex: 0,
+            start: 0,
+            end: scrollEnd,
+          },
+          {
+            type: "slider",
+            yAxisIndex: 0,
+            start: 0,
+            end: scrollEnd,
+            width: 16,
+            right: 8,
+          },
+        ]
+      : undefined,
     series: [
       {
         name: "Courses by Institute",
-        type: "pie",
-        radius: ["74%", "106%"],
-        center: ["50%", "90%"],
-        startAngle: 180,
-        label: { show: false },
-        labelLine: { show: false },
-        avoidLabelOverlap: false,
-        data: [
-          ...chartData,
-          {
-            name: "__empty__",
-            value: total,
-            tooltip: { show: false },
-            itemStyle: {
-              color: "transparent",
-              decal: { symbol: "none" },
-            },
+        type: "bar",
+        barMaxWidth: 22,
+        data: rows.map((item) => ({
+          value: item.count,
+          itemStyle: {
+            color: item.color,
+            borderRadius: [0, 6, 6, 0],
           },
-        ],
+        })),
+        label: {
+          show: true,
+          position: "right",
+          color: appColors.secondary,
+          formatter: (params: { dataIndex?: number }) => {
+            const row = rows[Number(params.dataIndex ?? 0)];
+
+            return row ? `${row.percentage}%` : "";
+          },
+        },
       },
     ],
   };
@@ -110,6 +154,7 @@ const instituteHalfDoughnutOption = computed<EChartsOption>(() => {
 
 const submitSearch = () => {
   filters.query = filters.query.trim();
+  applyFilters();
 };
 </script>
 
@@ -118,7 +163,7 @@ const submitSearch = () => {
     <PageHeader
       eyebrow="Course analytics"
       title="Courses"
-      copy="Analyze cleaned Moodle courses by course name, category, institute, course-record count, and enrollment records."
+      copy="Analyze cleaned course groups by course name, category, institute, and enrollment records."
     >
       <div class="toolbar">
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
@@ -127,7 +172,18 @@ const submitSearch = () => {
       </div>
     </PageHeader>
 
-    <StatePanel v-if="isLoading" state="loading" />
+    <template v-if="isLoading">
+      <AppLoadingSkeleton variant="metrics" :count="4" />
+      <AppLoadingSkeleton variant="filters" :count="4" />
+      <AppLoadingSkeleton variant="tabs" :count="3" />
+      <AppLoadingSkeleton
+        variant="charts"
+        container-class="grid analytics-chart-grid activity-tab-panel"
+        :count="1"
+        :wide-indexes="[0]"
+      />
+      <AppLoadingSkeleton variant="table" :rows="6" :columns="7" />
+    </template>
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
@@ -138,14 +194,6 @@ const submitSearch = () => {
           :metric="metric"
         />
       </section>
-
-      <UAlert
-        color="primary"
-        variant="soft"
-        icon="i-lucide-database-zap"
-        :title="String(translateText('Course-group analytics active'))"
-        :description="String(translateText('Courses are grouped by cleaned group name. Demo or test records are excluded from analytics without changing the original Moodle database.'))"
-      />
 
       <UCard
         as="section"
@@ -159,13 +207,18 @@ const submitSearch = () => {
               {{ translateText("Advanced Filters") }}
             </h2>
             <p class="chart-note">
-              {{ translateText("Combine course, category, institute, engagement, and enrollment criteria.") }}
+              {{ translateText("Combine course, category, institute, and enrollment criteria.") }}
             </p>
           </div>
           <div class="flex items-center gap-2">
             <UBadge color="neutral" variant="soft">
               {{ t("text.activeFilters", { count: activeFilterCount }) }}
             </UBadge>
+            <AppButton
+              action="search"
+              :label="String(translateText('Apply filters'))"
+              @click="applyFilters"
+            />
             <AppButton v-if="hasFilters" action="clear" @click="clearFilters" />
           </div>
         </div>
@@ -204,15 +257,6 @@ const submitSearch = () => {
               @update:model-value="changeInstitute"
             />
           </div>
-          <div class="course-filter-field">
-            <label>{{ translateText("Engagement") }}</label>
-            <AppSelect
-              v-model="filters.engagement"
-              :items="translatedSelectItems(courseEngagementOptions)"
-              value-key="value"
-              :aria-label="String(translateText('Enrollment engagement'))"
-            />
-          </div>
         </div>
 
         <div
@@ -234,13 +278,12 @@ const submitSearch = () => {
         </div>
       </UCard>
 
-      <UAlert
+      <AppLoadingSkeleton
         v-if="chartsLoading"
-        color="neutral"
-        variant="soft"
-        icon="i-lucide-loader"
-        :title="String(translateText('Loading course charts'))"
-        :description="String(translateText('Course records are ready. Enrollment and view charts will update as Moodle analytics responds.'))"
+        variant="charts"
+        container-class="grid analytics-chart-grid activity-tab-panel"
+        :count="1"
+        :wide-indexes="[0]"
       />
 
       <UAlert
@@ -296,34 +339,12 @@ const submitSearch = () => {
             </div>
           </div>
 
-          <div class="course-institute-half-doughnut">
+          <div class="course-institute-ranking-chart">
             <AppEChart
-              :option="instituteHalfDoughnutOption"
-              height="420px"
-              :aria-label="String(translateText('Courses by institute half doughnut chart'))"
+              :option="instituteRankingOption"
+              height="520px"
+              :aria-label="String(translateText('Courses by institute ranking chart'))"
             />
-            <div class="course-institute-chart-center">
-              <span>{{ translateText("Total") }}</span>
-              <strong>{{ instituteDistributionTotal.toLocaleString() }}</strong>
-              <small>{{ translateText("course groups") }}</small>
-            </div>
-          </div>
-
-          <div class="course-institute-summary">
-            <div
-              v-for="item in instituteDistribution"
-              :key="item.label"
-              class="course-institute-summary-item"
-            >
-              <span>
-                <i :style="{ backgroundColor: item.color }" />
-                {{ item.label }}
-              </span>
-              <strong>
-                {{ item.count.toLocaleString() }}
-                <small>{{ item.percentage }}%</small>
-              </strong>
-            </div>
           </div>
         </UCard>
       </section>
@@ -346,7 +367,7 @@ const submitSearch = () => {
         :columns="table.columns"
         :rows="table.rows"
         :row-key="table.rowKey"
-        min-width="1100px"
+        min-width="1500px"
       >
         <template #actions>
           <div class="dashboard-table-toolbar">
@@ -363,7 +384,7 @@ const submitSearch = () => {
               <UBadge v-if="activeFilterCount" color="primary" variant="soft">
                 {{ activeFilterCount }} {{ translateText("filters") }}
               </UBadge>
-              <AppButton action="export" @click="exportCourses" />
+              <AppExportMenu @select="exportCourses" />
             </div>
           </div>
         </template>

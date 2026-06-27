@@ -2,40 +2,25 @@ import type { EChartsOption } from "echarts";
 import { appColors } from "~/constants/colors";
 import type { AnalyticsChart, AnalyticsTable } from "~/types/analytics";
 import {
-  getPopularCourses,
-  getStudentActivityTrend,
+  getInstituteAnalytics,
   getStudentGenderDistribution,
   getStudentsByInstitution,
-  getStudentsByDepartment,
   getStudentsByCity,
 } from "~/services/analytics.service";
 import type {
   DashboardChartFilters,
-  PopularCourseApi,
-  StudentActivityTrendApi,
-  StudentActivityTrendPeriod,
+  InstituteAnalyticsResponse,
   StudentCityDistributionApi,
-  StudentDepartmentDistributionApi,
   StudentGenderDistributionApi,
   StudentInstitutionDistributionApi,
 } from "~/types/analytics-api";
 import { studentInstituteAllOption } from "~/constants/studentAnalytics";
-import { formatStudentDepartmentLabel } from "~/utils/studentDepartment";
 import {
   formatStudentGenderLabel,
   getStudentGenderChartColor,
 } from "~/utils/studentGender";
 import { formatStudentInstituteLabel } from "~/utils/studentInstitute";
-
-const getCourseDisplayName = (courseName: string): string => {
-  const parts = courseName.trim().split(" ");
-
-  if (parts.length <= 1) {
-    return courseName;
-  }
-
-  return parts.slice(1).join(" ");
-};
+import { createColoredBarData, formatChartValue } from "~/utils/chartDisplay";
 
 const assignIfLoaded = <T>(
   result: PromiseSettledResult<T>,
@@ -82,15 +67,6 @@ const dashboardMetricLabels = [
   "Inactive Students",
 ] as const;
 
-const activityPeriodOptions: Array<{
-  label: string;
-  value: StudentActivityTrendPeriod;
-}> = [
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
-  { label: "Year", value: "year" },
-];
-
 export const useManagerDashboardPage = () => {
   const {
     data: moodleDashboard,
@@ -101,11 +77,8 @@ export const useManagerDashboardPage = () => {
   const allInstitutionDistribution = ref<StudentInstitutionDistributionApi[]>([]);
   const institutionDistribution = ref<StudentInstitutionDistributionApi[]>([]);
   const genderDistribution = ref<StudentGenderDistributionApi[]>([]);
-  const departmentDistribution = ref<StudentDepartmentDistributionApi[]>([]);
   const cityDistribution = ref<StudentCityDistributionApi[]>([]);
-  const popularCourses = ref<PopularCourseApi[]>([]);
-  const studentActivityTrend = ref<StudentActivityTrendApi[]>([]);
-  const selectedActivityPeriod = ref<StudentActivityTrendPeriod>("year");
+  const instituteAnalytics = ref<InstituteAnalyticsResponse | null>(null);
   const instituteFilterDraft = ref(studentInstituteAllOption);
   const selectedInstituteFilter = ref(studentInstituteAllOption);
   const chartError = ref("");
@@ -124,13 +97,8 @@ export const useManagerDashboardPage = () => {
     const results = await Promise.allSettled([
       getStudentsByInstitution(),
       getStudentGenderDistribution(chartFilters),
-      getStudentsByDepartment(chartFilters),
       getStudentsByCity(chartFilters),
-      getPopularCourses(chartFilters),
-      getStudentActivityTrend({
-        ...chartFilters,
-        period: selectedActivityPeriod.value,
-      }),
+      getInstituteAnalytics(chartFilters),
     ]);
 
     const loadedCount = [
@@ -147,16 +115,10 @@ export const useManagerDashboardPage = () => {
         genderDistribution.value = data;
       }),
       assignIfLoaded(results[2], (data) => {
-        departmentDistribution.value = data;
-      }),
-      assignIfLoaded(results[3], (data) => {
         cityDistribution.value = data;
       }),
-      assignIfLoaded(results[4], (data) => {
-        popularCourses.value = data;
-      }),
-      assignIfLoaded(results[5], (data) => {
-        studentActivityTrend.value = data;
+      assignIfLoaded(results[3], (data) => {
+        instituteAnalytics.value = data;
       }),
     ].filter(Boolean).length;
 
@@ -168,7 +130,6 @@ export const useManagerDashboardPage = () => {
   };
 
   onMounted(loadCharts);
-  watch(selectedActivityPeriod, loadCharts);
 
   const instituteFilterOptions = computed(() =>
     [
@@ -193,11 +154,6 @@ export const useManagerDashboardPage = () => {
   );
   const instituteChartBadge = computed(
     () => `${instituteStudentTotal.value.toLocaleString()} students`,
-  );
-  const departmentChartBadge = computed(() =>
-    `${departmentPoints.value
-      .reduce((total, point) => total + point.value, 0)
-      .toLocaleString()} students`,
   );
   const applyInstituteFilter = async () => {
     selectedInstituteFilter.value = instituteFilterDraft.value;
@@ -233,21 +189,6 @@ export const useManagerDashboardPage = () => {
         .toLocaleString()} students`,
   );
 
-  const departmentChartData = computed(() =>
-    departmentDistribution.value
-      .map((point) => ({
-        name: `${point.institution} / ${formatStudentDepartmentLabel(point.department)}`,
-        institution: point.institution,
-        department: formatStudentDepartmentLabel(point.department),
-        value: point.totalStudents,
-        percentage: point.percentage,
-      }))
-      .sort((current, next) => next.value - current.value),
-  );
-
-  const departmentPoints = computed(() => departmentChartData.value);
-  const departmentDistributionHeight = computed(() => "360px");
-
   const institutionPoints = computed(() => institutionDistribution.value);
   const institutionDistributionHeight = computed(() => "360px");
   const topCityPoints = computed(() => cityDistribution.value.slice(0, 12));
@@ -267,7 +208,6 @@ export const useManagerDashboardPage = () => {
   );
 
   const institutionDistributionOption = computed<EChartsOption>(() => ({
-    color: [appColors.blue],
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
@@ -285,7 +225,7 @@ export const useManagerDashboardPage = () => {
       },
     },
     dataZoom: createDefaultColumnScroll(institutionPoints.value.length),
-    grid: { top: 16, right: 18, bottom: 104, left: 42, containLabel: true },
+    grid: { top: 28, right: 18, bottom: 104, left: 42, containLabel: true },
     xAxis: {
       type: "category",
       data: institutionPoints.value.map((point) =>
@@ -312,60 +252,18 @@ export const useManagerDashboardPage = () => {
         name: "Students",
         type: "bar",
         barMaxWidth: 24,
-        data: institutionPoints.value.map((point) => point.totalStudents),
-        itemStyle: { borderRadius: [6, 6, 0, 0] },
-      },
-    ],
-  }));
-
-  const topDepartmentsOption = computed<EChartsOption>(() => ({
-    color: [appColors.blue],
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (params) => {
-        const item = Array.isArray(params) ? params[0] : params;
-        const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
-        const point = departmentPoints.value[index];
-
-        if (!point) return "";
-
-        return [
-          `<strong>${point.department}</strong>`,
-          `Institute: ${point.institution}`,
-          `Students: ${point.value.toLocaleString()}`,
-          `Share: ${point.percentage}%`,
-        ].join("<br />");
-      },
-    },
-    dataZoom: createDefaultColumnScroll(departmentPoints.value.length),
-    grid: { top: 16, right: 18, bottom: 104, left: 42, containLabel: true },
-    xAxis: {
-      type: "category",
-      data: departmentPoints.value.map((point) => point.department),
-      axisTick: { show: false },
-      axisLabel: {
-        color: appColors.secondary,
-        interval: 0,
-        width: 104,
-        overflow: "break",
-        rotate: 0,
-      },
-    },
-    yAxis: {
-      type: "value",
-      axisTick: { show: false },
-      axisLine: { show: false },
-      splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
-      axisLabel: { color: appColors.secondary },
-    },
-    series: [
-      {
-        name: "Students",
-        type: "bar",
-        barMaxWidth: 24,
-        data: departmentPoints.value.map((point) => point.value),
-        itemStyle: { borderRadius: [6, 6, 0, 0] },
+        data: createColoredBarData(
+          institutionPoints.value.map((point) => point.totalStudents),
+          [6, 6, 0, 0],
+        ),
+        label: {
+          show: true,
+          position: "top",
+          color: appColors.secondary,
+          fontWeight: 700,
+          formatter: ({ value }: { value?: unknown }) =>
+            formatChartValue(value),
+        },
       },
     ],
   }));
@@ -415,32 +313,25 @@ export const useManagerDashboardPage = () => {
     ],
   }));
 
-  const popularCoursesChart = computed<AnalyticsChart>(() => ({
-    title: "Courses by Enrollment",
-    description: "Which clean courses have the most enrollments?",
-    icon: "i-lucide-users",
-    type: "horizontalBar",
-    height: "300px",
+  const enrollmentTrendChart = computed<AnalyticsChart>(() => ({
+    title: "Enrollment Trend",
+    description: "Monthly enrollment records across the selected scope.",
+    icon: "i-lucide-trending-up",
+    type: "line",
     wide: true,
-    visibleItems: 7,
-    labels: popularCourses.value.map((course) =>
-      getCourseDisplayName(course.courseName),
+    height: "380px",
+    labels: (instituteAnalytics.value?.enrollmentTrend ?? []).map(
+      (point) => point.period,
     ),
     series: [
       {
         name: "Enrollment records",
-        data: popularCourses.value.map((course) => course.totalEnrollments),
+        data: (instituteAnalytics.value?.enrollmentTrend ?? []).map(
+          (point) => point.enrollments,
+        ),
       },
     ],
   }));
-
-  const studentActivityLabels = computed(() =>
-    studentActivityTrend.value.map((point) => point.period),
-  );
-
-  const studentActivityCounts = computed(() =>
-    studentActivityTrend.value.map((point) => point.totalStudents),
-  );
 
   const genderDistributionOption = computed<EChartsOption>(() => ({
     tooltip: {
@@ -479,63 +370,11 @@ export const useManagerDashboardPage = () => {
     ],
   }));
 
-  const studentActivityOption = computed<EChartsOption>(() => ({
-    color: [appColors.primaryHover],
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "line" },
-      formatter: (params) => {
-        const item = Array.isArray(params) ? params[0] : params;
-        const value =
-          typeof item.value === "number" ? item.value.toLocaleString() : item.value;
-
-        return `${item.name}<br />Students: <strong>${value}</strong>`;
-      },
-    },
-    grid: { top: 24, right: 20, bottom: 32, left: 12, containLabel: true },
-    xAxis: {
-      type: "category",
-      data: studentActivityLabels.value,
-      axisTick: { show: false },
-      axisLine: { lineStyle: { color: appColors.axis } },
-      axisLabel: {
-        color: appColors.secondary,
-        width: 92,
-        overflow: "truncate",
-      },
-    },
-    yAxis: {
-      type: "value",
-      axisTick: { show: false },
-      axisLine: { show: false },
-      axisLabel: { color: appColors.secondary },
-      splitLine: { lineStyle: { color: appColors.grid, type: "dashed" } },
-    },
-    series: [
-      {
-        name: "Students",
-        type: "line",
-        smooth: true,
-        symbol: "circle",
-        symbolSize: 7,
-        data: studentActivityCounts.value,
-        lineStyle: {
-          width: 3,
-        },
-        areaStyle: {
-          opacity: 0.14,
-        },
-      },
-    ],
-  }));
-
   return {
-    activityPeriodOptions,
     chartError,
     chartsLoading,
     applyInstituteFilter,
     clearInstituteFilter,
-    departmentChartBadge,
     genderChartBadge,
     instituteChartBadge,
     instituteFilterDraft,
@@ -543,16 +382,12 @@ export const useManagerDashboardPage = () => {
     hasInstituteFilter,
     institutionDistributionOption,
     institutionDistributionHeight,
-    departmentDistributionHeight,
-    topDepartmentsOption,
+    enrollmentTrendChart,
     cityDistributionTable,
-    popularCoursesChart,
     genderDistributionOption,
-    studentActivityOption,
     metrics,
     moodleDashboard,
     moodleDashboardError,
     moodleDashboardLoading,
-    selectedActivityPeriod,
   };
 };

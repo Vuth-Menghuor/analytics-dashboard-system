@@ -12,7 +12,7 @@ class InstituteAnalyticsService
     private const NOT_FILLED_LABEL = 'Not filled';
 
     /**
-     * @param  array{institution: ?string, department: ?string, dateFrom: ?string, dateTo: ?string}  $filters
+     * @param  array{institution: ?string, department: ?string, search: ?string, dateFrom: ?string, dateTo: ?string}  $filters
      */
     public function overview(array $filters): array
     {
@@ -78,7 +78,7 @@ class InstituteAnalyticsService
             ],
             'options' => [
                 'institutes' => $this->institutionOptions(),
-                'departments' => $this->departmentOptions($filters['institution']),
+                'departments' => $this->departmentOptions(),
             ],
             'summary' => [
                 'institutes' => $institutes
@@ -95,7 +95,7 @@ class InstituteAnalyticsService
             'institutes' => $institutes,
             'enrollmentTrend' => $this->enrollmentTrend($filters),
             'departments' => $this->departmentBreakdown($filters, $selectedInstitute),
-            'topCourses' => $this->topCourses($filters, $selectedInstitute),
+            'courses' => $this->courses($filters, $selectedInstitute),
         ];
     }
 
@@ -189,7 +189,7 @@ class InstituteAnalyticsService
             ->get();
         $total = $rows->sum(fn ($row) => (int) $row->students);
 
-        return $rows->take(12)->map(fn ($row) => [
+        return $rows->map(fn ($row) => [
             'department' => $row->department,
             'students' => (int) $row->students,
             'share' => $total > 0
@@ -198,7 +198,7 @@ class InstituteAnalyticsService
         ])->values();
     }
 
-    private function topCourses(array $filters, ?string $institution): Collection
+    private function courses(array $filters, ?string $institution): Collection
     {
         $courseGroupExpression = $this->courseGroupExpression();
 
@@ -217,8 +217,7 @@ class InstituteAnalyticsService
             ->selectRaw('count(*) as enrollment_records')
             ->selectRaw('count(distinct e.userid) as students')
             ->groupByRaw("coalesce(nullif(btrim($courseGroupExpression), ''), c.course_name)")
-            ->orderByDesc('students')
-            ->limit(10)
+            ->orderBy('course')
             ->get()
             ->map(fn ($row) => [
                 'course' => $row->course,
@@ -244,12 +243,11 @@ class InstituteAnalyticsService
             ->exists();
     }
 
-    private function departmentOptions(?string $institution): Collection
+    private function departmentOptions(): Collection
     {
         return DB::connection('analytics')
             ->table('analytics_clean.students as s')
             ->where('s.deleted', 0)
-            ->when($institution, fn (Builder $query, string $value) => $this->applyDimension($query, 's.institution', $value))
             ->selectRaw($this->departmentExpression('s.department').' as department')
             ->distinct()
             ->orderBy('department')
@@ -280,7 +278,11 @@ class InstituteAnalyticsService
     {
         return $query
             ->when($filters['institution'], fn (Builder $query, string $value) => $this->applyDimension($query, 's.institution', $value))
-            ->when($filters['department'], fn (Builder $query, string $value) => $this->applyDimension($query, 's.department', $value));
+            ->when($filters['department'], fn (Builder $query, string $value) => $this->applyDimension($query, 's.department', $value))
+            ->when($filters['search'], fn (Builder $query, string $value) => $query->whereRaw(
+                'lower('.$this->institutionExpression('s.institution').') like ?',
+                ['%'.mb_strtolower($value).'%'],
+            ));
     }
 
     private function applyDimension(Builder $query, string $column, string $value): Builder

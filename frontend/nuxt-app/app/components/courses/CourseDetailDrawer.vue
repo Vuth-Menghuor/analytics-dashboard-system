@@ -166,18 +166,6 @@ const categoriesLabel = computed(() => {
             </table>
           </div>
         </section>
-
-        <section class="student-profile-section">
-          <div class="section-heading compact">
-            <h3 class="section-title with-icon">
-              <UIcon name="i-lucide-database-zap" />
-              {{ translateText("Cleanup Information") }}
-            </h3>
-            <p>
-              {{ translateText("This course group is generated from cleaned Moodle data. Original Moodle course records remain unchanged. Multiple course names with similar meaning are grouped into a single analytics course group for reporting.") }}
-            </p>
-          </div>
-        </section>
       </div>
     </template>
   </USlideover>

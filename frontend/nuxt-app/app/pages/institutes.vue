@@ -3,7 +3,7 @@ import InstitutesPage from "~/components/institutes/InstitutesPage.vue";
 
 definePageMeta({
   middleware: ["role"],
-  roles: ["manager"],
+  roles: ["manager", "partner"],
 });
 </script>
 

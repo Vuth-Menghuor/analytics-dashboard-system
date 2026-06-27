@@ -4,12 +4,19 @@ import {
   rejectPartnerRequest,
 } from "~/services/admin.service";
 import type { PartnerRequest, PartnerRequestStatus } from "~/types/admin";
+import { schoolInstituteOptions } from "~/constants/auth";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
   { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
+] as const;
+const institutionOptions = [
+  { label: "All institutes", value: "all" },
+  ...schoolInstituteOptions.map((institute) => ({
+    label: institute,
+    value: institute,
+  })),
 ] as const;
 
 const statusLabels: Record<PartnerRequestStatus, string> = {
@@ -29,17 +36,6 @@ const formatRequestDate = (value: string | null) => {
   }).format(new Date(value));
 };
 
-const getStorageUrl = (path: string | null) => {
-  if (!path) {
-    return "";
-  }
-
-  const runtimeConfig = useRuntimeConfig();
-  const apiBaseUrl = runtimeConfig.public.apiBaseUrl.replace(/\/api\/?$/, "");
-
-  return `${apiBaseUrl}/storage/${path}`;
-};
-
 export const usePartnerRequestsPage = () => {
   const toast = useToast();
   const { t } = useI18n();
@@ -48,7 +44,8 @@ export const usePartnerRequestsPage = () => {
   const isReviewing = ref(false);
   const error = ref("");
   const searchQuery = ref("");
-  const statusFilter = ref<(typeof statusOptions)[number]["value"]>("pending");
+  const statusFilter = ref<(typeof statusOptions)[number]["value"]>("all");
+  const institutionFilter = ref<(typeof institutionOptions)[number]["value"]>("all");
   const selectedRequest = ref<PartnerRequest | null>(null);
   const detailsOpen = ref(false);
   const rejectModalOpen = ref(false);
@@ -77,6 +74,8 @@ export const usePartnerRequestsPage = () => {
           statusFilter.value === "all"
             ? undefined
             : (statusFilter.value as PartnerRequestStatus),
+        institution:
+          institutionFilter.value === "all" ? undefined : institutionFilter.value,
         page: pagination.value.currentPage,
         perPage: pagination.value.perPage,
       });
@@ -110,9 +109,18 @@ export const usePartnerRequestsPage = () => {
 
   const submitSearch = () => refreshFromFirstPage();
 
+  const activeFilterCount = computed(
+    () =>
+      Number(Boolean(searchQuery.value.trim())) +
+      Number(statusFilter.value !== "all") +
+      Number(institutionFilter.value !== "all"),
+  );
+  const hasFilters = computed(() => activeFilterCount.value > 0);
+
   const clearFilters = () => {
     searchQuery.value = "";
     statusFilter.value = "all";
+    institutionFilter.value = "all";
     refreshFromFirstPage();
   };
 
@@ -210,22 +218,17 @@ export const usePartnerRequestsPage = () => {
     }
   };
 
-  watch(statusFilter, refreshFromFirstPage);
   onMounted(fetchRequests);
 
   const rows = computed(() =>
     requests.value.map((request) => ({
       ...request,
       statusLabel: statusLabels[request.status],
-      idCardLabel: request.id_card_path ? "Uploaded" : "Not uploaded",
       submittedAtLabel: formatRequestDate(request.created_at),
       action: request.id,
     })),
   );
 
-  const selectedIdCardUrl = computed(() =>
-    getStorageUrl(selectedRequest.value?.id_card_path ?? null),
-  );
   const selectedSubmittedAtLabel = computed(() =>
     formatRequestDate(selectedRequest.value?.created_at ?? null),
   );
@@ -250,7 +253,6 @@ export const usePartnerRequestsPage = () => {
       { key: "email", label: "Email", tone: "muted", width: "230px" },
       { key: "institution_name", label: "Institute", width: "160px" },
       { key: "state_province", label: "Province", tone: "muted", width: "170px" },
-      { key: "idCardLabel", label: "ID Card", type: "status", width: "130px" },
       {
         key: "statusLabel",
         label: "Status",
@@ -276,8 +278,12 @@ export const usePartnerRequestsPage = () => {
   });
 
   return {
+    activeFilterCount,
     detailsOpen,
     error,
+    hasFilters,
+    institutionFilter,
+    institutionOptions,
     isLoading,
     isReviewing,
     pagination,
@@ -285,7 +291,6 @@ export const usePartnerRequestsPage = () => {
     pendingBadgeLabel,
     rows,
     searchQuery,
-    selectedIdCardUrl,
     selectedSubmittedAtLabel,
     selectedRequest,
     rejectionReason,

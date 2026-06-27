@@ -22,6 +22,7 @@ class InstituteAnalyticsTest extends TestCase
             ->with([
                 'institution' => 'ITC',
                 'department' => 'GCI',
+                'search' => null,
                 'dateFrom' => '2025-01-01',
                 'dateTo' => '2025-07-28',
             ])
@@ -34,6 +35,26 @@ class InstituteAnalyticsTest extends TestCase
         $this->getJson('/api/dashboard/institutes?institution=ITC&department=GCI&dateFrom=2025-01-01&dateTo=2025-07-28')
             ->assertOk()
             ->assertJsonPath('snapshotDate', '2025-07-28');
+    }
+
+    public function test_manager_can_search_institute_analytics(): void
+    {
+        Sanctum::actingAs(User::factory()->make([
+            'role' => 'manager',
+        ]));
+
+        $service = Mockery::mock(InstituteAnalyticsService::class);
+        $service->shouldReceive('overview')
+            ->once()
+            ->with(Mockery::on(fn (array $filters) => $filters['search'] === 'itc'))
+            ->andReturn([
+                'snapshotDate' => '2025-07-28',
+                'summary' => ['institutes' => 1],
+            ]);
+        $this->app->instance(InstituteAnalyticsService::class, $service);
+
+        $this->getJson('/api/dashboard/institutes?search=itc')
+            ->assertOk();
     }
 
     public function test_partner_institute_scope_overrides_requested_institute(): void

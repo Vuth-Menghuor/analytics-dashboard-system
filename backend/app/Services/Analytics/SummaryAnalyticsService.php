@@ -20,37 +20,18 @@ class SummaryAnalyticsService
             return $this->partnerSummary($institution);
         }
 
-        $totalStudents = MoodleStudent::query()->where('deleted', 0)->count();
+        $studentCounts = $this->studentStatusCounts();
+        $userCounts = $this->userStatusCounts();
         $totalEnrollments = $this->studentEnrollmentQuery()->count();
 
         return [
-            'totalStudents' => $totalStudents,
+            'totalStudents' => $studentCounts['total'],
             'totalTeachers' => MoodleTeacher::query()->count(),
             'totalCourses' => MoodleCourse::query()->where('id', '!=', 1)->count(),
-            'totalActiveUsers' => MoodleUserActivity::query()
-                ->where('deleted', 0)
-                ->where('suspended', 0)
-                ->where('confirmed', 1)
-                ->count(),
-            'totalInactiveUsers' => MoodleUserActivity::query()
-                ->where('deleted', 0)
-                ->where(function ($query): void {
-                    $query->where('suspended', 1)
-                        ->orWhere('confirmed', 0);
-                })
-                ->count(),
-            'totalActiveStudents' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('suspended', 0)
-                ->where('confirmed', 1)
-                ->count(),
-            'totalInactiveStudents' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where(function ($query): void {
-                    $query->where('suspended', 1)
-                        ->orWhere('confirmed', 0);
-                })
-                ->count(),
+            'totalActiveUsers' => $userCounts['active'],
+            'totalInactiveUsers' => $userCounts['inactive'],
+            'totalActiveStudents' => $studentCounts['active'],
+            'totalInactiveStudents' => $studentCounts['inactive'],
             'totalEnrollments' => $totalEnrollments,
             'comparisons' => $this->comparisons($totalEnrollments),
         ];
@@ -61,13 +42,7 @@ class SummaryAnalyticsService
      */
     private function partnerSummary(string $institution): array
     {
-        $courseIds = MoodleEnrollment::query()
-            ->from('analytics_clean.enrollments as e')
-            ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
-            ->where('s.deleted', 0)
-            ->where('s.institution', $institution)
-            ->distinct()
-            ->pluck('e.courseid');
+        $studentCounts = $this->studentStatusCounts($institution);
         $totalEnrollments = MoodleEnrollment::query()
             ->from('analytics_clean.enrollments as e')
             ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
@@ -76,43 +51,65 @@ class SummaryAnalyticsService
             ->count();
 
         return [
-            'totalStudents' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('institution', $institution)
-                ->count(),
+            'totalStudents' => $studentCounts['total'],
             'totalTeachers' => 0,
-            'totalCourses' => $courseIds->filter(fn ($courseId) => (int) $courseId !== 1)->count(),
-            'totalActiveUsers' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('institution', $institution)
-                ->where('suspended', 0)
-                ->where('confirmed', 1)
-                ->count(),
-            'totalInactiveUsers' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('institution', $institution)
-                ->where(function ($query): void {
-                    $query->where('suspended', 1)
-                        ->orWhere('confirmed', 0);
-                })
-                ->count(),
-            'totalActiveStudents' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('institution', $institution)
-                ->where('suspended', 0)
-                ->where('confirmed', 1)
-                ->count(),
-            'totalInactiveStudents' => MoodleStudent::query()
-                ->where('deleted', 0)
-                ->where('institution', $institution)
-                ->where(function ($query): void {
-                    $query->where('suspended', 1)
-                        ->orWhere('confirmed', 0);
-                })
-                ->count(),
+            'totalCourses' => $this->enrolledCourseCount($institution),
+            'totalActiveUsers' => $studentCounts['active'],
+            'totalInactiveUsers' => $studentCounts['inactive'],
+            'totalActiveStudents' => $studentCounts['active'],
+            'totalInactiveStudents' => $studentCounts['inactive'],
             'totalEnrollments' => $totalEnrollments,
             'comparisons' => $this->comparisons($totalEnrollments, $institution),
         ];
+    }
+
+    /**
+     * @return array{total: int, active: int, inactive: int}
+     */
+    private function studentStatusCounts(?string $institution = null): array
+    {
+        $counts = MoodleStudent::query()
+            ->where('deleted', 0)
+            ->when($institution, fn ($query, string $institution) => $query->where('institution', $institution))
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when suspended = 0 and confirmed = 1 then 1 else 0 end) as active')
+            ->selectRaw('sum(case when suspended = 1 or confirmed = 0 then 1 else 0 end) as inactive')
+            ->first();
+
+        return [
+            'total' => (int) ($counts->total ?? 0),
+            'active' => (int) ($counts->active ?? 0),
+            'inactive' => (int) ($counts->inactive ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{active: int, inactive: int}
+     */
+    private function userStatusCounts(): array
+    {
+        $counts = MoodleUserActivity::query()
+            ->where('deleted', 0)
+            ->selectRaw('sum(case when suspended = 0 and confirmed = 1 then 1 else 0 end) as active')
+            ->selectRaw('sum(case when suspended = 1 or confirmed = 0 then 1 else 0 end) as inactive')
+            ->first();
+
+        return [
+            'active' => (int) ($counts->active ?? 0),
+            'inactive' => (int) ($counts->inactive ?? 0),
+        ];
+    }
+
+    private function enrolledCourseCount(string $institution): int
+    {
+        return MoodleEnrollment::query()
+            ->from('analytics_clean.enrollments as e')
+            ->join('analytics_clean.students as s', 's.id', '=', 'e.userid')
+            ->where('s.deleted', 0)
+            ->where('s.institution', $institution)
+            ->where('e.courseid', '!=', 1)
+            ->distinct()
+            ->count('e.courseid');
     }
 
     /**
@@ -125,21 +122,24 @@ class SummaryAnalyticsService
         $currentMonthStartTimestamp = $currentMonthStart->timestamp;
         $previousMonthStartTimestamp = $previousMonthStart->timestamp;
 
-        $currentActiveStudents = $this->studentPeriodCount('lastlogin', $currentMonthStartTimestamp, null, $institution);
-        $previousActiveStudents = $this->studentPeriodCount('lastlogin', $previousMonthStartTimestamp, $currentMonthStartTimestamp, $institution);
-        $currentEnrollments = $this->enrollmentPeriodCount($currentMonthStart, null, $institution);
-        $previousEnrollments = $this->enrollmentPeriodCount($previousMonthStart, $currentMonthStart, $institution);
+        $students = $this->studentComparisonCounts(
+            $previousMonthStartTimestamp,
+            $currentMonthStartTimestamp,
+            $institution,
+        );
+        $enrollments = $this->enrollmentComparisonCounts($previousMonthStart, $currentMonthStart, $institution);
+        $courses = $this->courseComparisonCounts($previousMonthStart, $currentMonthStart, $institution);
 
         return [
-            'activeStudents' => $this->countComparison($currentActiveStudents, $previousActiveStudents),
-            'totalEnrollments' => $this->countComparison($currentEnrollments, $previousEnrollments),
+            'activeStudents' => $this->countComparison($students['currentActive'], $students['previousActive']),
+            'totalEnrollments' => $this->countComparison($enrollments['current'], $enrollments['previous']),
             'totalStudents' => $this->countComparison(
-                $this->studentPeriodCount('lastaccess', $currentMonthStartTimestamp, null, $institution),
-                $this->studentPeriodCount('lastaccess', $previousMonthStartTimestamp, $currentMonthStartTimestamp, $institution),
+                $students['currentAccess'],
+                $students['previousAccess'],
             ),
             'totalCourses' => $this->countComparison(
-                $this->coursePeriodCount($currentMonthStart, null, $institution),
-                $this->coursePeriodCount($previousMonthStart, $currentMonthStart, $institution),
+                $courses['current'],
+                $courses['previous'],
             ),
         ];
     }
@@ -161,24 +161,6 @@ class SummaryAnalyticsService
         ];
     }
 
-    private function studentPeriodCount(string $column, int $from, ?int $to = null, ?string $institution = null): int
-    {
-        return MoodleStudent::query()
-            ->where('deleted', 0)
-            ->when($institution, fn ($query, string $institution) => $query->where('institution', $institution))
-            ->where($column, '>=', $from)
-            ->when($to, fn ($query, int $to) => $query->where($column, '<', $to))
-            ->count();
-    }
-
-    private function enrollmentPeriodCount(DateTimeInterface $from, ?DateTimeInterface $to = null, ?string $institution = null): int
-    {
-        return $this->studentEnrollmentQuery($institution)
-            ->where('e.created_time', '>=', $from)
-            ->when($to, fn ($query, DateTimeInterface $to) => $query->where('e.created_time', '<', $to))
-            ->count();
-    }
-
     private function studentEnrollmentQuery(?string $institution = null)
     {
         return MoodleEnrollment::query()
@@ -188,9 +170,56 @@ class SummaryAnalyticsService
             ->when($institution, fn ($query, string $institution) => $query->where('s.institution', $institution));
     }
 
-    private function coursePeriodCount(DateTimeInterface $from, ?DateTimeInterface $to = null, ?string $institution = null): int
+    /**
+     * @return array{currentActive: int, previousActive: int, currentAccess: int, previousAccess: int}
+     */
+    private function studentComparisonCounts(int $previousMonthStart, int $currentMonthStart, ?string $institution = null): array
     {
-        return MoodleCourse::query()
+        $counts = MoodleStudent::query()
+            ->where('deleted', 0)
+            ->when($institution, fn ($query, string $institution) => $query->where('institution', $institution))
+            ->selectRaw('sum(case when lastlogin >= ? then 1 else 0 end) as current_active', [$currentMonthStart])
+            ->selectRaw('sum(case when lastlogin >= ? and lastlogin < ? then 1 else 0 end) as previous_active', [$previousMonthStart, $currentMonthStart])
+            ->selectRaw('sum(case when lastaccess >= ? then 1 else 0 end) as current_access', [$currentMonthStart])
+            ->selectRaw('sum(case when lastaccess >= ? and lastaccess < ? then 1 else 0 end) as previous_access', [$previousMonthStart, $currentMonthStart])
+            ->first();
+
+        return [
+            'currentActive' => (int) ($counts->current_active ?? 0),
+            'previousActive' => (int) ($counts->previous_active ?? 0),
+            'currentAccess' => (int) ($counts->current_access ?? 0),
+            'previousAccess' => (int) ($counts->previous_access ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{current: int, previous: int}
+     */
+    private function enrollmentComparisonCounts(
+        DateTimeInterface $previousMonthStart,
+        DateTimeInterface $currentMonthStart,
+        ?string $institution = null,
+    ): array {
+        $counts = $this->studentEnrollmentQuery($institution)
+            ->selectRaw('sum(case when e.created_time >= ? then 1 else 0 end) as current', [$currentMonthStart])
+            ->selectRaw('sum(case when e.created_time >= ? and e.created_time < ? then 1 else 0 end) as previous', [$previousMonthStart, $currentMonthStart])
+            ->first();
+
+        return [
+            'current' => (int) ($counts->current ?? 0),
+            'previous' => (int) ($counts->previous ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{current: int, previous: int}
+     */
+    private function courseComparisonCounts(
+        DateTimeInterface $previousMonthStart,
+        DateTimeInterface $currentMonthStart,
+        ?string $institution = null,
+    ): array {
+        $counts = MoodleCourse::query()
             ->from('analytics_clean.courses as c')
             ->when($institution, function ($query, string $institution): void {
                 $query->join('analytics_clean.enrollments as e', 'e.courseid', '=', 'c.id')
@@ -199,9 +228,13 @@ class SummaryAnalyticsService
                     ->where('s.institution', $institution);
             })
             ->where('c.id', '!=', 1)
-            ->where('c.start_date', '>=', $from)
-            ->when($to, fn ($query, DateTimeInterface $to) => $query->where('c.start_date', '<', $to))
-            ->distinct('c.id')
-            ->count('c.id');
+            ->selectRaw('count(distinct case when c.start_date >= ? then c.id end) as current', [$currentMonthStart])
+            ->selectRaw('count(distinct case when c.start_date >= ? and c.start_date < ? then c.id end) as previous', [$previousMonthStart, $currentMonthStart])
+            ->first();
+
+        return [
+            'current' => (int) ($counts->current ?? 0),
+            'previous' => (int) ($counts->previous ?? 0),
+        ];
     }
 }

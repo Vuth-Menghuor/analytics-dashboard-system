@@ -3,31 +3,41 @@ import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import AppActionMenu from "~/components/common/AppActionMenu.vue";
 import AppButton from "~/components/common/AppButton.vue";
 import AppSelect from "~/components/common/AppSelect.vue";
+import AppExportMenu from "~/components/common/AppExportMenu.vue";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import AppDataTable from "~/components/common/AppDataTable.vue";
+import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import UserDeleteModal from "~/components/admin/UserDeleteModal.vue";
 import UserFormModal from "~/components/admin/UserFormModal.vue";
 import UserPasswordModal from "~/components/admin/UserPasswordModal.vue";
+import UserProfileModal from "~/components/admin/UserProfileModal.vue";
 import { useUsersPage } from "~/composables/admin/useUsersPage";
 
 const { t } = useI18n();
 const { translateText } = useTranslateText();
 
 const {
+  activeFilterCount,
   deleteOpen,
   deletingUser,
   error,
+  exportUsers,
   formOpen,
   isDeleting,
   isLoading,
+  institutionFilter,
+  institutionOptions,
   isResettingPassword,
   isSaving,
+  hasFilters,
   pagination,
   paginationLabel,
   passwordOpen,
   passwordUser,
+  profileOpen,
+  profileUser,
   roleFilter,
   roleOptions,
   rows,
@@ -43,6 +53,7 @@ const {
   openDeleteUser,
   openEditUser,
   openPasswordReset,
+  openUserProfile,
   setPage,
   setPerPage,
   submitSearch,
@@ -52,6 +63,11 @@ const {
 
 const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] => [
   [
+    {
+      label: "View profile",
+      icon: "i-lucide-eye",
+      onSelect: () => openUserProfile(row),
+    },
     {
       label: "Edit",
       icon: "i-lucide-pencil",
@@ -87,7 +103,7 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
       </div>
     </PageHeader>
 
-    <UCard :ui="{ body: 'analytics-filter-bar' }">
+    <UCard :ui="{ body: 'analytics-filter-bar admin-filter-bar admin-filter-bar--users' }">
       <div class="analytics-filter-field wide">
         <label>{{ t("common.search") }}</label>
         <AppSearchInput
@@ -119,18 +135,35 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
           :aria-label="String(translateText('Status'))"
         />
       </div>
-      <div class="analytics-filter-field compact">
+      <div class="analytics-filter-field">
+        <label>{{ translateText("Institute") }}</label>
+        <AppSelect
+          v-model="institutionFilter"
+          :items="institutionOptions"
+          value-key="value"
+          :searchable="false"
+          :aria-label="String(translateText('Institute'))"
+        />
+      </div>
+      <div class="analytics-filter-actions">
+        <UBadge v-if="activeFilterCount" color="neutral" variant="soft">
+          {{ activeFilterCount }} {{ translateText("active") }}
+        </UBadge>
         <AppButton
+          action="search"
+          :label="String(translateText('Apply filters'))"
+          @click="submitSearch"
+        />
+        <AppButton
+          v-if="hasFilters"
           action="clear"
-          label=""
-          square
-          :aria-label="String(translateText('Clear filters'))"
+          :label="String(translateText('Clear filters'))"
           @click="clearFilters"
         />
       </div>
     </UCard>
 
-    <StatePanel v-if="isLoading" state="loading" />
+    <AppLoadingSkeleton v-if="isLoading" variant="table" :rows="6" :columns="7" />
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
@@ -141,18 +174,24 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
         :columns="table.columns"
         :rows="rows"
         :row-key="table.rowKey"
-        min-width="980px"
+        min-width="1180px"
+        table-class="admin-users-table"
       >
         <template #actions>
-          <AppSearchInput
-            v-model="searchQuery"
-            class="dashboard-table-search"
-            :placeholder="String(translateText('Search users'))"
-            :aria-label="t('common.search')"
-            clearable
-            @submit="submitSearch"
-            @clear="submitSearch"
-          />
+          <div class="dashboard-table-toolbar">
+            <AppSearchInput
+              v-model="searchQuery"
+              class="dashboard-table-search"
+              :placeholder="String(translateText('Search users'))"
+              :aria-label="t('common.search')"
+              clearable
+              @submit="submitSearch"
+              @clear="submitSearch"
+            />
+            <div class="dashboard-table-toolbar-actions">
+              <AppExportMenu @select="exportUsers" />
+            </div>
+          </div>
         </template>
         <template #cell-action="{ row }">
           <div class="toolbar table-actions">
@@ -216,6 +255,10 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
       :user="passwordUser"
       :loading="isResettingPassword"
       @submit="submitPasswordReset"
+    />
+    <UserProfileModal
+      v-model:open="profileOpen"
+      :user="profileUser"
     />
     <UserDeleteModal
       v-model:open="deleteOpen"

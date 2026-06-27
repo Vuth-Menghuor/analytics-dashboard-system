@@ -1,11 +1,14 @@
 import {
-  getPopularCourses,
-  getStudentActivityTrend,
+  getInstituteAnalytics,
   getStudentGenderDistribution,
   getStudentsByDepartment,
 } from "~/services/analytics.service";
 import type { AnalyticsChart, AnalyticsPageConfig } from "~/types/analytics";
+import type {
+  StudentGenderDistributionApi,
+} from "~/types/analytics-api";
 import { formatStudentDepartmentLabel } from "~/utils/studentDepartment";
+import { createGenderDistributionOption } from "~/utils/genderDistributionChart";
 
 const dashboardMetricLabels = [
   "Total Students",
@@ -24,67 +27,49 @@ export const usePartnerDashboardPage = () => {
   const charts = ref<AnalyticsChart[]>([]);
   const chartError = ref("");
   const chartsLoading = ref(true);
+  const genderDistribution = ref<StudentGenderDistributionApi[]>([]);
 
   const loadCharts = async () => {
     chartsLoading.value = true;
     chartError.value = "";
 
-    const [gender, departments, popularCourses, activityTrend] =
+    const [gender, departments, institutes] =
       await Promise.allSettled([
         getStudentGenderDistribution(),
         getStudentsByDepartment(),
-        getPopularCourses(),
-        getStudentActivityTrend({ period: "year" }),
+        getInstituteAnalytics(),
       ]);
 
     const loadedCharts: AnalyticsChart[] = [];
 
-    if (activityTrend.status === "fulfilled") {
+    if (institutes.status === "fulfilled") {
       loadedCharts.push({
-        title: "Student Login Activity",
-        description: "Latest student login trend by year.",
-        icon: "i-lucide-activity",
+        title: "Enrollment Trend",
+        description: "Monthly enrollment records across the selected scope.",
+        icon: "i-lucide-trending-up",
         type: "line",
         height: "340px",
         wide: true,
-        labels: activityTrend.value.map((point) => point.period),
+        labels: institutes.value.enrollmentTrend.map((point) => point.period),
         series: [
           {
-            name: "Students",
-            data: activityTrend.value.map((point) => point.totalStudents),
-          },
-        ],
-      });
-    }
-
-    if (departments.status === "fulfilled") {
-      loadedCharts.push({
-        title: "Top Departments",
-        description: "Largest departments by Moodle student count.",
-        icon: "i-lucide-list-ordered",
-        type: "bar",
-        height: "320px",
-        labels: departments.value
-          .slice(0, 8)
-          .map((point) => formatStudentDepartmentLabel(point.department)),
-        series: [
-          {
-            name: "Students",
-            data: departments.value
-              .slice(0, 8)
-              .map((point) => point.totalStudents),
+            name: "Enrollment records",
+            data: institutes.value.enrollmentTrend.map(
+              (point) => point.enrollments,
+            ),
           },
         ],
       });
     }
 
     if (gender.status === "fulfilled") {
+      genderDistribution.value = gender.value;
       loadedCharts.push({
         title: "Gender Distribution",
         description: "Student gender breakdown from Moodle profiles.",
-        icon: "i-lucide-chart-column",
-        type: "bar",
-        height: "320px",
+        icon: "i-lucide-pie-chart",
+        type: "donut",
+        height: "360px",
         labels: gender.value.map((point) => point.gender),
         series: [
           {
@@ -95,22 +80,25 @@ export const usePartnerDashboardPage = () => {
       });
     }
 
-    if (popularCourses.status === "fulfilled") {
+    if (departments.status === "fulfilled") {
       loadedCharts.push({
-        title: "Popular Courses",
-        description: "Courses ranked by total enrollments.",
-        icon: "i-lucide-trending-up",
+        title: "Students by Department",
+        description: "Student totals across all Moodle departments.",
+        icon: "i-lucide-list-ordered",
         type: "horizontalBar",
-        height: "340px",
-        labels: popularCourses.value
-          .slice(0, 10)
-          .map((course) => course.courseName),
+        height: "360px",
+        compact: true,
+        badge: `${departments.value
+          .reduce((total, point) => total + point.totalStudents, 0)
+          .toLocaleString()} students`,
+        visibleItems: 8,
+        labels: departments.value.map((point) =>
+          formatStudentDepartmentLabel(point.department),
+        ),
         series: [
           {
-            name: "Enrollments",
-            data: popularCourses.value
-              .slice(0, 10)
-              .map((course) => course.totalEnrollments),
+            name: "Students",
+            data: departments.value.map((point) => point.totalStudents),
           },
         ],
       });
@@ -132,7 +120,7 @@ export const usePartnerDashboardPage = () => {
       ? {
           ...moodleDashboard.value,
           title: "Partner Dashboard",
-          copy: "Institute-scoped Moodle analytics for student activity, active/inactive status, courses, and enrollment engagement.",
+          copy: "Institute-scoped Moodle analytics for student login status, courses, and enrollment context.",
           metrics: moodleDashboard.value.metrics.filter((metric) =>
             dashboardMetricLabels.includes(
               metric.label as (typeof dashboardMetricLabels)[number],
@@ -150,9 +138,15 @@ export const usePartnerDashboardPage = () => {
   );
 
   const partnerDashboardLoading = computed(() => moodleDashboardLoading.value);
+  const chartOptions = computed(() => ({
+    "Gender Distribution": createGenderDistributionOption(
+      genderDistribution.value,
+    ),
+  }));
 
   return {
     chartError,
+    chartOptions,
     chartsLoading,
     partnerDashboard,
     partnerDashboardError: moodleDashboardError,

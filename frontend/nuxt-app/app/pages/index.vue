@@ -1,7 +1,9 @@
 <script setup lang="ts">
-const auth = useAuthStore()
+const auth = useAuthStore();
 
-await navigateTo(auth.roleDashboardPath)
+auth.refreshSession();
+
+await navigateTo(auth.isAuthenticated ? auth.roleDashboardPath : "/login");
 </script>
 
 <template>

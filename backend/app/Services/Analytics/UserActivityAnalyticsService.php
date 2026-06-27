@@ -75,6 +75,7 @@ class UserActivityAnalyticsService
     {
         $section = (string) ($filters['section'] ?? 'all');
         $shouldLoadOverview = $this->shouldLoadSection($section, 'overview');
+        $shouldLoadTrend = $shouldLoadOverview || $this->shouldLoadSection($section, 'trend');
         $overview = $shouldLoadOverview ? $this->summaryAndActivityTypes($filters) : null;
         $institutes = $this->shouldLoadSection($section, 'institutes')
             ? $this->institutes($filters)
@@ -107,11 +108,13 @@ class UserActivityAnalyticsService
                 'page' => (int) ($filters['page'] ?? 1),
                 'perPage' => (int) ($filters['perPage'] ?? 10),
             ],
-            'options' => $this->options($filters),
+            'options' => $section === 'trend'
+                ? $this->emptyOptions()
+                : $this->options($filters),
             'summary' => $shouldLoadOverview
                 ? $overview['summary']
                 : $this->emptySummary(),
-            'trend' => $shouldLoadOverview
+            'trend' => $shouldLoadTrend
                 ? $this->trend($filters)
                 : [],
             'activityTypes' => $shouldLoadOverview
@@ -152,6 +155,18 @@ class UserActivityAnalyticsService
             'averageActivitiesPerStudent' => 0.0,
             'mostActiveCourse' => 'Not available',
             'snapshotDate' => null,
+        ];
+    }
+
+    private function emptyOptions(): array
+    {
+        return [
+            'institutes' => [],
+            'departments' => [],
+            'cities' => [],
+            'courses' => [],
+            'activityTypes' => [],
+            'userStatuses' => [],
         ];
     }
 
@@ -390,10 +405,9 @@ class UserActivityAnalyticsService
                 nullif(trim(s.institution), '') as institution,
                 count(*)::bigint as activities,
                 count(distinct l.userid)::bigint as active_users,
-                count(distinct nullif(l.courseid, 0))::bigint as courses,
                 count(*) over()::bigint as total_rows
             {$base['from']}
-            {$base['where']}
+            {$base['where']} and l.component = 'core' and l.action = 'loggedin'
             group by nullif(trim(s.institution), '')
             having nullif(trim(s.institution), '') is not null
             order by activities desc, nullif(trim(s.institution), '')
@@ -407,13 +421,8 @@ class UserActivityAnalyticsService
                 'institution' => $row->institution,
                 'activities' => (int) $row->activities,
                 'activeUsers' => (int) $row->active_users,
-                'courses' => (int) $row->courses,
-                'activityRate' => (float) number_format(
-                    ((int) $row->active_users * 100) / max((int) $row->activities, 1),
-                    2,
-                    '.',
-                    '',
-                ),
+                'courses' => 0,
+                'activityRate' => 0.0,
             ])->values()->all(),
             'meta' => $this->paginationMeta($total, $filters),
         ];
@@ -425,42 +434,18 @@ class UserActivityAnalyticsService
         $pagination = $this->pagination($filters);
 
         $rows = collect(DB::connection('analytics')->select("
-            with department_activity as (
-                select
-                    nullif(trim(s.department), '') as department,
-                    count(*)::bigint as activities,
-                    count(distinct l.userid)::bigint as active_students
-                {$base['from']}
-                {$base['where']}
-                group by nullif(trim(s.department), '')
-            ),
-            top_courses as (
-                select distinct on (nullif(trim(s.department), ''))
-                    nullif(trim(s.department), '') as department,
-                    c.fullname as top_course,
-                    count(*) as course_activities
-                {$base['from']}
-                {$base['where']}
-                group by nullif(trim(s.department), ''), c.fullname
-                order by nullif(trim(s.department), ''), count(*) desc
-            )
             select
-                da.department,
-                da.activities,
-                da.active_students,
-                tc.top_course,
+                nullif(trim(s.department), '') as department,
+                count(*)::bigint as activities,
+                count(distinct l.userid)::bigint as active_students,
                 count(*) over()::bigint as total_rows
-            from department_activity da
-            left join top_courses tc on tc.department = da.department
-            where da.department is not null
-            order by da.activities desc, da.department
+            {$base['from']}
+            {$base['where']} and l.component = 'core' and l.action = 'loggedin'
+            group by nullif(trim(s.department), '')
+            having nullif(trim(s.department), '') is not null
+            order by activities desc, nullif(trim(s.department), '')
             limit ? offset ?
-        ", [
-            ...$base['bindings'],
-            ...$base['bindings'],
-            $pagination['perPage'],
-            $pagination['offset'],
-        ]));
+        ", [...$base['bindings'], $pagination['perPage'], $pagination['offset']]));
 
         $total = (int) ($rows->first()->total_rows ?? 0);
 
@@ -469,7 +454,7 @@ class UserActivityAnalyticsService
                 'department' => $row->department,
                 'activities' => (int) $row->activities,
                 'activeStudents' => (int) $row->active_students,
-                'topCourse' => $row->top_course ?? '-',
+                'topCourse' => '-',
             ])->values()->all(),
             'meta' => $this->paginationMeta($total, $filters),
         ];
@@ -620,29 +605,6 @@ class UserActivityAnalyticsService
 
     private function options(array $filters): array
     {
-        $institution = trim((string) ($filters['institution'] ?? ''));
-        $department = trim((string) ($filters['department'] ?? ''));
-
-        $departmentBindings = [];
-        $departmentWhere = ["deleted = 0", "nullif(trim(department), '') is not null"];
-
-        if ($institution !== '') {
-            $departmentWhere[] = 'institution = ?';
-            $departmentBindings[] = $institution;
-        }
-
-        $cityBindings = $departmentBindings;
-        $cityWhere = ["deleted = 0", "nullif(trim(city), '') is not null"];
-
-        if ($institution !== '') {
-            $cityWhere[] = 'institution = ?';
-        }
-
-        if ($department !== '') {
-            $cityWhere[] = 'department = ?';
-            $cityBindings[] = $department;
-        }
-
         return [
             'institutes' => $this->pluckColumn("
                 select distinct institution as value
@@ -651,12 +613,16 @@ class UserActivityAnalyticsService
                 order by institution
             "),
             'departments' => $this->pluckColumn(
-                'select distinct department as value from analytics_clean.students where '.implode(' and ', $departmentWhere).' order by department',
-                $departmentBindings,
+                "select distinct department as value
+                from analytics_clean.students
+                where deleted = 0 and nullif(trim(department), '') is not null
+                order by department",
             ),
             'cities' => $this->pluckColumn(
-                'select distinct city as value from analytics_clean.students where '.implode(' and ', $cityWhere).' order by city',
-                $cityBindings,
+                "select distinct city as value
+                from analytics_clean.students
+                where deleted = 0 and nullif(trim(city), '') is not null
+                order by city",
             ),
             'courses' => collect(DB::connection('analytics')->select("
                 select id, fullname as name

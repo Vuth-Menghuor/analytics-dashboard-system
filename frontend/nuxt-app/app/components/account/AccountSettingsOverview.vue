@@ -20,6 +20,11 @@ const emit = defineEmits<{
 }>();
 
 const { translateText } = useTranslateText();
+const isMounted = ref(false);
+
+onMounted(() => {
+  isMounted.value = true;
+});
 
 const getDetailValue = (
   item: (typeof accountOverviewDetailItems)[number],
@@ -47,7 +52,7 @@ const preferenceSummaryItems = computed(() => [
         { label: "Light", value: "light" },
         { label: "Dark", value: "dark" },
       ],
-      props.formState.theme,
+      isMounted.value ? props.formState.theme : "system",
     ),
   },
 ]);

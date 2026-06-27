@@ -26,8 +26,7 @@ class PartnerRequestTest extends TestCase
 
         $this->postJson('/api/partner-requests', [
             'state_province' => 'Phnom Penh',
-            'first_name' => 'Partner',
-            'last_name' => 'User',
+            'name' => 'Partner User',
             'email' => 'partner.request@example.com',
             'phone_number' => '+85512345678',
             'institution_name' => 'ITC',
@@ -56,8 +55,7 @@ class PartnerRequestTest extends TestCase
 
         $this->postJson('/api/partner-requests', [
             'state_province' => 'Phnom Penh',
-            'first_name' => 'Full',
-            'last_name' => 'Institute',
+            'name' => 'Full Institute',
             'email' => 'full.institute@example.com',
             'phone_number' => '+85512345678',
             'institution_name' => 'Institute of Technology of Cambodia',
@@ -75,8 +73,7 @@ class PartnerRequestTest extends TestCase
 
         $this->postJson('/api/partner-requests', [
             'state_province' => 'Phnom Penh',
-            'first_name' => 'Partner',
-            'last_name' => 'User',
+            'name' => 'Partner User',
             'email' => 'partner.request@example.com',
             'phone_number' => '+85512345678',
             'institution_name' => 'ITC',

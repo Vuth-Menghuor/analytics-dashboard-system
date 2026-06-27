@@ -9,14 +9,12 @@ import {
 import { appColors, withAlpha } from "~/constants/colors";
 import type { EChartsOption } from "echarts";
 import type {
-  AnalyticsChart,
   AnalyticsTable,
   Student,
 } from "~/types/analytics";
 import {
   getStudent,
   getStudentActivity,
-  getStudentActivityTrend,
   getStudentGenderDistribution,
   getStudents,
   getStudentsByCity,
@@ -30,26 +28,20 @@ import {
 } from "~/utils/studentGender";
 import { formatStudentInstituteLabel } from "~/utils/studentInstitute";
 import { useCsvExport } from "~/composables/common/useCsvExport";
+import type { ExportFormat } from "~/utils/exportCsv";
+import {
+  createColoredBarData,
+  formatChartValue,
+} from "~/utils/chartDisplay";
 import type {
   StudentCityDistributionApi,
   StudentDepartmentDistributionApi,
   StudentGenderDistributionApi,
   StudentInstitutionDistributionApi,
-  StudentActivityTrendApi,
-  StudentActivityTrendPeriod,
   DashboardChartFilters,
   StudentsQuery,
 } from "~/types/analytics-api";
 import type { Metric } from "~/types/dashboard";
-
-const activityPeriodOptions: Array<{
-  label: string;
-  value: StudentActivityTrendPeriod;
-}> = [
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
-  { label: "Year", value: "year" },
-];
 
 type StudentFilterKey =
   | "query"
@@ -58,13 +50,14 @@ type StudentFilterKey =
   | "city"
   | "gender"
   | "status";
-type StudentAnalyticsTab = "overview" | "demographics" | "activity";
+type StudentAnalyticsTab = "overview" | "demographics";
 
 export const useStudentAnalyticsView = () => {
   const { exportWithToast } = useCsvExport();
+  const toast = useToast();
   const auth = useAuthStore();
   const {
-    applySearch,
+    applyFilters,
     error,
     filters,
     isLoading,
@@ -74,10 +67,11 @@ export const useStudentAnalyticsView = () => {
     setPerPage,
     students,
   } = useStudents();
+  const draftFilters = reactive({ ...filters });
   const selectedStudent = ref<Student | null>(null);
   const selectedStudentIsLoading = ref(false);
   const profileOpen = ref(false);
-  const searchQuery = ref(filters.query);
+  const searchQuery = ref(draftFilters.query);
   const liveError = ref("");
   const liveIsLoading = ref(true);
   const studentMetricsLoaded = ref(false);
@@ -95,14 +89,14 @@ export const useStudentAnalyticsView = () => {
   const studentsByInstitution = ref<StudentInstitutionDistributionApi[]>([]);
   const studentsByDepartment = ref<StudentDepartmentDistributionApi[]>([]);
   const studentsByCity = ref<StudentCityDistributionApi[]>([]);
+  const allStudentsByInstitution = ref<StudentInstitutionDistributionApi[]>([]);
+  const allStudentsByDepartment = ref<StudentDepartmentDistributionApi[]>([]);
+  const allStudentsByCity = ref<StudentCityDistributionApi[]>([]);
   const genderDistribution = ref<StudentGenderDistributionApi[]>([]);
-  const studentActivityTrend = ref<StudentActivityTrendApi[]>([]);
-  const selectedActivityPeriod = ref<StudentActivityTrendPeriod>("year");
   const activeTab = ref<StudentAnalyticsTab>("overview");
   const tabs: Array<{ label: string; value: StudentAnalyticsTab }> = [
     { label: "Overview", value: "overview" },
     { label: "Demographics", value: "demographics" },
-    { label: "Activity", value: "activity" },
   ];
   const dependentFiltersLoading = ref(false);
   let latestChartRequestId = 0;
@@ -117,6 +111,7 @@ export const useStudentAnalyticsView = () => {
 
   if (isPartnerScoped.value) {
     filters.institute = partnerInstitute.value;
+    draftFilters.institute = partnerInstitute.value;
   }
 
   const getCurrentFilters = (): DashboardChartFilters => ({
@@ -234,17 +229,12 @@ export const useStudentAnalyticsView = () => {
       departmentsData,
       citiesData,
       genderData,
-      activityData,
       metricCounts,
     ] = await Promise.allSettled([
       getStudentsByInstitution(chartFilters),
       getStudentsByDepartment(chartFilters),
       getStudentsByCity(chartFilters),
       getStudentGenderDistribution(chartFilters),
-      getStudentActivityTrend({
-        ...chartFilters,
-        period: selectedActivityPeriod.value,
-      }),
       loadStudentMetricCounts(),
     ]);
 
@@ -268,16 +258,11 @@ export const useStudentAnalyticsView = () => {
       genderDistribution.value = genderData.value;
     }
 
-    if (activityData.status === "fulfilled") {
-      studentActivityTrend.value = activityData.value;
-    }
-
     const loadedCount = [
       institutions,
       departmentsData,
       citiesData,
       genderData,
-      activityData,
       metricCounts,
     ].filter((result) => result.status === "fulfilled").length;
 
@@ -289,7 +274,33 @@ export const useStudentAnalyticsView = () => {
     dependentFiltersLoading.value = false;
   };
 
-  onMounted(loadLiveStudentCharts);
+  const loadStudentFilterOptions = async () => {
+    const optionFilters = isPartnerScoped.value
+      ? { institution: partnerInstitute.value }
+      : {};
+    const [institutions, departmentsData, citiesData] = await Promise.allSettled([
+      getStudentsByInstitution(),
+      getStudentsByDepartment(optionFilters),
+      getStudentsByCity(optionFilters),
+    ]);
+
+    if (institutions.status === "fulfilled") {
+      allStudentsByInstitution.value = institutions.value;
+    }
+
+    if (departmentsData.status === "fulfilled") {
+      allStudentsByDepartment.value = departmentsData.value;
+    }
+
+    if (citiesData.status === "fulfilled") {
+      allStudentsByCity.value = citiesData.value;
+    }
+  };
+
+  onMounted(() => {
+    void loadStudentFilterOptions();
+    void loadLiveStudentCharts();
+  });
 
   const refresh = async () => {
     await Promise.allSettled([refreshStudents(), loadLiveStudentCharts()]);
@@ -297,12 +308,8 @@ export const useStudentAnalyticsView = () => {
 
   const changeInstitute = (institute: unknown) => {
     if (typeof institute === "string") {
-      filters.institute = institute;
+      draftFilters.institute = institute;
     }
-
-    filters.department = studentDepartmentAllOption;
-    filters.city = studentCityAllOption;
-    dependentFiltersLoading.value = true;
   };
 
   const institutes = computed(() =>
@@ -310,14 +317,14 @@ export const useStudentAnalyticsView = () => {
       ? [partnerInstitute.value]
       : [
           studentInstituteAllOption,
-          ...studentsByInstitution.value.map((point) => point.institution),
+          ...allStudentsByInstitution.value.map((point) => point.institution),
         ],
   );
   const departments = computed(() => [
     studentDepartmentAllOption,
     ...new Set(
-      studentsByDepartment.value.length > 0
-        ? studentsByDepartment.value.map((point) => point.department)
+      allStudentsByDepartment.value.length > 0
+        ? allStudentsByDepartment.value.map((point) => point.department)
         : students.value.map((student) => student.department),
     ),
   ]);
@@ -342,7 +349,7 @@ export const useStudentAnalyticsView = () => {
   const cities = computed(() => [
     studentCityAllOption,
     "Not filled",
-    ...new Set(studentsByCity.value.map((point) => point.city)),
+    ...new Set(allStudentsByCity.value.map((point) => point.city)),
   ]);
   const cityFilterItems = computed(() =>
     cities.value.map((city) => ({
@@ -578,7 +585,7 @@ export const useStudentAnalyticsView = () => {
             },
           ]
         : undefined,
-      grid: { top: 16, right: 18, bottom: 104, left: 42, containLabel: true },
+      grid: { top: 28, right: 18, bottom: 104, left: 42, containLabel: true },
       xAxis: {
         type: "category",
         data: points.map((point) => point.label),
@@ -603,8 +610,18 @@ export const useStudentAnalyticsView = () => {
           name: "Students",
           type: "bar",
           barMaxWidth: 24,
-          data: points.map((point) => point.value),
-          itemStyle: { borderRadius: [6, 6, 0, 0] },
+          data: createColoredBarData(
+            points.map((point) => point.value),
+            [6, 6, 0, 0],
+          ),
+          label: {
+            show: true,
+            position: "top",
+            color: appColors.secondary,
+            fontWeight: 700,
+            formatter: ({ value }: { value?: unknown }) =>
+              formatChartValue(value),
+          },
         },
       ],
     };
@@ -619,7 +636,6 @@ export const useStudentAnalyticsView = () => {
       : 100;
 
     return {
-      color: [appColors.cyan],
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
@@ -693,10 +709,13 @@ export const useStudentAnalyticsView = () => {
             position: "right",
             color: appColors.secondary,
             fontWeight: 700,
-            formatter: ({ value }) => Number(value ?? 0).toLocaleString(),
+            formatter: ({ value }: { value?: unknown }) =>
+              formatChartValue(value),
           },
-          data: points.map((point) => point.value),
-          itemStyle: { borderRadius: [0, 8, 8, 0] },
+          data: createColoredBarData(
+            points.map((point) => point.value),
+            [0, 8, 8, 0],
+          ),
         },
       ],
     };
@@ -714,7 +733,6 @@ export const useStudentAnalyticsView = () => {
       : 100;
 
     return {
-      color: [appColors.success],
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
@@ -784,10 +802,13 @@ export const useStudentAnalyticsView = () => {
             position: "right",
             color: appColors.secondary,
             fontWeight: 700,
-            formatter: ({ value }) => Number(value ?? 0).toLocaleString(),
+            formatter: ({ value }: { value?: unknown }) =>
+              formatChartValue(value),
           },
-          data: rankedPoints.map((point) => point.value),
-          itemStyle: { borderRadius: [0, 8, 8, 0] },
+          data: createColoredBarData(
+            rankedPoints.map((point) => point.value),
+            [0, 8, 8, 0],
+          ),
         },
       ],
     };
@@ -804,24 +825,6 @@ export const useStudentAnalyticsView = () => {
   const institutionDistributionHeight = computed(() => "360px");
   const departmentDistributionHeight = computed(() => "360px");
   const cityDistributionHeight = computed(() => "360px");
-
-  const charts = computed<AnalyticsChart[]>(() => [
-    {
-      title: "Student Login Activity",
-      description: "Latest student login trend by selected period.",
-      icon: "i-lucide-activity",
-      type: "line",
-      height: "360px",
-      wide: true,
-      labels: studentActivityTrend.value.map((point) => point.period),
-      series: [
-        {
-          name: "Students",
-          data: studentActivityTrend.value.map((point) => point.totalStudents),
-        },
-      ],
-    },
-  ]);
 
   const studentTableRows = computed(() =>
     students.value.map((student) => ({
@@ -850,7 +853,7 @@ export const useStudentAnalyticsView = () => {
   );
   const clearInstituteFilter = () => {
     if (!isPartnerScoped.value) {
-      filters.institute = studentInstituteAllOption;
+      draftFilters.institute = studentInstituteAllOption;
     }
   };
   const hasStudentListFilters = computed(
@@ -899,12 +902,14 @@ export const useStudentAnalyticsView = () => {
   const removeStudentFilter = (key: StudentFilterKey) => {
     if (key === "query") {
       searchQuery.value = "";
-      applySearch("");
+      draftFilters.query = "";
+      void applyStudentFilters();
       return;
     }
 
     if (key === "institute") {
       clearInstituteFilter();
+      void applyStudentFilters();
       return;
     }
 
@@ -915,65 +920,89 @@ export const useStudentAnalyticsView = () => {
       status: studentStatusOptions[0],
     } as const;
 
-    filters[key] = defaultValues[key];
+    draftFilters[key] = defaultValues[key];
+    void applyStudentFilters();
   };
   const clearStudentListFilters = () => {
-    clearInstituteFilter();
-    filters.department = studentDepartmentAllOption;
-    filters.city = studentCityAllOption;
-    filters.gender = studentGenderOptions[0];
-    filters.status = studentStatusOptions[0];
+    if (!isPartnerScoped.value) {
+      draftFilters.institute = studentInstituteAllOption;
+    }
+    draftFilters.department = studentDepartmentAllOption;
+    draftFilters.city = studentCityAllOption;
+    draftFilters.gender = studentGenderOptions[0];
+    draftFilters.status = studentStatusOptions[0];
     searchQuery.value = "";
-    applySearch("");
+    draftFilters.query = "";
+    void applyStudentFilters();
   };
-  const submitSearch = () => applySearch(searchQuery.value);
-  const exportStudents = () => {
-    void exportWithToast({
-      filename: "ccun-students.csv",
-      label: "Student CSV file",
-      columns: studentTableColumns
-        .filter((column) => column.type !== "action")
-        .map((column) => ({
-          key: column.key,
-          label: column.label,
-        })),
-      rows: studentTableRows.value,
+  const applyStudentFilters = async () => {
+    draftFilters.query = searchQuery.value.trim();
+    applyFilters({
+      query: draftFilters.query,
+      institute: draftFilters.institute,
+      department: draftFilters.department,
+      city: draftFilters.city,
+      gender: draftFilters.gender,
+      status: draftFilters.status,
     });
+    await loadLiveStudentCharts();
+  };
+  const submitSearch = () => {
+    searchQuery.value = searchQuery.value.trim();
+    draftFilters.query = searchQuery.value;
+    void applyStudentFilters();
+  };
+  const fetchAllStudentsForExport = async () => {
+    const firstPage = await getStudents({ page: 1, perPage: 100 });
+    const allStudents = [...firstPage.data];
+
+    for (let page = 2; page <= firstPage.meta.lastPage; page += 1) {
+      const response = await getStudents({ page, perPage: 100 });
+      allStudents.push(...response.data);
+    }
+
+    return allStudents.map((student) => ({
+      ...student,
+      institute: formatStudentInstituteLabel(student.institute),
+      department: formatStudentDepartmentLabel(student.department),
+      gender: formatStudentGenderLabel(student.gender),
+      action: student.id,
+    }));
+  };
+
+  const exportStudents = async (format: ExportFormat = "csv") => {
+    try {
+      const rows = await fetchAllStudentsForExport();
+
+      void exportWithToast({
+        filename: `ccun-students.${format === "excel" ? "xls" : "csv"}`,
+        format,
+        label: `All students ${format === "excel" ? "Excel" : "CSV"} file`,
+        columns: studentTableColumns
+          .filter((column) => column.type !== "action")
+          .map((column) => ({
+            key: column.key,
+            label: column.label,
+          })),
+        rows,
+      });
+    } catch {
+      toast.add({
+        title: "Export failed",
+        description: "Unable to load all students for export.",
+        icon: "i-lucide-circle-x",
+        color: "error",
+      });
+    }
   };
 
   watch(partnerInstitute, (institute) => {
     if (institute) {
       filters.institute = institute;
+      draftFilters.institute = institute;
+      void loadStudentFilterOptions();
     }
   });
-
-  watch(
-    () => filters.institute,
-    (institute, previousInstitute) => {
-      if (partnerInstitute.value && institute !== partnerInstitute.value) {
-        filters.institute = partnerInstitute.value;
-        return;
-      }
-
-      if (institute !== previousInstitute) {
-        filters.department = studentDepartmentAllOption;
-        filters.city = studentCityAllOption;
-      }
-    },
-  );
-
-  watch(
-    () => [
-      filters.query,
-      filters.institute,
-      filters.department,
-      filters.city,
-      filters.gender,
-      filters.status,
-      selectedActivityPeriod.value,
-    ],
-    loadLiveStudentCharts,
-  );
 
   const table = computed<AnalyticsTable>(() => ({
     title: "Student List",
@@ -1028,8 +1057,6 @@ export const useStudentAnalyticsView = () => {
 
   return {
     activeTab,
-    activityPeriodOptions,
-    charts,
     changeInstitute,
     activeFilterChips,
     activeFilterCount,
@@ -1043,6 +1070,7 @@ export const useStudentAnalyticsView = () => {
     departmentChartBadge,
     departmentFilterItems,
     dependentFiltersLoading,
+    draftFilters,
     error,
     exportStudents,
     filters,
@@ -1067,7 +1095,6 @@ export const useStudentAnalyticsView = () => {
     searchQuery,
     departmentDistributionHeight,
     departmentDistributionOption,
-    selectedActivityPeriod,
     selectedStudent,
     selectedStudentIsLoading,
     studentMetricsLoaded,
@@ -1080,6 +1107,7 @@ export const useStudentAnalyticsView = () => {
     table,
     tabs,
     submitSearch,
+    applyStudentFilters,
     viewStudent,
   };
 };

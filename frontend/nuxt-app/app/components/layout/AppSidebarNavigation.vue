@@ -20,11 +20,9 @@ const navigationLabelKeys: Record<string, string> = {
   Courses: "navigation.courses",
   Dashboard: "navigation.dashboard",
   Institutes: "navigation.institutes",
-  "Learning Activity": "navigation.learningActivity",
   Main: "navigation.main",
   "Partner Requests": "navigation.partnerRequests",
   Profile: "navigation.profile",
-  Reports: "navigation.reports",
   Settings: "navigation.settings",
   Students: "navigation.students",
   Users: "navigation.users",
@@ -123,7 +121,16 @@ const { isItemOpen, onNavigationClick, toggleItem } =
                   :class="{ active: child.active }"
                   :to="child.to"
                 >
-                  {{ getNavigationLabel(child.label) }}
+                  <span class="sidebar-subnav-label">
+                    {{ getNavigationLabel(child.label) }}
+                  </span>
+                  <span
+                    v-if="child.badgeCount"
+                    class="sidebar-nav-badge"
+                    :aria-label="t('text.pendingCount', { count: child.badgeCount })"
+                  >
+                    {{ child.badgeCount > 99 ? "99+" : child.badgeCount }}
+                  </span>
                 </NuxtLink>
               </li>
             </ul>
@@ -371,6 +378,7 @@ const { isItemOpen, onNavigationClick, toggleItem } =
   display: flex;
   min-height: 34px;
   align-items: center;
+  gap: 8px;
   border-radius: 6px;
   padding: 7px 12px;
   color: var(--app-text);
@@ -381,6 +389,35 @@ const { isItemOpen, onNavigationClick, toggleItem } =
   transition:
     background-color 0.18s ease,
     color 0.18s ease;
+}
+
+.sidebar-subnav-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-nav-badge {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 0 6px;
+  background: var(--app-error);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sidebar-subnav-link.active .sidebar-nav-badge {
+  background: var(--app-on-primary);
+  color: var(--color-primary-hover);
 }
 
 .sidebar-subnav-link:hover,

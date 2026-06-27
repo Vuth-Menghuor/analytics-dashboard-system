@@ -3,11 +3,12 @@ import AppSelect from "~/components/common/AppSelect.vue";
 import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import AppButton from "~/components/common/AppButton.vue";
 import AppDataTable from "~/components/common/AppDataTable.vue";
-import AppSegmentedControl from "~/components/common/AppSegmentedControl.vue";
+import AppExportMenu from "~/components/common/AppExportMenu.vue";
 import MetricCard from "~/components/common/MetricCard.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
+import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
 import StudentProfileDrawer from "~/components/students/StudentProfileDrawer.vue";
 import { useStudentAnalyticsView } from "~/composables/students/useStudentAnalyticsView";
 
@@ -15,11 +16,10 @@ const {
   activeTab,
   activeFilterChips,
   activeFilterCount,
-  activityPeriodOptions,
+  applyStudentFilters,
   cityDistributionHeight,
   cityDistributionOption,
   cityFilterItems,
-  charts,
   changeInstitute,
   clearInstituteFilter,
   clearStudentListFilters,
@@ -27,6 +27,7 @@ const {
   departmentChartBadge,
   departmentFilterItems,
   dependentFiltersLoading,
+  draftFilters,
   error,
   exportStudents,
   filters,
@@ -51,7 +52,6 @@ const {
   searchQuery,
   departmentDistributionHeight,
   departmentDistributionOption,
-  selectedActivityPeriod,
   selectedStudent,
   selectedStudentIsLoading,
   studentMetricsLoaded,
@@ -75,7 +75,7 @@ const { translateText } = useTranslateText();
   <div class="page-stack">
     <PageHeader
       title="Students"
-      copy="Inspect Moodle student records, demographics, login activity, and profile details."
+      copy="Inspect Moodle student records, demographics, and profile details."
     >
       <div class="toolbar">
         <UBadge v-if="partnerInstituteLabel" color="success" variant="soft">
@@ -84,12 +84,22 @@ const { translateText } = useTranslateText();
       </div>
     </PageHeader>
 
-    <StatePanel v-if="isLoading" state="loading" />
+    <template v-if="isLoading">
+      <AppLoadingSkeleton variant="metrics" :count="4" />
+      <AppLoadingSkeleton variant="filters" :count="7" />
+      <AppLoadingSkeleton variant="tabs" :count="3" />
+      <AppLoadingSkeleton
+        variant="charts"
+        container-class="grid analytics-chart-grid activity-tab-panel"
+        :count="2"
+      />
+      <AppLoadingSkeleton variant="table" :rows="6" :columns="7" />
+    </template>
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
       <UAlert
-        v-if="!studentMetricsLoaded"
+        v-if="!studentMetricsLoaded && !studentMetricsLoading"
         color="neutral"
         variant="soft"
         icon="i-lucide-loader"
@@ -97,7 +107,9 @@ const { translateText } = useTranslateText();
         :description="String(translateText('Student totals will appear as soon as the Moodle analytics counts respond.'))"
       />
 
-      <section v-else class="grid metrics" :aria-busy="studentMetricsLoading">
+      <AppLoadingSkeleton v-if="studentMetricsLoading" variant="metrics" :count="4" />
+
+      <section v-else-if="studentMetricsLoaded" class="grid metrics" :aria-busy="studentMetricsLoading">
         <MetricCard
           v-for="metricItem in metrics"
           :key="metricItem.label"
@@ -149,7 +161,7 @@ const { translateText } = useTranslateText();
           <div class="student-filter-field">
             <label>{{ translateText("Institute") }}</label>
             <AppSelect
-              v-model="filters.institute"
+              v-model="draftFilters.institute"
               :items="instituteFilterItems"
               value-key="value"
               :disabled="isPartnerScoped"
@@ -162,7 +174,7 @@ const { translateText } = useTranslateText();
           <div class="student-filter-field">
             <label>{{ translateText("Department") }}</label>
             <AppSelect
-              v-model="filters.department"
+              v-model="draftFilters.department"
               :items="departmentFilterItems"
               value-key="value"
               searchable
@@ -174,7 +186,7 @@ const { translateText } = useTranslateText();
           <div class="student-filter-field">
             <label>{{ translateText("City") }}</label>
             <AppSelect
-              v-model="filters.city"
+              v-model="draftFilters.city"
               :items="cityFilterItems"
               value-key="value"
               searchable
@@ -186,7 +198,7 @@ const { translateText } = useTranslateText();
           <div class="student-filter-field">
             <label>{{ translateText("Gender") }}</label>
             <AppSelect
-              v-model="filters.gender"
+              v-model="draftFilters.gender"
               :items="genderFilterItems"
               value-key="value"
               :aria-label="String(translateText('Filter students by gender'))"
@@ -196,7 +208,7 @@ const { translateText } = useTranslateText();
           <div class="student-filter-field">
             <label>{{ translateText("Status") }}</label>
             <AppSelect
-              v-model="filters.status"
+              v-model="draftFilters.status"
               :items="statusFilterItems"
               value-key="value"
               :aria-label="String(translateText('Filter students by status'))"
@@ -206,8 +218,8 @@ const { translateText } = useTranslateText();
           <div class="student-filter-apply">
             <AppButton
               action="search"
-              :label="String(translateText('Apply search'))"
-              @click="submitSearch"
+              :label="String(translateText('Apply filters'))"
+              @click="applyStudentFilters"
             />
           </div>
         </div>
@@ -233,16 +245,7 @@ const { translateText } = useTranslateText();
       </UCard>
 
       <UAlert
-        v-if="liveIsLoading"
-        color="neutral"
-        variant="soft"
-        icon="i-lucide-loader"
-        :title="String(translateText('Loading student analytics charts'))"
-        :description="String(translateText('The student table is ready. Chart sections will update as Moodle analytics responds.'))"
-      />
-
-      <UAlert
-        v-else-if="liveError"
+        v-if="!liveIsLoading && liveError"
         color="warning"
         variant="soft"
         icon="i-lucide-triangle-alert"
@@ -263,7 +266,14 @@ const { translateText } = useTranslateText();
         </button>
       </nav>
 
-      <template v-if="!liveIsLoading && !liveError">
+      <AppLoadingSkeleton
+        v-if="liveIsLoading"
+        variant="charts"
+        container-class="grid analytics-chart-grid activity-tab-panel"
+        :count="2"
+      />
+
+      <template v-else-if="!liveError">
         <section v-if="activeTab === 'overview'" class="grid analytics-chart-grid activity-tab-panel">
           <AnalyticsChartCard
             title="Students by Institute"
@@ -287,23 +297,6 @@ const { translateText } = useTranslateText();
                 <UBadge color="primary" variant="soft">
                   {{ departmentChartBadge }}
                 </UBadge>
-                <AppSelect
-                  v-model="filters.institute"
-                  :items="instituteFilterItems"
-                  value-key="value"
-                  :disabled="isPartnerScoped"
-                  class="min-w-44"
-                  size="sm"
-                  @update:model-value="changeInstitute"
-                />
-                <AppButton
-                  v-if="hasInstituteFilter"
-                  action="clear"
-                  label=""
-                  square
-                  :aria-label="String(translateText('Clear institute filter'))"
-                  @click="clearInstituteFilter"
-                />
               </div>
             </template>
           </AnalyticsChartCard>
@@ -328,22 +321,6 @@ const { translateText } = useTranslateText();
           />
         </section>
 
-        <section v-else class="grid analytics-chart-grid activity-tab-panel">
-          <AnalyticsChartCard
-            v-for="chart in charts"
-            :key="chart.title"
-            :chart="chart"
-            :class="{ 'analytics-chart-wide': chart.wide }"
-          >
-            <template v-if="chart.title === 'Student Login Activity'" #actions>
-              <AppSegmentedControl
-                v-model="selectedActivityPeriod"
-                :options="activityPeriodOptions"
-                :aria-label="String(translateText('Student activity period'))"
-              />
-            </template>
-          </AnalyticsChartCard>
-        </section>
       </template>
 
       <AppDataTable
@@ -370,10 +347,7 @@ const { translateText } = useTranslateText();
               <UBadge v-if="activeFilterCount" color="primary" variant="soft">
                 {{ activeFilterCount }} {{ translateText("filters") }}
               </UBadge>
-              <AppButton
-                action="export"
-                @click="exportStudents"
-              />
+              <AppExportMenu @select="exportStudents" />
             </div>
           </div>
         </template>

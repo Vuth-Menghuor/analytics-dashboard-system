@@ -5,8 +5,10 @@ import {
   appColors,
   chartColors,
   chartOtherColor,
+  withAlpha,
 } from "~/constants/colors";
 import type { AnalyticsChart } from "~/types/analytics";
+import { createColoredBarData, formatChartValue } from "~/utils/chartDisplay";
 
 const props = withDefaults(
   defineProps<{
@@ -182,7 +184,7 @@ const computedOption = computed<EChartsOption>(() => {
         : undefined,
     grid: {
       top: 20,
-      right: hasHorizontalScroll ? 38 : 18,
+      right: isHorizontal ? (hasHorizontalScroll ? 58 : 38) : 18,
       bottom: hasCategoryScroll
         ? chart.series.length > 1
           ? 96
@@ -261,13 +263,33 @@ const computedOption = computed<EChartsOption>(() => {
       name: series.name,
       type: chart.type === "line" ? "line" : "bar",
       smooth: chart.type === "line",
-      data: series.data.map(toChartNumber),
-      barMaxWidth: 28,
-      areaStyle: chart.type === "line" ? { opacity: 0.14 } : undefined,
-      itemStyle:
+      data:
         chart.type === "bar" || chart.type === "horizontalBar"
-          ? { borderRadius: isHorizontal ? [0, 8, 8, 0] : [8, 8, 0, 0] }
+          ? createColoredBarData(
+              series.data.map(toChartNumber),
+              isHorizontal ? [0, 8, 8, 0] : [8, 8, 0, 0],
+            )
+          : series.data.map(toChartNumber),
+      barMaxWidth: 28,
+      showBackground: isHorizontal,
+      backgroundStyle: isHorizontal
+        ? {
+            color: withAlpha(appColors.primary, 0.08),
+            borderRadius: [0, 8, 8, 0],
+          }
+        : undefined,
+      label:
+        chart.type === "bar" || chart.type === "horizontalBar"
+          ? {
+              show: true,
+              position: isHorizontal ? "right" : "top",
+              color: appColors.secondary,
+              fontWeight: 700,
+              formatter: ({ value }: { value?: unknown }) =>
+                formatChartValue(value),
+            }
           : undefined,
+      areaStyle: chart.type === "line" ? { opacity: 0.14 } : undefined,
     })),
   };
 });
@@ -277,6 +299,7 @@ const cardIcon = computed(() => props.icon || props.chart?.icon);
 const cardDescription = computed(
   () => props.description || props.chart?.description,
 );
+const cardBadge = computed(() => props.badge || props.chart?.badge);
 const chartHeight = computed(
   () => props.height || props.chart?.height || "300px",
 );
@@ -327,8 +350,8 @@ const hasChartData = computed(() => !props.chart || chartValueTotal.value > 0);
       </div>
 
       <slot name="actions">
-        <UBadge v-if="badge" :color="badgeColor" variant="soft">
-          {{ translateText(badge) }}
+        <UBadge v-if="cardBadge" :color="badgeColor" variant="soft">
+          {{ translateText(cardBadge) }}
         </UBadge>
       </slot>
     </div>

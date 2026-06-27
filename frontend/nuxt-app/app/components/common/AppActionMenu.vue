@@ -45,7 +45,8 @@ const actionMenuUi = {
 <template>
   <UDropdownMenu
     :items="translatedItems"
-    :content="{ align: 'end', collisionPadding: 12, sideOffset: 6 }"
+    :modal="false"
+    :content="{ align: 'end', collisionPadding: 8, sideOffset: 6 }"
     :ui="actionMenuUi"
   >
     <AppButton

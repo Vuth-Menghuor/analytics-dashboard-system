@@ -14,7 +14,6 @@ export const iconNameMap: Record<string, string> = {
   Download: "i-lucide-download",
   Eye: "i-lucide-eye",
   EyeOff: "i-lucide-eye-off",
-  FileBarChart: "i-lucide-file-bar-chart",
   FolderTree: "i-lucide-folder-tree",
   GraduationCap: "i-lucide-graduation-cap",
   LayoutDashboard: "i-lucide-layout-dashboard",

@@ -11,6 +11,9 @@ import type {
   AdminUserRole,
   AdminUserStatus,
 } from "~/types/admin";
+import { useCsvExport } from "~/composables/common/useCsvExport";
+import type { ExportFormat } from "~/utils/exportCsv";
+import { schoolInstituteOptions } from "~/constants/auth";
 
 const roleOptions = [
   { label: "All roles", value: "all" },
@@ -23,6 +26,13 @@ const statusOptions = [
   { label: "All statuses", value: "all" },
   { label: "Active", value: "Active" },
   { label: "Inactive", value: "Inactive" },
+] as const;
+const institutionOptions = [
+  { label: "All institutes", value: "all" },
+  ...schoolInstituteOptions.map((institute) => ({
+    label: institute,
+    value: institute,
+  })),
 ] as const;
 
 const formatUserDate = (value: string | null) => {
@@ -38,6 +48,7 @@ const formatUserDate = (value: string | null) => {
 
 export const useUsersPage = () => {
   const toast = useToast();
+  const { exportWithToast } = useCsvExport();
   const auth = useAuthStore();
   const { t } = useI18n();
   const users = ref<AdminUser[]>([]);
@@ -49,10 +60,13 @@ export const useUsersPage = () => {
   const searchQuery = ref("");
   const roleFilter = ref<(typeof roleOptions)[number]["value"]>("all");
   const statusFilter = ref<(typeof statusOptions)[number]["value"]>("all");
+  const institutionFilter = ref<(typeof institutionOptions)[number]["value"]>("all");
   const formOpen = ref(false);
+  const profileOpen = ref(false);
   const deleteOpen = ref(false);
   const passwordOpen = ref(false);
   const editingUser = ref<AdminUser | null>(null);
+  const profileUser = ref<AdminUser | null>(null);
   const deletingUser = ref<AdminUser | null>(null);
   const passwordUser = ref<AdminUser | null>(null);
   const pagination = ref({
@@ -83,6 +97,8 @@ export const useUsersPage = () => {
           statusFilter.value === "all"
             ? undefined
             : (statusFilter.value as AdminUserStatus),
+        institution:
+          institutionFilter.value === "all" ? undefined : institutionFilter.value,
         page: pagination.value.currentPage,
         perPage: pagination.value.perPage,
       });
@@ -116,10 +132,20 @@ export const useUsersPage = () => {
 
   const submitSearch = () => refreshFromFirstPage();
 
+  const activeFilterCount = computed(
+    () =>
+      Number(Boolean(searchQuery.value.trim())) +
+      Number(roleFilter.value !== "all") +
+      Number(statusFilter.value !== "all") +
+      Number(institutionFilter.value !== "all"),
+  );
+  const hasFilters = computed(() => activeFilterCount.value > 0);
+
   const clearFilters = () => {
     searchQuery.value = "";
     roleFilter.value = "all";
     statusFilter.value = "all";
+    institutionFilter.value = "all";
     refreshFromFirstPage();
   };
 
@@ -155,6 +181,11 @@ export const useUsersPage = () => {
   const openEditUser = (user: AdminUser) => {
     editingUser.value = user;
     formOpen.value = true;
+  };
+
+  const openUserProfile = (user: AdminUser) => {
+    profileUser.value = user;
+    profileOpen.value = true;
   };
 
   const openDeleteUser = (user: AdminUser) => {
@@ -272,7 +303,6 @@ export const useUsersPage = () => {
     }
   };
 
-  watch([roleFilter, statusFilter], refreshFromFirstPage);
   onMounted(fetchUsers);
 
   const rows = computed(() =>
@@ -294,20 +324,67 @@ export const useUsersPage = () => {
       "Laravel application accounts for manager, partner, and visitor access.",
     rowKey: "id",
     columns: [
-      { key: "name", label: "User", rowHeader: true },
-      { key: "email", label: "Email", tone: "muted" },
-      { key: "roleLabel", label: "Role", type: "status" },
-      { key: "instituteLabel", label: "Access Scope", tone: "muted" },
+      { key: "name", label: "User", rowHeader: true, width: "180px" },
+      { key: "email", label: "Email", tone: "muted", width: "300px" },
+      { key: "roleLabel", label: "Role", type: "status", width: "150px" },
+      { key: "instituteLabel", label: "Access Scope", tone: "muted", width: "190px" },
       {
         key: "status",
         label: "Status",
         type: "status",
         warningValues: ["Inactive"],
+        width: "150px",
       },
-      { key: "createdAtLabel", label: "Created", tone: "muted" },
+      { key: "createdAtLabel", label: "Created", tone: "muted", width: "240px" },
       { key: "action", label: "Actions", type: "action", width: "72px", align: "right" },
     ],
   } as const;
+
+  const fetchAllUsersForExport = async () => {
+    const firstPage = await getAdminUsers({ page: 1, perPage: 100 });
+    const allUsers = [...firstPage.data];
+
+    for (let page = 2; page <= firstPage.meta.lastPage; page += 1) {
+      const response = await getAdminUsers({ page, perPage: 100 });
+      allUsers.push(...response.data);
+    }
+
+    return allUsers.map((user) => ({
+      name: user.name,
+      email: user.email,
+      roleLabel: user.role.charAt(0).toUpperCase() + user.role.slice(1),
+      instituteLabel:
+        user.role === "partner" ? user.institution_name || "Not assigned" : "System-wide",
+      status: user.status,
+      createdAtLabel: formatUserDate(user.created_at),
+    }));
+  };
+
+  const exportUsers = async (format: ExportFormat = "csv") => {
+    try {
+      const rows = await fetchAllUsersForExport();
+
+      void exportWithToast({
+        filename: `ccun-system-users.${format === "excel" ? "xls" : "csv"}`,
+        format,
+        label: `All system users ${format === "excel" ? "Excel" : "CSV"} file`,
+        columns: table.columns
+          .filter((column) => column.type !== "action")
+          .map((column) => ({
+            key: column.key,
+            label: column.label,
+          })),
+        rows,
+      });
+    } catch {
+      toast.add({
+        title: "Export failed",
+        description: "Unable to load all system users for export.",
+        icon: "i-lucide-circle-x",
+        color: "error",
+      });
+    }
+  };
 
   const paginationLabel = computed(() => {
     if (!pagination.value.total) {
@@ -322,18 +399,25 @@ export const useUsersPage = () => {
   });
 
   return {
+    activeFilterCount,
     deleteOpen,
     deletingUser,
     error,
+    exportUsers,
     formOpen,
     isDeleting,
     isLoading,
+    institutionFilter,
+    institutionOptions,
     isResettingPassword,
     isSaving,
+    hasFilters,
     pagination,
     paginationLabel,
     passwordOpen,
     passwordUser,
+    profileOpen,
+    profileUser,
     roleFilter,
     roleOptions,
     rows,
@@ -348,6 +432,7 @@ export const useUsersPage = () => {
     openCreateUser,
     openDeleteUser,
     openEditUser,
+    openUserProfile,
     openPasswordReset,
     setPage,
     setPerPage,

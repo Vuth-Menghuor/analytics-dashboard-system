@@ -4,16 +4,15 @@ import MetricCard from "~/components/common/MetricCard.vue";
 import AnalyticsChartCard from "~/components/charts/AnalyticsChartCard.vue";
 import AppSelect from "~/components/common/AppSelect.vue";
 import AppButton from "~/components/common/AppButton.vue";
-import AppSegmentedControl from "~/components/common/AppSegmentedControl.vue";
+import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
+import DashboardStudentList from "~/components/dashboard/DashboardStudentList.vue";
 import { useManagerDashboardPage } from "~/composables/dashboard/role/useManagerDashboardPage";
 
 const {
-  activityPeriodOptions,
   applyInstituteFilter,
   chartError,
   chartsLoading,
   clearInstituteFilter,
-  departmentChartBadge,
   genderChartBadge,
   hasInstituteFilter,
   instituteChartBadge,
@@ -21,15 +20,11 @@ const {
   instituteFilterOptions,
   institutionDistributionOption,
   institutionDistributionHeight,
-  departmentDistributionHeight,
-  topDepartmentsOption,
-  popularCoursesChart,
+  enrollmentTrendChart,
   genderDistributionOption,
-  studentActivityOption,
   metrics,
   moodleDashboardError,
   moodleDashboardLoading,
-  selectedActivityPeriod,
 } = useManagerDashboardPage();
 
 const { t } = useI18n();
@@ -38,7 +33,7 @@ const { translateText } = useTranslateText();
 
 <template>
   <div class="page-stack">
-    <StatePanel v-if="moodleDashboardLoading" state="loading" />
+    <AppLoadingSkeleton v-if="moodleDashboardLoading" variant="metrics" :count="5" />
 
     <StatePanel
       v-else-if="moodleDashboardError"
@@ -65,7 +60,7 @@ const { translateText } = useTranslateText();
           {{ translateText("Overview Filters") }}
         </h2>
         <p class="chart-note">
-          {{ translateText("Apply an institute scope to dashboard charts and choose the activity period.") }}
+          {{ translateText("Apply an institute scope to dashboard charts.") }}
         </p>
       </div>
       <div class="flex flex-wrap items-center justify-end gap-2">
@@ -76,12 +71,11 @@ const { translateText } = useTranslateText();
           searchable
           class="min-w-52"
           :aria-label="String(translateText('Filter overview by institute'))"
-          @update:model-value="applyInstituteFilter"
         />
-        <AppSegmentedControl
-          v-model="selectedActivityPeriod"
-          :options="activityPeriodOptions"
-          :aria-label="String(translateText('Student activity period'))"
+        <AppButton
+          action="search"
+          :label="String(translateText('Apply filters'))"
+          @click="applyInstituteFilter"
         />
         <AppButton
           v-if="hasInstituteFilter"
@@ -91,11 +85,18 @@ const { translateText } = useTranslateText();
       </div>
     </UCard>
 
-    <section class="grid dashboard-insights">
-      <StatePanel v-if="chartsLoading" state="loading" />
+    <AppLoadingSkeleton
+      v-if="chartsLoading"
+      variant="charts"
+      container-class="grid dashboard-insights"
+      :count="3"
+      :bar-count="8"
+      :wide-indexes="[2]"
+    />
 
+    <section v-else class="grid dashboard-insights">
       <StatePanel
-        v-else-if="chartError"
+        v-if="chartError"
         state="error"
         :description="chartError"
       />
@@ -142,60 +143,13 @@ const { translateText } = useTranslateText();
         </AnalyticsChartCard>
 
         <AnalyticsChartCard
-          title="Students by Department"
-          icon="i-lucide-list-ordered"
-          description="Student totals across all Moodle departments."
-          :badge="departmentChartBadge"
-          :option="topDepartmentsOption"
-          :height="departmentDistributionHeight"
-          aria-label="Students by Department"
+          :chart="enrollmentTrendChart"
           class="analytics-chart-wide"
-        >
-          <template #actions>
-            <div class="flex items-center gap-2">
-              <UBadge color="primary" variant="soft">
-                {{ departmentChartBadge }}
-              </UBadge>
-              <AppButton
-                action="details"
-                to="/students"
-                :label="t('text.viewDetails')"
-              />
-            </div>
-          </template>
-        </AnalyticsChartCard>
-
-        <AnalyticsChartCard
-          :chart="popularCoursesChart"
-          class="analytics-chart-wide"
-        >
-          <template #actions>
-            <AppButton
-              action="details"
-              to="/courses"
-              :label="t('text.viewDetails')"
-            />
-          </template>
-        </AnalyticsChartCard>
-
-        <AnalyticsChartCard
-          title="Student Login Activity"
-          icon="i-lucide-activity"
-          :option="studentActivityOption"
-          height="360px"
-          aria-label="Student Login Activity"
-          class="analytics-chart-wide"
-        >
-          <template #actions>
-            <AppButton
-              action="details"
-              to="/learning-activity"
-              :label="t('text.viewDetails')"
-            />
-          </template>
-        </AnalyticsChartCard>
+        />
       </template>
     </section>
+
+    <DashboardStudentList />
   </div>
 </template>
 

@@ -18,6 +18,7 @@ class PartnerRequestController extends BasePartnerRequestController
     {
         $validated = $request->validate([
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'institution' => ['sometimes', 'nullable', 'string', 'max:255'],
             'status' => [
                 'sometimes',
                 'nullable',
@@ -42,7 +43,14 @@ class PartnerRequestController extends BasePartnerRequestController
                         ->orWhere('institution_name', 'like', "%{$search}%");
                 });
             })
-            ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($validated['institution'] ?? null, function ($query, string $institution): void {
+                $query->where('institution_name', InstitutionNormalizer::normalize($institution));
+            })
+            ->when(
+                $validated['status'] ?? null,
+                fn ($query, string $status) => $query->where('status', $status),
+                fn ($query) => $query->where('status', '!=', PartnerRequest::STATUS_APPROVED),
+            )
             ->latest('id')
             ->paginate((int) ($validated['perPage'] ?? 10));
 

@@ -6,8 +6,6 @@ export const sidebarNavigationGroups = [
       "Students",
       "Institutes",
       "Courses",
-      "Learning Activity",
-      "Reports",
       "Administration",
       "Settings",
     ],

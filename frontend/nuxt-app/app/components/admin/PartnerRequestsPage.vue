@@ -3,6 +3,7 @@ import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import AppButton from "~/components/common/AppButton.vue";
 import AppSelect from "~/components/common/AppSelect.vue";
 import AppDataTable from "~/components/common/AppDataTable.vue";
+import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import { usePartnerRequestsPage } from "~/composables/admin/usePartnerRequestsPage";
@@ -11,8 +12,12 @@ const { t } = useI18n();
 const { translateText } = useTranslateText();
 
 const {
+  activeFilterCount,
   detailsOpen,
   error,
+  hasFilters,
+  institutionFilter,
+  institutionOptions,
   isLoading,
   isReviewing,
   pagination,
@@ -20,7 +25,6 @@ const {
   pendingBadgeLabel,
   rows,
   searchQuery,
-  selectedIdCardUrl,
   selectedSubmittedAtLabel,
   selectedRequest,
   rejectionReason,
@@ -54,7 +58,7 @@ const {
       </div>
     </PageHeader>
 
-    <UCard :ui="{ body: 'analytics-filter-bar' }">
+    <UCard :ui="{ body: 'analytics-filter-bar admin-filter-bar admin-filter-bar--requests' }">
       <div class="analytics-filter-field wide">
         <label>{{ t("common.search") }}</label>
         <AppSearchInput
@@ -76,18 +80,35 @@ const {
           :aria-label="t('text.status')"
         />
       </div>
-      <div class="analytics-filter-field compact">
+      <div class="analytics-filter-field">
+        <label>{{ translateText("Institute") }}</label>
+        <AppSelect
+          v-model="institutionFilter"
+          :items="institutionOptions"
+          value-key="value"
+          :searchable="false"
+          :aria-label="String(translateText('Institute'))"
+        />
+      </div>
+      <div class="analytics-filter-actions">
+        <UBadge v-if="activeFilterCount" color="neutral" variant="soft">
+          {{ activeFilterCount }} {{ translateText("active") }}
+        </UBadge>
         <AppButton
+          action="search"
+          :label="String(translateText('Apply filters'))"
+          @click="submitSearch"
+        />
+        <AppButton
+          v-if="hasFilters"
           action="clear"
-          label=""
-          square
-          :aria-label="String(translateText('Clear filters'))"
+          :label="String(translateText('Clear filters'))"
           @click="clearFilters"
         />
       </div>
     </UCard>
 
-    <StatePanel v-if="isLoading" state="loading" />
+    <AppLoadingSkeleton v-if="isLoading" variant="table" :rows="6" :columns="7" />
     <StatePanel v-else-if="error" state="error" :description="error" />
 
     <template v-else>
@@ -98,7 +119,7 @@ const {
         :columns="table.columns"
         :rows="rows"
         :row-key="table.rowKey"
-        min-width="1490px"
+        min-width="1360px"
       >
         <template #actions>
           <AppSearchInput
@@ -174,17 +195,19 @@ const {
       v-model:open="detailsOpen"
       :title="String(translateText('Partner request details'))"
       :description="String(translateText('Review the signup information before approving institute access.'))"
-      :ui="{ content: 'max-w-2xl rounded-md' }"
+      :ui="{ content: 'max-w-2xl rounded-md partner-request-profile-modal' }"
     >
       <template #body>
-        <div v-if="selectedRequest" class="grid gap-4">
-          <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-default p-4">
-            <div>
-              <p class="text-sm text-muted">{{ translateText("Applicant") }}</p>
-              <h3 class="text-lg font-semibold text-highlighted">
+        <div v-if="selectedRequest" class="partner-request-profile">
+          <section class="partner-request-profile-hero">
+            <span class="partner-request-profile-avatar">
+              <UIcon name="i-lucide-user-round" />
+            </span>
+            <div class="partner-request-profile-identity">
+              <h3>
                 {{ selectedRequest.name }}
               </h3>
-              <p class="text-sm text-muted">{{ selectedRequest.email }}</p>
+              <p>{{ selectedRequest.email }}</p>
             </div>
             <UBadge
               :color="
@@ -198,55 +221,54 @@ const {
             >
               {{ translateText(selectedRequest.status) }}
             </UBadge>
-          </div>
+          </section>
 
-          <div class="grid gap-3 md:grid-cols-2">
-            <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">{{ translateText("Institute") }}</p>
-              <p class="font-medium text-highlighted">
-                {{ selectedRequest.institution_name }}
-              </p>
-            </div>
-            <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">{{ translateText("Province") }}</p>
-              <p class="font-medium text-highlighted">
-                {{ selectedRequest.state_province }}
-              </p>
-            </div>
-            <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">{{ translateText("Phone") }}</p>
-              <p class="font-medium text-highlighted">
-                {{ selectedRequest.phone_number }}
-              </p>
-            </div>
-            <div class="rounded-md border border-default p-3">
-              <p class="text-xs uppercase text-muted">{{ translateText("Submitted") }}</p>
-              <p class="font-medium text-highlighted">
-                {{ selectedSubmittedAtLabel }}
-              </p>
-            </div>
-          </div>
-
-          <div class="rounded-md border border-default p-4">
-            <div class="flex flex-wrap items-center justify-between gap-3">
+          <section class="partner-request-profile-section">
+            <div class="partner-request-profile-section-header">
+              <span class="partner-request-profile-section-icon">
+                <UIcon name="i-lucide-clipboard-list" />
+              </span>
               <div>
-                <p class="font-medium text-highlighted">{{ translateText("ID card document") }}</p>
-                <p class="text-sm text-muted">
-                  {{ translateText(selectedRequest.id_card_path ? "Uploaded by applicant" : "No document uploaded") }}
-                </p>
+                <h3>{{ translateText("Profile details") }}</h3>
+                <p>{{ translateText("Review the signup information before approving institute access.") }}</p>
               </div>
-              <AppButton
-                v-if="selectedIdCardUrl"
-                action="open"
-                :to="selectedIdCardUrl"
-                target="_blank"
-              />
             </div>
-          </div>
+
+            <dl class="partner-request-profile-grid">
+              <div class="partner-request-profile-detail">
+                <dt>
+                  <UIcon name="i-lucide-building-2" />
+                  {{ translateText("Institute") }}
+                </dt>
+                <dd>{{ selectedRequest.institution_name }}</dd>
+              </div>
+              <div class="partner-request-profile-detail">
+                <dt>
+                  <UIcon name="i-lucide-map-pin" />
+                  {{ translateText("Province") }}
+                </dt>
+                <dd>{{ selectedRequest.state_province }}</dd>
+              </div>
+              <div class="partner-request-profile-detail">
+                <dt>
+                  <UIcon name="i-lucide-calendar-plus" />
+                  {{ translateText("Submitted") }}
+                </dt>
+                <dd>{{ selectedSubmittedAtLabel }}</dd>
+              </div>
+              <div class="partner-request-profile-detail">
+                <dt>
+                  <UIcon name="i-lucide-activity" />
+                  {{ t("text.status") }}
+                </dt>
+                <dd>{{ translateText(selectedRequest.status) }}</dd>
+              </div>
+            </dl>
+          </section>
 
           <div
             v-if="selectedRequest.rejection_reason"
-            class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            class="partner-request-profile-rejection"
           >
             <strong>{{ translateText("Rejection reason:") }}</strong>
             {{ selectedRequest.rejection_reason }}
@@ -309,3 +331,161 @@ const {
     </UModal>
   </div>
 </template>
+
+<style scoped>
+.partner-request-profile {
+  display: grid;
+  gap: 16px;
+}
+
+.partner-request-profile-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--app-surface);
+}
+
+.partner-request-profile-avatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--app-surface-soft);
+  color: var(--app-primary);
+  box-shadow: inset 0 0 0 1px var(--app-border);
+}
+
+.partner-request-profile-identity {
+  min-width: 0;
+}
+
+.partner-request-profile-identity h3 {
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.partner-request-profile-identity p {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.partner-request-profile-section {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--app-surface-soft) 58%, transparent);
+}
+
+.partner-request-profile-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.partner-request-profile-section-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--app-surface);
+  color: var(--app-primary);
+  box-shadow: inset 0 0 0 1px var(--app-border);
+}
+
+.partner-request-profile-section-header h3 {
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.partner-request-profile-section-header p {
+  margin: 3px 0 0;
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.partner-request-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.partner-request-profile-detail {
+  min-width: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--app-surface);
+}
+
+.partner-request-profile-detail dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.partner-request-profile-detail dd {
+  margin: 7px 0 0;
+  color: var(--app-heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.partner-request-profile-rejection {
+  border: 1px solid color-mix(in srgb, var(--app-error) 35%, transparent);
+  border-radius: 8px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--app-error) 10%, var(--app-surface));
+  color: var(--app-error);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+:global(.partner-request-profile-modal [data-slot="body"]) {
+  background: var(--app-bg);
+}
+
+:global(.partner-request-profile-modal [data-slot="header"]),
+:global(.partner-request-profile-modal [data-slot="footer"]) {
+  background: var(--app-surface);
+}
+
+@media (max-width: 640px) {
+  .partner-request-profile-hero {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .partner-request-profile-hero :deep([data-slot="base"]) {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+
+  .partner-request-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

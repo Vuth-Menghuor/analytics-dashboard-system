@@ -34,24 +34,6 @@ const formatStudentValue = (
 
 const getBooleanValue = (value: unknown) => (value ? "Yes" : "No");
 
-const engagementSummary = computed(() => {
-  const student = propsStudent.value;
-
-  if (!student) {
-    return "";
-  }
-
-  if (student.lastLogin === "Never logged in") {
-    return "No login activity recorded. This student should be prioritized for follow-up.";
-  }
-
-  if (student.status === "Inactive") {
-    return "Inactive account status. Review confirmation or suspension state before academic follow-up.";
-  }
-
-  return "Active account with recorded Moodle login activity.";
-});
-
 const studentAvatarSrc = computed(() => {
   const avatarUrl = propsStudent.value?.avatarUrl;
 
@@ -109,7 +91,7 @@ watch(
                 <UIcon name="i-lucide-at-sign" />
                 {{ student.username }}
               </span>
-              <span>
+              <span v-if="student.email">
                 <UIcon name="i-lucide-mail" />
                 {{ student.email }}
               </span>
@@ -139,13 +121,6 @@ watch(
             <UIcon name="i-lucide-users" />
             {{ translateText(student.gender) }}
           </UBadge>
-          <UBadge
-            :color="student.riskLevel === 'Low' ? 'success' : 'warning'"
-            variant="soft"
-          >
-            <UIcon name="i-lucide-activity" />
-            {{ translateText(`${student.riskLevel} risk`) }}
-          </UBadge>
         </div>
 
         <section class="profile-stat-grid student-profile-stats">
@@ -161,7 +136,6 @@ watch(
               <UIcon name="i-lucide-activity" />
               {{ translateText("Student Activity") }}
             </h3>
-            <p>{{ translateText("Login and account-status indicators for active/inactive student monitoring.") }}</p>
           </div>
 
           <div class="student-profile-summary-grid">
@@ -183,35 +157,9 @@ watch(
         <section class="student-profile-section">
           <div class="section-heading compact">
             <h3 class="section-title with-icon">
-              <UIcon name="i-lucide-activity" />
-              {{ translateText("Engagement Summary") }}
-            </h3>
-            <p>{{ translateText(engagementSummary) }}</p>
-          </div>
-
-          <div class="student-engagement-list">
-            <div>
-              <span>{{ translateText("Account status") }}</span>
-              <strong>{{ translateText(student.status) }}</strong>
-            </div>
-            <div>
-              <span>{{ translateText("Last activity") }}</span>
-              <strong>{{ student.lastLogin }}</strong>
-            </div>
-            <div>
-              <span>{{ translateText("Resource usage") }}</span>
-              <strong>{{ translateText("Requires Moodle log detail") }}</strong>
-            </div>
-          </div>
-        </section>
-
-        <section class="student-profile-section">
-          <div class="section-heading compact">
-            <h3 class="section-title with-icon">
               <UIcon name="i-lucide-user-round-search" />
               {{ translateText("Moodle Profile Fields") }}
             </h3>
-            <p>{{ translateText("Read-only profile fields imported from Moodle.") }}</p>
           </div>
           <dl class="student-profile-details">
             <div v-for="detail in studentProfileDetails" :key="detail.label">

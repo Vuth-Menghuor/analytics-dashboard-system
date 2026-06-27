@@ -25,9 +25,6 @@ export const useLoginForm = () => {
   const partnerRequestSubmitted = computed(
     () => route.query.submitted === "1" && selectedRole.value === "partner",
   );
-  const visitorAccountCreated = computed(
-    () => route.query.registered === "1" && selectedRole.value === "visitor",
-  );
 
   const isRoleLanding = computed(() => !routeRole.value);
 
@@ -66,6 +63,5 @@ export const useLoginForm = () => {
     selectAccessRole,
     selectedRole,
     selectedRoleConfig,
-    visitorAccountCreated,
   };
 };

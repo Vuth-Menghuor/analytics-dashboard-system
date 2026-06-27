@@ -1,11 +1,12 @@
-import type { CsvColumn, CsvValue } from "~/utils/exportCsv";
-import { exportRowsToCsv } from "~/utils/exportCsv";
+import type { CsvColumn, CsvValue, ExportFormat } from "~/utils/exportCsv";
+import { exportRowsToCsv, exportRowsToExcel } from "~/utils/exportCsv";
 
 type CsvExportOptions<TRow extends Record<string, CsvValue>> = {
   filename: string;
   columns: CsvColumn<TRow>[];
   rows: TRow[];
   label?: string;
+  format?: ExportFormat;
 };
 
 const waitForPaint = () =>
@@ -30,8 +31,12 @@ export const useCsvExport = () => {
     filename,
     columns,
     rows,
-    label = "CSV file",
+    label,
+    format = "csv",
   }: CsvExportOptions<TRow>) => {
+    const formatLabel = format === "excel" ? "Excel file" : "CSV file";
+    const exportLabel = label ?? formatLabel;
+
     if (!rows.length) {
       toast.add({
         title: "No data to export",
@@ -43,8 +48,8 @@ export const useCsvExport = () => {
     }
 
     toast.add({
-      title: "Preparing CSV",
-      description: `${label} is being generated...`,
+      title: `Preparing ${format === "excel" ? "Excel" : "CSV"}`,
+      description: `${exportLabel} is being generated...`,
       icon: "i-lucide-loader-circle",
       color: "primary",
       duration: 1200,
@@ -53,10 +58,15 @@ export const useCsvExport = () => {
     await Promise.all([waitForPaint(), wait(650)]);
 
     try {
-      exportRowsToCsv(filename, columns, rows);
+      if (format === "excel") {
+        exportRowsToExcel(filename, columns, rows);
+      } else {
+        exportRowsToCsv(filename, columns, rows);
+      }
+
       toast.add({
-        title: "CSV ready",
-        description: `${label} download has started.`,
+        title: `${format === "excel" ? "Excel" : "CSV"} ready`,
+        description: `${exportLabel} download has started.`,
         icon: "i-lucide-check-circle-2",
         color: "success",
       });

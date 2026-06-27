@@ -15,21 +15,17 @@ const {
   handlePrimaryAction,
   headerCopy,
   headerTitle,
-  idCardPreviewType,
-  idCardPreviewUrl,
   isGoogleEmailVerified,
   isSubmitting,
   isPartner,
-  isPartnerReviewStep,
+  isVisitor,
   primaryButtonLabel,
-  reviewItems,
   schoolInstitutes,
   selectedRole,
   stateProvinces,
   submitStatus,
   submitStatusType,
   totalSteps,
-  updateIdCardFile,
 } = useSignupForm();
 
 const { t } = useI18n();
@@ -76,16 +72,19 @@ const { translateText } = useTranslateText();
           </NuxtLink>
         </div>
 
-        <template v-if="selectedRole === 'visitor'">
-          <UFormField :label="t('auth.fullName')" class="field">
-            <UInput
-              v-model="form.fullName"
-              class="w-full"
-              type="text"
-              :placeholder="t('auth.enterFullName')"
-              required
-            />
-          </UFormField>
+        <template v-if="isVisitor">
+          <div class="google-verification-panel">
+            <span class="google-verification-copy">
+              {{ t("auth.createVisitorWithGoogle") }}
+            </span>
+            <div ref="googleButtonRef" class="google-signin-button" />
+            <span
+              v-if="isGoogleEmailVerified"
+              class="google-verification-success"
+            >
+              {{ t("auth.verifiedGoogleEmail", { email: form.email }) }}
+            </span>
+          </div>
 
           <UFormField :label="t('auth.email')" class="field">
             <UInput
@@ -93,6 +92,7 @@ const { translateText } = useTranslateText();
               class="w-full"
               type="email"
               :placeholder="t('auth.enterEmailAddress')"
+              readonly
               required
             />
           </UFormField>
@@ -126,30 +126,28 @@ const { translateText } = useTranslateText();
               required
             />
           </UFormField>
+
+          <UFormField :label="t('auth.schoolInstituteName')" class="field">
+            <USelect
+              v-model="form.institutionName"
+              :items="schoolInstitutes"
+              class="w-full"
+              :placeholder="t('auth.selectSchoolInstitute')"
+              required
+            />
+          </UFormField>
         </template>
 
         <template v-else-if="currentStep === 2">
-          <div class="auth-form-grid">
-            <UFormField :label="t('auth.firstName')" class="field">
-              <UInput
-                v-model="form.firstName"
-                class="w-full"
-                type="text"
-                :placeholder="t('auth.enterFirstName')"
-                required
-              />
-            </UFormField>
-
-            <UFormField :label="t('auth.lastName')" class="field">
-              <UInput
-                v-model="form.lastName"
-                class="w-full"
-                type="text"
-                :placeholder="t('auth.enterLastName')"
-                required
-              />
-            </UFormField>
-          </div>
+          <UFormField :label="t('auth.username')" class="field">
+            <UInput
+              v-model="form.name"
+              class="w-full"
+              type="text"
+              :placeholder="t('auth.enterUsername')"
+              required
+            />
+          </UFormField>
 
           <UFormField :label="t('auth.email')" class="field">
             <UInput
@@ -175,16 +173,6 @@ const { translateText } = useTranslateText();
             </span>
           </div>
 
-          <UFormField :label="t('auth.phoneNumber')" class="field">
-            <UInput
-              v-model="form.phoneNumber"
-              class="w-full"
-              type="tel"
-              :placeholder="t('auth.enterPhoneNumber')"
-              required
-            />
-          </UFormField>
-
           <AuthPasswordField
             v-model="form.password"
             :label="t('auth.password')"
@@ -202,78 +190,7 @@ const { translateText } = useTranslateText();
             :show-label="t('auth.showPasswordConfirmation')"
             required
           />
-        </template>
 
-        <template v-else-if="currentStep === 3">
-          <UFormField :label="t('auth.schoolInstituteName')" class="field">
-            <USelect
-              v-model="form.institutionName"
-              :items="schoolInstitutes"
-              class="w-full"
-              :placeholder="t('auth.selectSchoolInstitute')"
-              required
-            />
-          </UFormField>
-
-          <div class="id-card-upload-group">
-            <UFormField
-              :label="t('auth.instituteAffiliationDocument')"
-              :help="t('auth.instituteAffiliationDocumentHelp')"
-              class="field"
-            >
-              <input
-                class="file-input"
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf"
-                required
-                @change="
-                  updateIdCardFile(($event.target as HTMLInputElement).files)
-                "
-              />
-              <span v-if="form.idCard" class="file-input-meta">
-                {{ form.idCard.name }}
-              </span>
-            </UFormField>
-          </div>
-        </template>
-
-        <template v-else-if="isPartnerReviewStep">
-          <div class="review-panel">
-            <div v-for="item in reviewItems" :key="item.label">
-              <span>{{ translateText(item.label) }}</span>
-              <strong>{{ item.value || t("auth.notProvided") }}</strong>
-            </div>
-          </div>
-
-          <section
-            class="id-card-preview"
-            :aria-label="t('auth.instituteAffiliationDocumentPreview')"
-          >
-            <div class="id-card-preview-header">
-              <span>{{ t("auth.instituteAffiliationDocument") }}</span>
-              <strong>{{ form.idCard?.name || t("auth.notUploaded") }}</strong>
-            </div>
-
-            <img
-              v-if="idCardPreviewUrl && idCardPreviewType === 'image'"
-              class="id-card-preview-media"
-              :src="idCardPreviewUrl"
-              :alt="t('auth.uploadedInstituteAffiliationDocumentPreview')"
-            />
-            <object
-              v-else-if="idCardPreviewUrl"
-              class="id-card-preview-media"
-              :data="idCardPreviewUrl"
-              :type="form.idCard?.type || 'application/pdf'"
-            >
-              <a :href="idCardPreviewUrl" target="_blank" rel="noreferrer">
-                {{ t("auth.openUploadedAffiliationDocument") }}
-              </a>
-            </object>
-            <div v-else class="id-card-preview-empty">
-              {{ t("auth.affiliationDocumentPreviewUnavailable") }}
-            </div>
-          </section>
         </template>
 
         <p

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import LanguageSwitcher from "~/components/common/LanguageSwitcher.vue";
 import ThemeToggle from "~/components/common/ThemeToggle.vue";
-import AppSearchInput from "~/components/common/AppSearchInput.vue";
 import { useAccountDisplay } from "~/composables/account/useAccountDisplay";
 import { useAccountMenu } from "~/composables/account/useAccountMenu";
 
@@ -11,7 +10,6 @@ const { avatarSrc, displayEmail, displayName, displayRole, userInitial } =
   useAccountDisplay();
 const { accountMenuUi, userMenuItems } = useAccountMenu();
 const pageTitle = usePageTitle();
-const searchQuery = ref("");
 
 const formattedRole = computed(() =>
   String(displayRole.value)
@@ -26,17 +24,20 @@ const formattedRole = computed(() =>
     <h1 class="topbar-title">{{ pageTitle }}</h1>
 
     <div class="topbar-actions">
-      <AppSearchInput
-        v-model="searchQuery"
-        class="topbar-search"
-        :aria-label="t('common.search')"
-        :placeholder="t('common.searchPlaceholder')"
-        shortcut
-      />
-
       <LanguageSwitcher />
 
       <ThemeToggle />
+
+      <UButton
+        v-if="!auth.user"
+        color="primary"
+        variant="solid"
+        size="sm"
+        icon="i-lucide-log-in"
+        class="topbar-login-button"
+        :label="t('auth.login')"
+        to="/login"
+      />
 
       <UDropdownMenu
         v-if="auth.user"
@@ -125,10 +126,6 @@ const formattedRole = computed(() =>
   min-width: 0;
 }
 
-.topbar-search {
-  width: clamp(180px, 20vw, 260px);
-}
-
 .topbar-icon-button {
   flex: 0 0 auto;
 }
@@ -147,6 +144,35 @@ const formattedRole = computed(() =>
   height: 38px;
   border-color: var(--app-border);
   border-radius: 8px;
+}
+
+.topbar-login-button {
+  height: 38px;
+  border: 1px solid var(--app-primary) !important;
+  border-radius: 8px;
+  background: var(--app-primary) !important;
+  color: var(--app-on-primary) !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: none;
+  --tw-ring-color: var(--app-primary);
+}
+
+.topbar-login-button:hover,
+.topbar-login-button:active {
+  border-color: var(--app-primary-hover) !important;
+  background: var(--app-primary-hover) !important;
+  color: var(--app-on-primary) !important;
+}
+
+.topbar-login-button:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+.topbar-login-button :deep([data-slot="leadingIcon"]),
+.topbar-login-button :deep([data-slot="label"]) {
+  color: currentColor !important;
 }
 
 .topbar-account-button {
@@ -266,10 +292,6 @@ const formattedRole = computed(() =>
 }
 
 @media (max-width: 980px) {
-  .topbar-search {
-    width: min(220px, 28vw);
-  }
-
   .topbar-account-copy {
     display: none;
   }
@@ -287,11 +309,6 @@ const formattedRole = computed(() =>
 
   .topbar-actions {
     width: 100%;
-  }
-
-  .topbar-search {
-    flex: 1;
-    width: auto;
   }
 
   .topbar-account-copy {

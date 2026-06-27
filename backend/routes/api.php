@@ -12,6 +12,16 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/partner-requests', [PartnerRequestController::class, 'store']);
 
+Route::prefix('public/dashboard')->group(function (): void {
+    Route::get('/summary', [DashboardAnalyticsController::class, 'summary']);
+    Route::get('/institutes', [DashboardAnalyticsController::class, 'institutes']);
+    Route::get('/students/by-institution', [DashboardAnalyticsController::class, 'studentsByInstitution']);
+    Route::get('/students/by-department', [DashboardAnalyticsController::class, 'studentsByDepartment']);
+    Route::get('/students/gender', [DashboardAnalyticsController::class, 'studentGender']);
+    Route::get('/students/activity-trend', [DashboardAnalyticsController::class, 'studentActivityTrend']);
+    Route::get('/courses/popular', [DashboardAnalyticsController::class, 'popularCourses']);
+});
+
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -33,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::patch('/partner-requests/{partnerRequest}/reject', [AdminPartnerRequestController::class, 'reject']);
     });
 
-    Route::middleware('role:manager,partner,visitor')->prefix('dashboard')->group(function (): void {
+    Route::middleware('role:manager,partner')->prefix('dashboard')->group(function (): void {
         Route::get('/summary', [DashboardAnalyticsController::class, 'summary']);
         Route::get('/institutes', [DashboardAnalyticsController::class, 'institutes']);
 

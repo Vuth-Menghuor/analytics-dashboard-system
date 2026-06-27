@@ -24,9 +24,11 @@ const props = withDefaults(defineProps<{
   rows: readonly TableRow[]
   rowKey: string
   minWidth?: string
+  tableClass?: string
 }>(), {
   description: '',
   minWidth: '760px',
+  tableClass: '',
 })
 
 const { translateText } = useTranslateText()
@@ -83,7 +85,7 @@ const isWarningStatus = (column: TableColumn, value: TableValue) => {
     </div>
 
     <div class="dashboard-data-table-wrap">
-      <table class="dashboard-data-table" :style="{ minWidth }">
+      <table class="dashboard-data-table" :class="tableClass" :style="{ minWidth }">
         <colgroup>
           <col
             v-for="column in columns"
