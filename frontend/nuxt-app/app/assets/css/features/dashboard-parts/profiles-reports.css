@@ -1,0 +1,415 @@
+.profile-drawer,
+.settings-panel {
+  display: grid;
+  gap: 16px;
+  padding: 4px;
+}
+
+.student-profile-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--app-primary) 8%, transparent),
+      color-mix(in srgb, var(--app-success) 8%, transparent)
+    ),
+    var(--app-surface);
+}
+
+.student-profile-avatar {
+  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: var(--app-on-primary);
+  font-size: 1.1rem;
+  font-weight: 850;
+  overflow: hidden;
+}
+
+.student-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-profile-identity {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.student-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.student-profile-meta span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: var(--app-text-muted);
+  font-size: 0.78rem;
+}
+
+.student-profile-meta svg {
+  width: 14px;
+  height: 14px;
+}
+
+.profile-drawer h2,
+.course-detail-panel h2,
+.report-preview-card h2 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.profile-drawer p,
+.course-detail-panel p,
+.report-preview-card p {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+}
+
+.profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-stat-grid div {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--app-surface-soft);
+}
+
+.profile-stat-grid span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.profile-stat-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--app-text);
+  font-size: 1.1rem;
+}
+
+.student-profile-badges {
+  padding-inline: 2px;
+}
+
+.student-profile-badges svg {
+  width: 13px;
+  height: 13px;
+}
+
+.student-profile-section {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--app-surface);
+}
+
+.student-profile-section h3 {
+  margin: 0;
+}
+
+.student-profile-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-profile-summary-grid div {
+  display: grid;
+  gap: 4px;
+  border-radius: 8px;
+  background: var(--app-surface-soft);
+  padding: 12px;
+}
+
+.student-profile-summary-grid span {
+  color: var(--app-text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.student-profile-summary-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--app-text);
+  font-size: 0.98rem;
+  font-weight: 850;
+}
+
+.student-progress-meter {
+  display: grid;
+  position: relative;
+  gap: 9px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--app-surface-soft);
+  padding: 12px;
+}
+
+.student-progress-meter div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-progress-meter span,
+.student-engagement-list span {
+  color: var(--app-text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.student-progress-meter strong,
+.student-engagement-list strong {
+  overflow-wrap: anywhere;
+  color: var(--app-text);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.student-progress-meter::before {
+  display: block;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--app-border);
+  content: "";
+}
+
+.student-progress-meter i {
+  display: block;
+  position: relative;
+  z-index: 1;
+  height: 8px;
+  min-width: 4px;
+  max-width: 100%;
+  border-radius: 999px;
+}
+
+.student-progress-meter i.high {
+  background: var(--color-success);
+}
+
+.student-progress-meter i.medium {
+  background: var(--color-warning);
+}
+
+.student-progress-meter i.low {
+  background: var(--app-error);
+}
+
+.student-engagement-list {
+  display: grid;
+  gap: 10px;
+}
+
+.student-engagement-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  background: var(--app-surface-soft);
+  padding: 12px;
+}
+
+.course-detail-panel,
+.report-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+}
+
+.report-summary-shell,
+.report-export-shell,
+.report-preview-shell {
+  border: 1px solid var(--app-border) !important;
+}
+
+.settings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.report-export-actions {
+  flex: 1 1 260px;
+  justify-content: flex-end;
+}
+
+.report-export-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.report-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+}
+
+.report-summary-card span {
+  color: var(--app-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.report-summary-card strong {
+  color: var(--app-text);
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+
+.report-summary-card p {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 0.88rem;
+}
+
+.page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--app-surface);
+}
+
+.dashboard-drilldown-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.report-export-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.report-export-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 20px;
+}
+
+.report-export-card h2 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.report-export-card p {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 0.9rem;
+}
+
+.report-export-card .toolbar {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+.report-export-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.report-export-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-primary) 8%, transparent);
+  color: var(--color-primary);
+}
+
+.static-preview-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.static-preview-stat-grid div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--app-bg);
+}
+
+.static-preview-stat-grid span {
+  color: var(--app-text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.static-preview-stat-grid strong {
+  color: var(--app-text);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.static-preview-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.static-preview-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.static-preview-list svg {
+  color: var(--color-success);
+}

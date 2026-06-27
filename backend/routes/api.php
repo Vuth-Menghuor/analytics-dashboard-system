@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\PartnerRequestController as AdminPartnerRequestController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardAnalyticsController;
 use App\Http\Controllers\PartnerRequestController;
@@ -18,8 +18,6 @@ Route::prefix('public/dashboard')->group(function (): void {
     Route::get('/students/by-institution', [DashboardAnalyticsController::class, 'studentsByInstitution']);
     Route::get('/students/by-department', [DashboardAnalyticsController::class, 'studentsByDepartment']);
     Route::get('/students/gender', [DashboardAnalyticsController::class, 'studentGender']);
-    Route::get('/students/activity-trend', [DashboardAnalyticsController::class, 'studentActivityTrend']);
-    Route::get('/courses/popular', [DashboardAnalyticsController::class, 'popularCourses']);
 });
 
 Route::middleware('auth:sanctum')->group(function (): void {
@@ -28,9 +26,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/user', function (Request $request) {
         return $request->user()->only(['id', 'name', 'email', 'role', 'institution_name']);
     });
-
-    Route::get('/analytics/imported/overview', [DashboardAnalyticsController::class, 'importedOverview'])
-    ->middleware('role:manager,partner');
 
     Route::middleware('role:manager')->prefix('admin')->group(function (): void {
         Route::get('/users', [AdminUserController::class, 'index']);
@@ -55,7 +50,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/students/{student}/avatar', [DashboardAnalyticsController::class, 'studentAvatar'])->whereNumber('student');
         Route::get('/students/{student}', [DashboardAnalyticsController::class, 'student'])->whereNumber('student');
         Route::get('/students/activity', [DashboardAnalyticsController::class, 'studentActivity']);
-        Route::get('/students/activity-trend', [DashboardAnalyticsController::class, 'studentActivityTrend']);
 
         Route::get('/courses', [DashboardAnalyticsController::class, 'courses']);
         Route::get('/courses/popular', [DashboardAnalyticsController::class, 'popularCourses']);

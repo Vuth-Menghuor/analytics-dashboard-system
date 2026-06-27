@@ -324,58 +324,6 @@ class StudentAnalyticsService
             ]);
     }
 
-    public function studentActivityTrend(array $filters = [], string $period = 'month'): Collection
-    {
-        $config = match ($period) {
-            'week' => [
-                'unit' => 'week',
-                'lookback' => 11,
-                'sqlFormat' => 'IYYY-"W"IW',
-                'phpFormat' => '\WW Y',
-            ],
-            'year' => [
-                'unit' => 'year',
-                'lookback' => 4,
-                'sqlFormat' => 'YYYY',
-                'phpFormat' => 'Y',
-            ],
-            default => [
-                'unit' => 'month',
-                'lookback' => 11,
-                'sqlFormat' => 'YYYY-MM',
-                'phpFormat' => 'M Y',
-            ],
-        };
-
-        $rows = $this->applyStudentFilters(MoodleStudent::query(), $filters)
-            ->selectRaw("to_char(date_trunc('{$config['unit']}', to_timestamp(lastlogin)), '{$config['sqlFormat']}') as period_key")
-            ->selectRaw('count(*) as total_students')
-            ->where('deleted', 0)
-            ->where('lastlogin', '>', 0)
-            ->whereRaw("to_timestamp(lastlogin) >= date_trunc('{$config['unit']}', now()) - interval '{$config['lookback']} {$config['unit']}s'")
-            ->groupByRaw("date_trunc('{$config['unit']}', to_timestamp(lastlogin))")
-            ->get()
-            ->keyBy('period_key');
-
-        return collect(range($config['lookback'], 0))->map(function (int $stepsAgo) use ($config, $rows) {
-            $date = match ($config['unit']) {
-                'week' => now()->startOfWeek()->subWeeks($stepsAgo),
-                'year' => now()->startOfYear()->subYears($stepsAgo),
-                default => now()->startOfMonth()->subMonths($stepsAgo),
-            };
-            $key = $date->format(match ($config['unit']) {
-                'week' => 'o-\WW',
-                'year' => 'Y',
-                default => 'Y-m',
-            });
-
-            return [
-                'period' => $date->format($config['phpFormat']),
-                'totalStudents' => (int) ($rows->get($key)?->total_students ?? 0),
-            ];
-        });
-    }
-
     private function applyInstitutionScope(Builder $query, ?string $institution): Builder
     {
         return $query->when($institution, fn (Builder $query, string $institution) => $this->applyTextDimensionFilter($query, 'institution', $institution));

@@ -1,0 +1,197 @@
+@media (max-width: 760px) {
+  .analytics-chart-grid,
+  .course-insight-grid,
+  .dashboard-insights,
+  .dashboard-detail,
+  .report-export-grid,
+  .report-export-summary,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .static-preview-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-profile-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .course-detail-panel,
+  .report-preview-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .student-record-hero,
+  .student-insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-record-hero-stats,
+  .student-profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .student-pagination,
+  .course-pagination,
+  .organization-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-pagination > div,
+  .course-pagination > div,
+  .organization-pagination > div {
+    justify-content: space-between;
+  }
+
+  .report-export-actions {
+    justify-content: flex-start;
+  }
+}
+
+.card,
+.metric,
+.analytics-card,
+.settings-panel,
+.profile-drawer,
+.course-detail-panel,
+.report-summary-shell,
+.report-export-shell,
+.report-preview-shell,
+.report-preview-card,
+.student-insight-panel,
+.gender-institution-card,
+.student-pagination,
+.course-pagination,
+.organization-pagination,
+.student-record-hero {
+  border-color: var(--app-border) !important;
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  box-shadow: var(--app-shadow);
+}
+
+.metric {
+  background: var(--metric-background, var(--app-surface)) !important;
+  border-color: var(--metric-background, var(--app-border)) !important;
+}
+
+.metric-label,
+.metric-subtitle,
+.chart-note,
+.section-heading p,
+.gender-split span,
+.profile-drawer p,
+.course-detail-panel p,
+.report-preview-card p,
+.student-risk-list span,
+.student-timeline p,
+.student-profile-details dt {
+  color: var(--app-muted) !important;
+}
+
+.metric-value,
+.section-title,
+.visitor-dashboard-intro h1,
+.profile-drawer h2,
+.course-detail-panel h2,
+.report-preview-card h2,
+.student-record-hero h2,
+.student-rank-list strong,
+.student-risk-list strong,
+.student-timeline strong,
+.student-profile-details dd,
+.gender-institution-table,
+.gender-institution-table th,
+.gender-institution-table td,
+.dashboard-data-table,
+.dashboard-data-table th,
+.dashboard-data-table td {
+  color: var(--app-heading) !important;
+}
+
+.metric .metric-label {
+  color: color-mix(
+    in srgb,
+    var(--metric-foreground, var(--app-on-primary)) 88%,
+    transparent
+  ) !important;
+}
+
+.metric .metric-subtitle {
+  color: color-mix(
+    in srgb,
+    var(--metric-foreground, var(--app-on-primary)) 72%,
+    transparent
+  ) !important;
+}
+
+.metric .metric-breakdown dt {
+  color: color-mix(
+    in srgb,
+    var(--metric-foreground, var(--app-on-primary)) 72%,
+    transparent
+  ) !important;
+}
+
+.metric .metric-breakdown dd {
+  color: var(--metric-foreground, var(--app-on-primary)) !important;
+}
+
+.metric .metric-value {
+  color: var(--metric-foreground, var(--app-on-primary)) !important;
+}
+
+.metric .metric-comparison-value[data-direction="up"] {
+  color: var(--app-success) !important;
+}
+
+.metric .metric-comparison-value[data-direction="down"] {
+  color: var(--app-error) !important;
+}
+
+.metric .metric-comparison-value[data-direction="neutral"] {
+  color: var(--app-muted) !important;
+}
+
+.metric .metric-icon {
+  background: transparent !important;
+  color: var(--metric-foreground, var(--app-on-primary)) !important;
+}
+
+:root.dark .metric .metric-icon {
+  color: var(--metric-foreground, var(--app-on-primary)) !important;
+}
+
+.analytics-filter-bar,
+.profile-stat-grid div,
+.student-risk-list > div,
+.student-record-hero-stats div {
+  border-color: var(--app-border) !important;
+  background: var(--app-surface-soft) !important;
+  color: var(--app-text) !important;
+}
+
+.category-data-details,
+.gender-institution-table th,
+.gender-institution-table td,
+.dashboard-data-table th,
+.dashboard-data-table td,
+.student-rank-list div {
+  border-color: var(--app-border) !important;
+}
+
+.gender-meter {
+  background: var(--app-surface-soft) !important;
+}
+
+:root.dark .echart,
+:root.dark canvas {
+  color: var(--app-text);
+}

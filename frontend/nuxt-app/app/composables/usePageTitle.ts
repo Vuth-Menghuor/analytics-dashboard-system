@@ -7,9 +7,7 @@ const pageTitles: Record<string, string> = {
   "/profile": "pageTitle.profile",
   "/students": "navigation.students",
   "/users": "pageTitle.userManagement",
-  "/visitor/courses": "navigation.courses",
   "/visitor/dashboard": "pageTitle.visitorDashboard",
-  "/visitor/institutions": "navigation.institutes",
 };
 
 export const usePageTitle = () => {

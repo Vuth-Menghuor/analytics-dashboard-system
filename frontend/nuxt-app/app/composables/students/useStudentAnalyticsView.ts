@@ -1,8 +1,10 @@
 import {
   studentCityAllOption,
   studentDepartmentAllOption,
+  studentGenderAllOption,
   studentGenderOptions,
   studentInstituteAllOption,
+  studentStatusAllOption,
   studentStatusOptions,
   studentTableColumns,
 } from "~/constants/studentAnalytics";
@@ -51,6 +53,31 @@ type StudentFilterKey =
   | "gender"
   | "status";
 type StudentAnalyticsTab = "overview" | "demographics";
+type StudentExportRow = {
+  studentCode?: string;
+  name: string;
+  email: string;
+  institute: string;
+  department: string;
+  city: string;
+  gender: string;
+  lastLogin: string;
+  status: Student["status"];
+  enrollments: number;
+};
+
+const studentExportColumns = [
+  { key: "studentCode", label: "ID" },
+  { key: "name", label: "Student" },
+  { key: "email", label: "Email" },
+  { key: "institute", label: "Institute" },
+  { key: "department", label: "Department" },
+  { key: "city", label: "City" },
+  { key: "gender", label: "Gender" },
+  { key: "lastLogin", label: "Last Login" },
+  { key: "status", label: "Status" },
+  { key: "enrollments", label: "Enrollments" },
+] satisfies Array<{ key: keyof StudentExportRow; label: string }>;
 
 export const useStudentAnalyticsView = () => {
   const { exportWithToast } = useCsvExport();
@@ -125,8 +152,8 @@ export const useStudentAnalyticsView = () => {
         ? undefined
         : filters.department,
     city: filters.city === studentCityAllOption ? undefined : filters.city,
-    gender: filters.gender === "All genders" ? undefined : filters.gender,
-    status: filters.status === "All statuses" ? undefined : filters.status,
+    gender: filters.gender === studentGenderAllOption ? undefined : filters.gender,
+    status: filters.status === studentStatusAllOption ? undefined : filters.status,
   });
 
   const getStudentsQuery = (
@@ -557,7 +584,8 @@ export const useStudentAnalyticsView = () => {
         axisPointer: { type: "shadow" },
         formatter: (params) => {
           const item = Array.isArray(params) ? params[0] : params;
-          const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
+          const index =
+            item && typeof item.dataIndex === "number" ? item.dataIndex : 0;
           const point = points[index];
 
           if (!point) return "";
@@ -641,7 +669,8 @@ export const useStudentAnalyticsView = () => {
         axisPointer: { type: "shadow" },
         formatter: (params) => {
           const item = Array.isArray(params) ? params[0] : params;
-          const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
+          const index =
+            item && typeof item.dataIndex === "number" ? item.dataIndex : 0;
           const point = points[index];
 
           if (!point) return "";
@@ -738,7 +767,8 @@ export const useStudentAnalyticsView = () => {
         axisPointer: { type: "shadow" },
         formatter: (params) => {
           const item = Array.isArray(params) ? params[0] : params;
-          const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
+          const index =
+            item && typeof item.dataIndex === "number" ? item.dataIndex : 0;
           const point = rankedPoints[index];
 
           if (!point) return "";
@@ -862,8 +892,8 @@ export const useStudentAnalyticsView = () => {
       hasInstituteFilter.value ||
       filters.department !== studentDepartmentAllOption ||
       filters.city !== studentCityAllOption ||
-      filters.gender !== studentGenderOptions[0] ||
-      filters.status !== studentStatusOptions[0],
+      filters.gender !== studentGenderAllOption ||
+      filters.status !== studentStatusAllOption,
   );
   const activeFilterChips = computed<
     Array<{ key: StudentFilterKey; label: string }>
@@ -887,10 +917,10 @@ export const useStudentAnalyticsView = () => {
       filters.city !== studentCityAllOption
         ? { key: "city" as const, label: `City: ${filters.city}` }
         : null,
-      filters.gender !== studentGenderOptions[0]
+      filters.gender !== studentGenderAllOption
         ? { key: "gender" as const, label: `Gender: ${filters.gender}` }
         : null,
-      filters.status !== studentStatusOptions[0]
+      filters.status !== studentStatusAllOption
         ? { key: "status" as const, label: `Status: ${filters.status}` }
         : null,
     ].filter(
@@ -916,8 +946,8 @@ export const useStudentAnalyticsView = () => {
     const defaultValues = {
       department: studentDepartmentAllOption,
       city: studentCityAllOption,
-      gender: studentGenderOptions[0],
-      status: studentStatusOptions[0],
+      gender: studentGenderAllOption,
+      status: studentStatusAllOption,
     } as const;
 
     draftFilters[key] = defaultValues[key];
@@ -929,8 +959,8 @@ export const useStudentAnalyticsView = () => {
     }
     draftFilters.department = studentDepartmentAllOption;
     draftFilters.city = studentCityAllOption;
-    draftFilters.gender = studentGenderOptions[0];
-    draftFilters.status = studentStatusOptions[0];
+    draftFilters.gender = studentGenderAllOption;
+    draftFilters.status = studentStatusAllOption;
     searchQuery.value = "";
     draftFilters.query = "";
     void applyStudentFilters();
@@ -952,7 +982,7 @@ export const useStudentAnalyticsView = () => {
     draftFilters.query = searchQuery.value;
     void applyStudentFilters();
   };
-  const fetchAllStudentsForExport = async () => {
+  const fetchAllStudentsForExport = async (): Promise<StudentExportRow[]> => {
     const firstPage = await getStudents({ page: 1, perPage: 100 });
     const allStudents = [...firstPage.data];
 
@@ -962,11 +992,16 @@ export const useStudentAnalyticsView = () => {
     }
 
     return allStudents.map((student) => ({
-      ...student,
+      studentCode: student.studentCode,
+      name: student.name,
+      email: student.email,
       institute: formatStudentInstituteLabel(student.institute),
       department: formatStudentDepartmentLabel(student.department),
+      city: student.city,
       gender: formatStudentGenderLabel(student.gender),
-      action: student.id,
+      lastLogin: student.lastLogin,
+      status: student.status,
+      enrollments: student.enrollments,
     }));
   };
 
@@ -978,12 +1013,7 @@ export const useStudentAnalyticsView = () => {
         filename: `ccun-students.${format === "excel" ? "xls" : "csv"}`,
         format,
         label: `All students ${format === "excel" ? "Excel" : "CSV"} file`,
-        columns: studentTableColumns
-          .filter((column) => column.type !== "action")
-          .map((column) => ({
-            key: column.key,
-            label: column.label,
-          })),
+        columns: studentExportColumns,
         rows,
       });
     } catch {

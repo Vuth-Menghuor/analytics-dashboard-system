@@ -13,6 +13,24 @@ import { useCsvExport } from "~/composables/common/useCsvExport";
 import type { ExportFormat } from "~/utils/exportCsv";
 
 type CourseAnalyticsTab = "overview" | "institutes" | "enrollment";
+type CourseTableRow = Record<string, string | number | boolean | null | undefined>;
+type CourseExportRow = {
+  id: number;
+  name: string;
+  category: string;
+  institute: string;
+  courseCount: number;
+  enrolled: number;
+};
+
+const courseExportColumns = [
+  { key: "id", label: "Course ID" },
+  { key: "name", label: "Course name" },
+  { key: "category", label: "Category" },
+  { key: "institute", label: "Institute" },
+  { key: "courseCount", label: "Moodle course records" },
+  { key: "enrolled", label: "Enrollment records" },
+] satisfies Array<{ key: keyof CourseExportRow; label: string }>;
 
 export const useCourseAnalyticsView = () => {
   const { exportWithToast } = useCsvExport();
@@ -316,9 +334,7 @@ export const useCourseAnalyticsView = () => {
     ];
   });
 
-  const openCourseDetail = (
-    row: Record<string, string | number | boolean | null>,
-  ) => {
+  const openCourseDetail = (row: CourseTableRow) => {
     const courseId = Number(row.id);
     selectedCourse.value =
       courses.value.find((course) => course.id === courseId) ?? null;
@@ -351,25 +367,20 @@ export const useCourseAnalyticsView = () => {
   const exportCourses = (format: ExportFormat = "csv") => {
     const rows = [...courses.value]
       .sort((a, b) => b.enrolled - a.enrolled)
-      .map((course) => ({
-      id: course.id,
-      name: course.name,
-      category: formatCourseListValue(course.categories, course.category),
-      institute: formatCourseListValue(course.institutes, course.institute),
-      courseCount: course.courseCount ?? 1,
-      enrolled: course.enrolled,
-    }));
+      .map<CourseExportRow>((course) => ({
+        id: course.id,
+        name: course.name,
+        category: formatCourseListValue(course.categories, course.category),
+        institute: formatCourseListValue(course.institutes, course.institute),
+        courseCount: course.courseCount ?? 1,
+        enrolled: course.enrolled,
+      }));
 
     void exportWithToast({
       filename: `ccun-course-groups.${format === "excel" ? "xls" : "csv"}`,
       format,
       label: `All courses ${format === "excel" ? "Excel" : "CSV"} file`,
-      columns: courseTableColumns
-        .filter((column) => column.type !== "action")
-        .map((column) => ({
-          key: column.key,
-          label: column.label,
-        })),
+      columns: courseExportColumns,
       rows,
     });
   };

@@ -7,6 +7,7 @@ import AppLoadingSkeleton from "~/components/common/AppLoadingSkeleton.vue";
 import PageHeader from "~/components/common/PageHeader.vue";
 import StatePanel from "~/components/common/StatePanel.vue";
 import { usePartnerRequestsPage } from "~/composables/admin/usePartnerRequestsPage";
+import type { PartnerRequest } from "~/types/admin";
 
 const { t } = useI18n();
 const { translateText } = useTranslateText();
@@ -42,6 +43,30 @@ const {
   setPerPage,
   submitSearch,
 } = usePartnerRequestsPage();
+
+type PartnerRequestTableRow = PartnerRequest & {
+  statusLabel: string;
+  submittedAtLabel: string;
+  action: number;
+};
+
+const asRequestRow = (row: Record<string, unknown>) =>
+  row as PartnerRequestTableRow;
+
+const isPendingRequestRow = (row: Record<string, unknown>) =>
+  asRequestRow(row).status === "pending";
+
+const openRequestDetailsFromRow = (row: Record<string, unknown>) => {
+  openRequestDetails(asRequestRow(row));
+};
+
+const approveRequestFromRow = (row: Record<string, unknown>) => {
+  approveRequest(asRequestRow(row));
+};
+
+const openRejectModalFromRow = (row: Record<string, unknown>) => {
+  openRejectModal(asRequestRow(row));
+};
 </script>
 
 <template>
@@ -136,17 +161,17 @@ const {
           <div class="toolbar table-actions">
             <AppButton
               action="view"
-              @click="openRequestDetails(row)"
+              @click="openRequestDetailsFromRow(row)"
             />
             <AppButton
               action="approve"
-              :disabled="row.status !== 'pending' || isReviewing"
-              @click="approveRequest(row)"
+              :disabled="!isPendingRequestRow(row) || isReviewing"
+              @click="approveRequestFromRow(row)"
             />
             <AppButton
               action="reject"
-              :disabled="row.status !== 'pending' || isReviewing"
-              @click="openRejectModal(row)"
+              :disabled="!isPendingRequestRow(row) || isReviewing"
+              @click="openRejectModalFromRow(row)"
             />
           </div>
         </template>

@@ -184,14 +184,6 @@ export const getPopularCourses = async (params: DashboardChartFilters = {}) => {
   return data;
 };
 
-export const getPublicPopularCourses = async (params: DashboardChartFilters = {}) => {
-  const { data } = await api.get<PopularCourseApi[]>(
-    "/public/dashboard/courses/popular",
-    { params, ...analyticsChartRequestConfig },
-  );
-  return data;
-};
-
 export const getCourseViews = async () => {
   const { data } = await api.get<CourseViewsApi[]>("/dashboard/courses/views");
   return data;

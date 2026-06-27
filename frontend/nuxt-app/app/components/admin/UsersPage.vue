@@ -14,6 +14,7 @@ import UserFormModal from "~/components/admin/UserFormModal.vue";
 import UserPasswordModal from "~/components/admin/UserPasswordModal.vue";
 import UserProfileModal from "~/components/admin/UserProfileModal.vue";
 import { useUsersPage } from "~/composables/admin/useUsersPage";
+import type { AdminUser } from "~/types/admin";
 
 const { t } = useI18n();
 const { translateText } = useTranslateText();
@@ -61,22 +62,31 @@ const {
   submitUser,
 } = useUsersPage();
 
+type AdminUserTableRow = AdminUser & {
+  isCurrentUser?: boolean;
+  createdAtLabel?: string;
+  updatedAtLabel?: string;
+  action?: number;
+};
+
+const asUserRow = (row: Record<string, unknown>) => row as AdminUserTableRow;
+
 const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] => [
   [
     {
       label: "View profile",
       icon: "i-lucide-eye",
-      onSelect: () => openUserProfile(row),
+      onSelect: () => openUserProfile(asUserRow(row)),
     },
     {
       label: "Edit",
       icon: "i-lucide-pencil",
-      onSelect: () => openEditUser(row),
+      onSelect: () => openEditUser(asUserRow(row)),
     },
     {
       label: "Password",
       icon: "i-lucide-key-round",
-      onSelect: () => openPasswordReset(row),
+      onSelect: () => openPasswordReset(asUserRow(row)),
     },
   ],
   [
@@ -85,7 +95,7 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
       icon: "i-lucide-trash-2",
       color: "error",
       disabled: Boolean(row.isCurrentUser),
-      onSelect: () => openDeleteUser(row),
+      onSelect: () => openDeleteUser(asUserRow(row)),
     },
   ],
 ];
@@ -197,7 +207,7 @@ const getUserActionItems = (row: Record<string, unknown>): DropdownMenuItem[][] 
           <div class="toolbar table-actions">
             <AppActionMenu
               :items="getUserActionItems(row)"
-              :aria-label="t('text.actionsFor', { name: row.name })"
+              :ariaLabel="t('text.actionsFor', { name: row.name })"
               :title="String(translateText(row.isCurrentUser ? 'You cannot delete your own account' : 'More actions'))"
             />
           </div>

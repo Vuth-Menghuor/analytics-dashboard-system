@@ -1,0 +1,559 @@
+.table-actions {
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+.dashboard-data-table th.is-action,
+.dashboard-data-table td.is-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table-action-trigger {
+  width: 2rem;
+  height: 2rem;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--app-muted);
+}
+
+.table-action-trigger:hover,
+.table-action-trigger[aria-expanded="true"] {
+  background: var(--app-surface-soft);
+  color: var(--app-heading);
+}
+
+.student-pagination,
+.course-pagination,
+.organization-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--app-surface);
+  color: var(--app-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.student-pagination > div,
+.course-pagination > div,
+.organization-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-record-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 22px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--app-primary) 8%, transparent),
+      color-mix(in srgb, var(--app-success) 8%, transparent)
+    ),
+    var(--app-surface);
+}
+
+.student-record-hero h2 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 1.28rem;
+  font-weight: 850;
+}
+
+.student-record-hero p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--app-muted);
+}
+
+.student-record-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-record-hero-stats div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid
+    color-mix(in srgb, var(--app-primary) 12%, transparent);
+  border-radius: 8px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--app-surface) 74%, transparent);
+}
+
+.student-record-hero-stats span {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.student-record-hero-stats strong {
+  color: var(--app-primary);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.student-insight-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.student-insight-panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.student-rank-list,
+.student-risk-list,
+.student-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.student-rank-list div,
+.student-risk-list div,
+.student-timeline > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.student-rank-list div {
+  border-bottom: 1px solid var(--app-border);
+  padding-bottom: 10px;
+}
+
+.student-rank-list div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.student-rank-list span {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.student-rank-list strong,
+.student-risk-list strong,
+.student-timeline strong {
+  min-width: 0;
+  color: var(--app-text);
+  font-size: 0.9rem;
+}
+
+.student-rank-list em {
+  margin-left: auto;
+  color: var(--app-success);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.student-risk-list > div {
+  justify-content: space-between;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.student-risk-list > div > div {
+  display: grid;
+  gap: 2px;
+}
+
+.student-risk-list span,
+.student-timeline p {
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.82rem;
+}
+
+.student-timeline > div {
+  align-items: flex-start;
+  border-left: 2px solid var(--app-border);
+  padding-left: 12px;
+}
+
+.student-timeline > div > span {
+  flex: 0 0 44px;
+  color: var(--app-primary);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.profile-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.student-profile-details div {
+  display: grid;
+  gap: 3px;
+}
+
+.student-profile-details dt {
+  color: var(--app-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.student-profile-details dd {
+  margin: 0;
+  color: var(--app-text);
+  font-weight: 750;
+}
+
+.gender-split {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 42px;
+}
+
+.gender-split div {
+  display: grid;
+  gap: 1px;
+}
+
+.gender-split div:last-child {
+  text-align: right;
+}
+
+.gender-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.gender-value.male {
+  color: var(--color-primary-hover);
+}
+
+.gender-value.female {
+  color: var(--color-accent-purple);
+}
+
+.gender-split span,
+.chart-note,
+.section-heading p {
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.88rem;
+}
+
+.gender-meter {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 16px;
+  border-radius: 999px;
+  background: var(--app-surface-soft);
+}
+
+.gender-meter-male {
+  width: 56%;
+  background: var(--color-primary-hover);
+}
+
+.gender-meter-female {
+  flex: 1;
+  background: var(--color-accent-purple);
+}
+
+.gender-institution-card {
+  min-width: 0;
+}
+
+.gender-table-wrap {
+  overflow-x: auto;
+  margin-top: 22px;
+}
+
+.dashboard-data-table-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.gender-institution-table {
+  width: 100%;
+  min-width: 840px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: var(--app-heading);
+  font-size: 0.92rem;
+}
+
+.gender-institution-table .institution-col {
+  width: 22%;
+}
+
+.gender-institution-table .count-col {
+  width: 11%;
+}
+
+.gender-institution-table .percent-col {
+  width: 14%;
+}
+
+.gender-institution-table .distribution-col {
+  width: 16%;
+}
+
+.gender-institution-table th,
+.gender-institution-table td {
+  border-bottom: 1px solid var(--app-border);
+  padding: 11px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.gender-institution-table thead th {
+  color: var(--app-heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.gender-institution-table thead th:first-child,
+.gender-institution-table tbody th {
+  text-align: left;
+}
+
+.gender-institution-table .distribution-heading,
+.gender-institution-table .distribution-cell {
+  text-align: left;
+}
+
+.gender-institution-table tbody th {
+  color: var(--app-heading);
+  font-weight: 800;
+}
+
+.gender-institution-table tbody tr:last-child th,
+.gender-institution-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.gender-institution-table .number {
+  text-align: left;
+}
+
+.dashboard-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: var(--app-heading);
+  font-size: 0.9rem;
+}
+
+.dashboard-data-table th,
+.dashboard-data-table td {
+  border-bottom: 1px solid var(--app-border);
+  padding: 13px 10px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.dashboard-data-table thead th {
+  color: var(--app-heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.dashboard-data-table thead th.is-left,
+.dashboard-data-table tbody th {
+  text-align: left;
+}
+
+.dashboard-data-table tbody th {
+  overflow: hidden;
+  color: var(--app-heading);
+  font-weight: 800;
+  text-overflow: ellipsis;
+}
+
+.dashboard-data-table tbody tr:hover th,
+.dashboard-data-table tbody tr:hover td {
+  background: var(--app-surface-soft);
+}
+
+.dashboard-data-table tbody tr:last-child th,
+.dashboard-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dashboard-data-table .number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-data-table .is-center {
+  text-align: center;
+}
+
+.dashboard-data-table td.is-center {
+  vertical-align: middle;
+}
+
+.dashboard-data-table td.is-center > * {
+  justify-content: center;
+}
+
+.dashboard-data-table .muted-text {
+  overflow: hidden;
+  color: var(--app-muted);
+  text-overflow: ellipsis;
+}
+
+.dashboard-data-table .strong-text {
+  color: var(--app-heading);
+  font-weight: 800;
+}
+
+.admin-users-table {
+  table-layout: auto;
+}
+
+.admin-users-table th,
+.admin-users-table td,
+.admin-users-table tbody th,
+.admin-users-table .muted-text {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.course-moodle-records-table {
+  min-width: 1120px;
+}
+
+.course-moodle-records-table th:nth-child(1),
+.course-moodle-records-table td:nth-child(1) {
+  width: 120px;
+}
+
+.course-moodle-records-table th:nth-child(2) {
+  width: 360px;
+}
+
+.course-moodle-records-table th:nth-child(3),
+.course-moodle-records-table td:nth-child(3) {
+  width: 300px;
+}
+
+.course-moodle-records-table th:nth-child(4),
+.course-moodle-records-table td:nth-child(4) {
+  width: 220px;
+}
+
+.course-moodle-records-table th:nth-child(5),
+.course-moodle-records-table td:nth-child(5) {
+  width: 120px;
+}
+
+.course-moodle-records-table tbody th,
+.course-moodle-records-table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.course-institute-distribution-card {
+  min-height: 620px;
+}
+
+.course-institute-ranking-chart {
+  margin-top: 10px;
+}
+
+.department-ranking-card-body {
+  padding: 22px 24px;
+}
+
+.department-ranking-table-wrap {
+  overflow-x: auto;
+  margin-top: 18px;
+}
+
+.department-ranking-table {
+  min-width: 640px;
+}
+
+.department-ranking-table th,
+.department-ranking-table td {
+  padding-block: 13px;
+}
+
+.department-ranking-table thead th:nth-child(4),
+.department-ranking-table thead th:nth-child(5),
+.department-ranking-table .number {
+  text-align: right;
+}
+
+.male-text {
+  color: var(--color-primary-hover);
+  font-weight: 700;
+}
+
+.female-text {
+  color: var(--color-accent-purple);
+  font-weight: 700;
+}
+
+.total-text {
+  color: var(--app-heading);
+  font-weight: 800;
+}
+
+.distribution-bar {
+  display: flex;
+  width: 96px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--app-surface-soft);
+}
+
+.distribution-male {
+  flex: 0 0 auto;
+  background: var(--color-primary-hover);
+}
+
+.distribution-female {
+  flex: 1;
+  background: var(--color-accent-purple);
+}

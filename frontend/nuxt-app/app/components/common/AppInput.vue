@@ -3,12 +3,18 @@ import type { InputProps } from "@nuxt/ui";
 
 defineOptions({ inheritAttrs: false });
 
-const props = withDefaults(defineProps<InputProps>(), {
+type AppInputValue = string | number | bigint | boolean;
+type AppInputProps = Omit<InputProps<AppInputValue>, "modelValue" | "defaultValue"> & {
+  modelValue?: AppInputValue;
+  defaultValue?: AppInputValue;
+};
+
+const props = withDefaults(defineProps<AppInputProps>(), {
   size: "sm",
   variant: "outline",
 });
 
-const model = defineModel<InputProps["modelValue"]>();
+const model = defineModel<AppInputValue>();
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 import { chartColors } from "~/constants/colors";
 
 export const getChartPointColor = (index: number) =>
-  chartColors[index % chartColors.length];
+  chartColors[index % chartColors.length] ?? "#0A3868";
 
 export const formatChartValue = (value: unknown) => {
   const numericValue =

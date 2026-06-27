@@ -74,7 +74,7 @@ const createGenderBreakdown = (
   ];
 };
 
-export const analyticsPages: Record<string, AnalyticsPageConfig> = {
+export const analyticsPages = {
   dashboard: {
     eyebrow: "Moodle learning analytics",
     title: "Dashboard Overview",
@@ -85,7 +85,7 @@ export const analyticsPages: Record<string, AnalyticsPageConfig> = {
     filters: [],
     charts: [],
   },
-};
+} satisfies Record<"dashboard", AnalyticsPageConfig>;
 
 export const createLiveDashboardMetrics = (
   summary: DashboardSummaryApi,

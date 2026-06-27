@@ -44,6 +44,7 @@ export type AnalyticsTableColumn = {
   key: string;
   label: string;
   width?: string;
+  align?: "left" | "center" | "right";
   tone?: "default" | "muted" | "strong";
   rowHeader?: boolean;
   type?: "text" | "status" | "action";

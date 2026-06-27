@@ -20,6 +20,16 @@ import {
 const allInstitutesOption = "All institutes";
 const allDepartmentsOption = "All departments";
 
+const getStudentsFromDatasetValue = (value: unknown) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const students = (value as { students?: unknown }).students;
+
+  return typeof students === "number" ? students : undefined;
+};
+
 export const useInstitutesPage = () => {
   const { exportWithToast } = useCsvExport();
   const toast = useToast();
@@ -289,8 +299,8 @@ export const useInstitutesPage = () => {
             position: "top",
             color: appColors.secondary,
             fontWeight: 700,
-            formatter: ({ value }: { value?: Record<string, unknown> }) =>
-              formatChartValue(value?.students),
+            formatter: ({ value }: { value?: unknown }) =>
+              formatChartValue(getStudentsFromDatasetValue(value)),
           },
           itemStyle: {
             borderRadius: [6, 6, 0, 0],

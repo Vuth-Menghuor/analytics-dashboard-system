@@ -1,0 +1,85 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="qz77agjUgH2Rjxt1jme_">
+    <mxGraphModel dx="1611" dy="924" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="A" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="User creates new chat" vertex="1">
+          <mxGeometry height="70" width="170" x="60" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="B" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Generate unique chat ID" vertex="1">
+          <mxGeometry height="70" width="170" x="280" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="C" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Add chat to Pinia chat store" vertex="1">
+          <mxGeometry height="70" width="170" x="500" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="D" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Save recent chat list to localStorage" vertex="1">
+          <mxGeometry height="70" width="190" x="720" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="E" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="User sends or receives messages" vertex="1">
+          <mxGeometry height="70" width="190" x="970" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="F" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Save messages using chat ID" vertex="1">
+          <mxGeometry height="70" width="180" x="1220" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="G" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="User refreshes page" vertex="1">
+          <mxGeometry height="70" width="180" x="1220" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="H" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Read chat history from localStorage" vertex="1">
+          <mxGeometry height="70" width="190" x="970" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="I" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Restore recent" vertex="1">
+          <mxGeometry height="70" width="190" x="720" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="J" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Open selected chat" vertex="1">
+          <mxGeometry height="70" width="170" x="500" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="K" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Read messages by chat ID" vertex="1">
+          <mxGeometry height="70" width="170" x="280" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="L" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=0;arcSize=16;shadow=1;" value="Display restored\nchat conversation" vertex="1">
+          <mxGeometry height="70" width="170" x="60" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="label1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;dashed=1;" value="Create and Save Chat" vertex="1">
+          <mxGeometry height="30" width="1340" x="60" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="label2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;dashed=1;" value="Restore Chat After Refresh" vertex="1">
+          <mxGeometry height="30" width="1340" x="60" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="eAB" edge="1" parent="1" source="A" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="B">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eBC" edge="1" parent="1" source="B" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="C">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eCD" edge="1" parent="1" source="C" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="D">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eDE" edge="1" parent="1" source="D" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="E">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eEF" edge="1" parent="1" source="E" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="F">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eFG" edge="1" parent="1" source="F" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;" target="G">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eGH" edge="1" parent="1" source="G" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;fontStyle=1" target="H">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eHI" edge="1" parent="1" source="H" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;fontStyle=1" target="I">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eIJ" edge="1" parent="1" source="I" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;fontStyle=1" target="J">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eJK" edge="1" parent="1" source="J" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;fontStyle=1" target="K">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eKL" edge="1" parent="1" source="K" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;endArrow=block;endFill=1;fontStyle=1" target="L">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

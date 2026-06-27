@@ -1,0 +1,132 @@
+.course-table-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: min(100%, 980px);
+}
+
+.course-table-toolbar .analytics-filter-field {
+  min-width: 150px;
+}
+
+.course-table-toolbar .analytics-filter-field.wide {
+  min-width: 220px;
+}
+
+.course-table-toolbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.course-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.course-insight-card {
+  overflow: hidden;
+  border-color: var(--app-border);
+}
+
+.course-insight-card > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.course-insight-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--app-surface-soft);
+  color: var(--app-primary);
+  font-size: 1.1rem;
+}
+
+.course-insight-card span {
+  display: block;
+  color: var(--app-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.course-insight-card strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--app-heading);
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.course-insight-card p {
+  margin: 6px 0 0;
+  color: var(--app-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.course-insight-card.is-warning .course-insight-icon {
+  background: color-mix(in srgb, var(--app-warning) 12%, transparent);
+  color: var(--app-warning);
+}
+
+.course-insight-card.is-success .course-insight-icon {
+  background: color-mix(in srgb, var(--app-success) 12%, transparent);
+  color: var(--app-success);
+}
+
+.course-insight-card.is-neutral .course-insight-icon {
+  color: var(--app-muted);
+}
+
+.state-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 220px;
+  padding: 32px;
+  text-align: center;
+}
+
+.state-panel h2 {
+  margin: 4px 0 0;
+  color: var(--app-text);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.state-panel p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--app-muted);
+}
+
+.state-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--color-primary);
+}
+
+.state-skeleton-title {
+  width: min(360px, 80%);
+  height: 28px;
+}
+
+.state-skeleton-line {
+  width: min(520px, 92%);
+  height: 16px;
+}
+
+.state-skeleton-line.short {
+  width: min(360px, 72%);
+}

@@ -1,0 +1,228 @@
+.card {
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+
+.card-pad {
+  padding: 20px;
+}
+
+.metric {
+  min-height: 140px;
+  border: 1px solid var(--metric-background, var(--app-border));
+  border-radius: 5px;
+  background: var(--metric-background, var(--app-surface));
+  box-shadow: 0 10px 24px
+    color-mix(in srgb, var(--app-text) 12%, transparent);
+}
+
+.metric-body {
+  min-height: 140px;
+  padding: 0;
+}
+
+.metric-layout {
+  display: grid;
+  min-height: 140px;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  padding: 18px 20px;
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-icon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-primary-hover);
+}
+
+.metric-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.metric-content {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
+.metric-main {
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+  align-items: end;
+  justify-items: start;
+}
+
+.metric-foot {
+  display: flex;
+  min-height: 34px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metric-label {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.metric-subtitle {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.metric-breakdown {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin: 0;
+  gap: 12px;
+}
+
+.metric-breakdown div {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.metric-breakdown div + div {
+  margin-left: 2px;
+  border-left: 1px solid
+    color-mix(in srgb, var(--metric-foreground) 46%, transparent);
+  padding-left: 12px;
+}
+
+.metric-breakdown dt,
+.metric-breakdown dd {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.metric-breakdown dt {
+  color: var(--app-muted);
+  font-weight: 500;
+}
+
+.metric-breakdown dd {
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.metric-comparison {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.metric-comparison-value {
+  color: var(--metric-accent, var(--color-primary));
+  font-weight: 800;
+}
+
+.metric-comparison-value[data-direction="up"] {
+  color: var(--app-success);
+}
+
+.metric-comparison-value[data-direction="down"] {
+  color: var(--app-error);
+}
+
+.metric-comparison-value[data-direction="neutral"] {
+  color: var(--app-muted);
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.metric-value-copy {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.metric-value {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 1.55rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.analytics-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.analytics-card-body {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 28px;
+}
+
+.visitor-dashboard-intro {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 16px 28px;
+  text-align: center;
+}
+
+.visitor-dashboard-intro h1 {
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.visitor-dashboard-intro p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}

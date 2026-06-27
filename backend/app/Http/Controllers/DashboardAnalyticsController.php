@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\Analytics\CourseAnalyticsService;
-use App\Services\Analytics\ImportedAnalyticsService;
 use App\Services\Analytics\InstituteAnalyticsService;
 use App\Services\Analytics\StudentAnalyticsService;
 use App\Services\Analytics\SummaryAnalyticsService;
@@ -11,7 +10,6 @@ use App\Services\Analytics\UserActivityAnalyticsService;
 use App\Support\InstitutionNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DashboardAnalyticsController extends Controller
 {
@@ -20,7 +18,6 @@ class DashboardAnalyticsController extends Controller
         private readonly StudentAnalyticsService $studentAnalytics,
         private readonly CourseAnalyticsService $courseAnalytics,
         private readonly UserActivityAnalyticsService $userActivityAnalytics,
-        private readonly ImportedAnalyticsService $importedAnalytics,
         private readonly InstituteAnalyticsService $instituteAnalytics,
     ) {}
 
@@ -75,7 +72,7 @@ class DashboardAnalyticsController extends Controller
         return response()->json($record);
     }
 
-    public function studentAvatar(int $student): BinaryFileResponse|JsonResponse
+    public function studentAvatar(int $student)
     {
         $avatar = $this->studentAnalytics->studentAvatar($student, $this->institutionScope());
 
@@ -124,21 +121,6 @@ class DashboardAnalyticsController extends Controller
 
         return response()->json(
             $this->studentAnalytics->studentActivity($filters)
-        );
-    }
-
-    public function studentActivityTrend(Request $request): JsonResponse
-    {
-        $filters = $this->analyticsFilters($request);
-        $validated = $request->validate([
-            'period' => ['sometimes', 'string', 'in:week,month,year'],
-        ]);
-
-        return response()->json(
-            $this->studentAnalytics->studentActivityTrend(
-                $filters,
-                $validated['period'] ?? 'month',
-            )
         );
     }
 
@@ -196,11 +178,6 @@ class DashboardAnalyticsController extends Controller
                 ],
             ),
         );
-    }
-
-    public function importedOverview(): JsonResponse
-    {
-        return response()->json($this->importedAnalytics->overview());
     }
 
     public function institutes(Request $request): JsonResponse

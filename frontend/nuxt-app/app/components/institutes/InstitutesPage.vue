@@ -45,6 +45,10 @@ const {
 
 const { t } = useI18n();
 const { translateText } = useTranslateText();
+
+const submitSearch = () => {
+  loadInstitutes();
+};
 </script>
 
 <template>
@@ -74,8 +78,8 @@ const { translateText } = useTranslateText();
             :placeholder="String(translateText('Search institutes'))"
             :aria-label="String(translateText('Search institutes'))"
             clearable
-            @submit="loadInstitutes"
-            @clear="loadInstitutes"
+            @submit="submitSearch"
+            @clear="submitSearch"
           />
         </div>
         <div class="institute-filter-field">
@@ -118,7 +122,11 @@ const { translateText } = useTranslateText();
           />
         </div>
         <div class="institute-filter-actions">
-          <AppButton action="search" :label="String(translateText('Apply filters'))" @click="loadInstitutes" />
+          <AppButton
+            action="search"
+            :label="String(translateText('Apply filters'))"
+            @click="submitSearch"
+          />
           <AppButton v-if="hasFilters" action="clear" @click="clearFilters" />
         </div>
       </div>
@@ -201,8 +209,8 @@ const { translateText } = useTranslateText();
               :placeholder="String(translateText('Search institutes'))"
               :aria-label="String(translateText('Search institutes'))"
               clearable
-              @submit="loadInstitutes"
-              @clear="loadInstitutes"
+              @submit="submitSearch"
+              @clear="submitSearch"
             />
             <div class="dashboard-table-toolbar-actions">
               <AppExportMenu @select="exportInstitutes" />

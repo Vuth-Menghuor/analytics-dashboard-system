@@ -3,14 +3,16 @@ import type { AnalyticsTableColumn, Student } from "~/types/analytics";
 export const studentInstituteAllOption = "All institutes";
 export const studentDepartmentAllOption = "All departments";
 export const studentCityAllOption = "All cities";
+export const studentGenderAllOption = "All genders";
+export const studentStatusAllOption = "All statuses";
 
 export const studentGenderOptions = [
-  "All genders",
+  studentGenderAllOption,
   "Male",
   "Female",
   "Not filled",
 ];
-export const studentStatusOptions = ["All statuses", "Active", "Inactive"];
+export const studentStatusOptions = [studentStatusAllOption, "Active", "Inactive"];
 
 export const studentTableColumns: AnalyticsTableColumn[] = [
   { key: "studentCode", label: "ID", rowHeader: true, width: "180px" },

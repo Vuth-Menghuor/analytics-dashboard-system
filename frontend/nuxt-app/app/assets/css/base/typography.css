@@ -1,0 +1,31 @@
+/*
+ * Khmer glyphs use stacked marks that are clipped by compact Latin-oriented
+ * line heights, especially inside elements using overflow/ellipsis.
+ */
+html[lang="km"]
+  :where(
+    a,
+    button,
+    dd,
+    dt,
+    em,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    input,
+    label,
+    li,
+    p,
+    select,
+    small,
+    span:not(.iconify):not([aria-hidden="true"]),
+    strong,
+    td,
+    textarea,
+    th
+  ) {
+  line-height: 1.5 !important;
+}

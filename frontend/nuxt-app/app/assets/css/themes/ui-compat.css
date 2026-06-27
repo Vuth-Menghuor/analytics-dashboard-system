@@ -1,0 +1,184 @@
+/* Global theme fix for sidebar, popup, modal, forms */
+:root.dark {
+  --ui-bg: var(--app-bg);
+  --ui-text: var(--app-text);
+}
+
+/* Sidebar */
+.app-sidebar,
+.app-sidebar [data-slot="content"],
+.app-sidebar [data-slot="inner"] {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+.app-sidebar a,
+.app-sidebar button,
+.app-sidebar span,
+.app-sidebar p {
+  color: var(--app-text);
+}
+
+.app-sidebar .router-link-active:not(.sidebar-brand),
+.app-sidebar [aria-current="page"]:not(.sidebar-brand) {
+  background: var(--color-primary-hover) !important;
+  color: var(--app-on-primary) !important;
+  box-shadow: none;
+}
+
+.app-sidebar .router-link-active:not(.sidebar-brand) span,
+.app-sidebar [aria-current="page"]:not(.sidebar-brand) span {
+  color: inherit !important;
+}
+
+:root.dark .app-sidebar .router-link-active:not(.sidebar-brand),
+:root.dark .app-sidebar [aria-current="page"]:not(.sidebar-brand) {
+  background: color-mix(in srgb, var(--app-primary) 10%, transparent) !important;
+  color: var(--app-primary-hover) !important;
+  box-shadow: none;
+}
+
+.app-sidebar .sidebar-brand,
+.app-sidebar .sidebar-brand.router-link-active,
+.app-sidebar .sidebar-brand[aria-current="page"] {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Topbar */
+.app-topbar,
+.topbar {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* Modal / popup */
+[role="dialog"],
+[data-headlessui-state],
+[data-slot="content"],
+[data-slot="overlay"] + div {
+  color: var(--app-text);
+}
+
+:root.dark [role="dialog"],
+:root.dark [data-slot="content"] {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* Forms */
+.input,
+select,
+textarea,
+input[data-slot="base"],
+select[data-slot="base"],
+textarea[data-slot="base"] {
+  background: var(--app-input) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+.input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--app-muted) !important;
+}
+
+/* Table */
+table,
+th,
+td {
+  color: var(--app-text);
+  border-color: var(--app-border) !important;
+}
+
+thead th {
+  color: var(--app-muted) !important;
+}
+
+/* Buttons */
+.btn {
+  background: var(--app-surface-soft);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.btn.primary {
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  border-color: var(--app-primary);
+}
+
+/* Nuxt UI dropdown/popover/select */
+:root.dark [data-reka-popper-content-wrapper] > div,
+:root.dark [role="listbox"],
+:root.dark [role="menu"] {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* Final dark/light override for Tailwind hard-coded account UI */
+:root.dark .bg-white {
+  background-color: var(--app-surface) !important;
+}
+
+:root.dark .bg-slate-50,
+:root.dark .bg-slate-100 {
+  background-color: var(--app-surface-soft) !important;
+}
+
+:root.dark .text-slate-950,
+:root.dark .text-slate-900,
+:root.dark .text-slate-800,
+:root.dark .text-slate-700 {
+  color: var(--app-heading) !important;
+}
+
+:root.dark .text-slate-600,
+:root.dark .text-slate-500,
+:root.dark .text-slate-400 {
+  color: var(--app-muted) !important;
+}
+
+:root.dark .border-slate-100,
+:root.dark .border-slate-200,
+:root.dark .border-slate-300,
+:root.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--app-border) !important;
+}
+
+:root.dark .divide-y.divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+:root.dark .divide-y.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-top-color: var(--app-border) !important;
+}
+
+:root.dark .ring-slate-200 {
+  --tw-ring-color: var(--app-border) !important;
+}
+
+:root.dark [role="dialog"] {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
+}
+
+:root.dark [role="dialog"] section,
+:root.dark [role="dialog"] aside,
+:root.dark [role="dialog"] div {
+  border-color: var(--app-border);
+}
+
+:root.dark [role="dialog"] input,
+:root.dark [role="dialog"] select,
+:root.dark [role="dialog"] textarea {
+  background: var(--app-input) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+:root.dark [data-reka-popper-content-wrapper] .bg-white {
+  background: var(--app-surface) !important;
+}

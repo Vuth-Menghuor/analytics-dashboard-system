@@ -14,6 +14,8 @@ const {
   partnerDashboardLoading,
   partnerInstituteLabel,
 } = usePartnerDashboardPage();
+
+const { translateText } = useTranslateText();
 </script>
 
 <template>

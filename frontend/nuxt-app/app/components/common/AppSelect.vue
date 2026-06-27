@@ -3,9 +3,11 @@ import type { SelectMenuItem } from "@nuxt/ui";
 
 defineOptions({ inheritAttrs: false });
 
+type SelectItems = readonly SelectMenuItem[] | readonly (readonly SelectMenuItem[])[];
+
 const props = withDefaults(
   defineProps<{
-    items: SelectMenuItem[] | SelectMenuItem[][];
+    items: SelectItems;
     valueKey?: string;
     labelKey?: string;
     placeholder?: string;
@@ -26,7 +28,7 @@ const props = withDefaults(
 const model = defineModel<any>();
 const { translateText } = useTranslateText();
 
-const translatedItems = computed(() => {
+const translatedItems = computed<SelectMenuItem[] | SelectMenuItem[][]>(() => {
   const translateItem = (item: SelectMenuItem): SelectMenuItem => {
     if (!item || typeof item !== "object" || Array.isArray(item)) {
       return item;
@@ -43,7 +45,7 @@ const translatedItems = computed(() => {
 
   return props.items.map((item) =>
     Array.isArray(item) ? item.map(translateItem) : translateItem(item),
-  );
+  ) as SelectMenuItem[] | SelectMenuItem[][];
 });
 </script>
 

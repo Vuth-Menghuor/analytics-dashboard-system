@@ -46,6 +46,24 @@ const formatUserDate = (value: string | null) => {
   }).format(new Date(value));
 };
 
+type UserExportRow = {
+  name: string;
+  email: string;
+  roleLabel: string;
+  instituteLabel: string;
+  status: AdminUserStatus;
+  createdAtLabel: string;
+};
+
+const userExportColumns = [
+  { key: "name", label: "User" },
+  { key: "email", label: "Email" },
+  { key: "roleLabel", label: "Role" },
+  { key: "instituteLabel", label: "Access Scope" },
+  { key: "status", label: "Status" },
+  { key: "createdAtLabel", label: "Created" },
+] satisfies Array<{ key: keyof UserExportRow; label: string }>;
+
 export const useUsersPage = () => {
   const toast = useToast();
   const { exportWithToast } = useCsvExport();
@@ -340,7 +358,7 @@ export const useUsersPage = () => {
     ],
   } as const;
 
-  const fetchAllUsersForExport = async () => {
+  const fetchAllUsersForExport = async (): Promise<UserExportRow[]> => {
     const firstPage = await getAdminUsers({ page: 1, perPage: 100 });
     const allUsers = [...firstPage.data];
 
@@ -368,12 +386,7 @@ export const useUsersPage = () => {
         filename: `ccun-system-users.${format === "excel" ? "xls" : "csv"}`,
         format,
         label: `All system users ${format === "excel" ? "Excel" : "CSV"} file`,
-        columns: table.columns
-          .filter((column) => column.type !== "action")
-          .map((column) => ({
-            key: column.key,
-            label: column.label,
-          })),
+        columns: userExportColumns,
         rows,
       });
     } catch {

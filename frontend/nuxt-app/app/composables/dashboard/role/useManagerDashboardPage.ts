@@ -213,7 +213,8 @@ export const useManagerDashboardPage = () => {
       axisPointer: { type: "shadow" },
       formatter: (params) => {
         const item = Array.isArray(params) ? params[0] : params;
-        const index = typeof item.dataIndex === "number" ? item.dataIndex : 0;
+        const index =
+          item && typeof item.dataIndex === "number" ? item.dataIndex : 0;
         const point = institutionPoints.value[index];
 
         if (!point) return "";
