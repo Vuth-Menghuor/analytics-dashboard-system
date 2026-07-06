@@ -146,6 +146,8 @@ const submitSearch = () => {
         variant="charts"
         container-class="grid analytics-chart-grid activity-tab-panel"
         :count="3"
+        chart-height="380px"
+        :compact-indexes="[1, 2]"
         :wide-indexes="[0]"
       />
       <AppLoadingSkeleton variant="table" :rows="6" :columns="5" />

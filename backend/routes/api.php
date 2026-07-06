@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/institutes', [DashboardAnalyticsController::class, 'institutes']);
 
         Route::get('/students', [DashboardAnalyticsController::class, 'students']);
+        Route::get('/students/overview', [DashboardAnalyticsController::class, 'studentOverview']);
         Route::get('/students/by-institution', [DashboardAnalyticsController::class, 'studentsByInstitution']);
         Route::get('/students/by-department', [DashboardAnalyticsController::class, 'studentsByDepartment']);
         Route::get('/students/by-city', [DashboardAnalyticsController::class, 'studentsByCity']);

@@ -238,6 +238,26 @@ export type StudentActivityApi = {
   totalStudents: number;
 };
 
+export type StudentAnalyticsOverviewApi = {
+  metrics: {
+    totalStudents: number;
+    activeStudents: number;
+    inactiveStudents: number;
+    neverLoggedInStudents: number;
+  };
+  gender: {
+    total: StudentGenderDistributionApi[];
+    active: StudentGenderDistributionApi[];
+  };
+  activity: StudentActivityApi[];
+  distributions: {
+    institutions: StudentInstitutionDistributionApi[];
+    departments: StudentDepartmentDistributionApi[];
+    cities: StudentCityDistributionApi[];
+    gender: StudentGenderDistributionApi[];
+  };
+};
+
 export type StudentsQuery = {
   page?: number;
   perPage?: number;

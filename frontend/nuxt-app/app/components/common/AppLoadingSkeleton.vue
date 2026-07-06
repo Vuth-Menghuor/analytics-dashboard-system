@@ -8,6 +8,8 @@ const props = withDefaults(
     rows?: number;
     columns?: number;
     barCount?: number;
+    chartHeight?: string;
+    compactIndexes?: number[];
     containerClass?: string;
     wideIndexes?: number[];
   }>(),
@@ -16,6 +18,8 @@ const props = withDefaults(
     rows: 6,
     columns: 7,
     barCount: 7,
+    chartHeight: "300px",
+    compactIndexes: () => [],
     containerClass: "",
     wideIndexes: () => [],
   },
@@ -31,6 +35,7 @@ const bars = computed(() =>
 );
 
 const isWide = (index: number) => props.wideIndexes.includes(index);
+const isCompact = (index: number) => props.compactIndexes.includes(index);
 </script>
 
 <template>
@@ -93,7 +98,10 @@ const isWide = (index: number) => props.wideIndexes.includes(index);
       :key="item"
       as="article"
       class="analytics-card app-loading-chart"
-      :class="{ 'analytics-chart-wide': isWide(item) }"
+      :class="{
+        'analytics-chart-wide': isWide(item),
+        'analytics-chart-compact': isCompact(item),
+      }"
       :ui="{ body: 'analytics-card-body app-loading-chart-body' }"
     >
       <div class="app-loading-head">
@@ -103,7 +111,7 @@ const isWide = (index: number) => props.wideIndexes.includes(index);
         </div>
         <USkeleton class="app-skeleton-line app-skeleton-line--badge" />
       </div>
-      <div class="app-loading-plot">
+      <div class="app-loading-plot" :style="{ minHeight: chartHeight }">
         <USkeleton
           v-for="bar in bars"
           :key="bar"
@@ -281,7 +289,6 @@ const isWide = (index: number) => props.wideIndexes.includes(index);
 
 .app-loading-plot {
   display: flex;
-  min-height: 230px;
   align-items: end;
   justify-content: center;
   gap: 18px;

@@ -16,8 +16,7 @@ import type {
 } from "~/types/analytics";
 import {
   getStudent,
-  getStudentActivity,
-  getStudentGenderDistribution,
+  getStudentAnalyticsOverview,
   getStudents,
   getStudentsByCity,
   getStudentsByDepartment,
@@ -41,7 +40,6 @@ import type {
   StudentGenderDistributionApi,
   StudentInstitutionDistributionApi,
   DashboardChartFilters,
-  StudentsQuery,
 } from "~/types/analytics-api";
 import type { Metric } from "~/types/dashboard";
 
@@ -127,7 +125,6 @@ export const useStudentAnalyticsView = () => {
   ];
   const dependentFiltersLoading = ref(false);
   let latestChartRequestId = 0;
-  let latestMetricRequestId = 0;
   const partnerInstitute = computed(() =>
     auth.user?.role === "partner" ? auth.user.institution_name || "" : "",
   );
@@ -156,149 +153,46 @@ export const useStudentAnalyticsView = () => {
     status: filters.status === studentStatusAllOption ? undefined : filters.status,
   });
 
-  const getStudentsQuery = (
-    overrides: Partial<StudentsQuery> = {},
-  ): StudentsQuery => ({
-    ...getCurrentFilters(),
-    ...overrides,
-  });
-
-  const getStudentMetricFilters = (
-    overrides: Partial<DashboardChartFilters> = {},
-  ): DashboardChartFilters => {
-    const { status: _status, ...filtersWithoutStatus } = getCurrentFilters();
-
-    return {
-      ...filtersWithoutStatus,
-      ...overrides,
-    };
-  };
-
-  const getStudentMetricQuery = (
-    overrides: Partial<StudentsQuery> = {},
-  ): StudentsQuery => {
-    return {
-      ...getStudentMetricFilters(overrides),
-      page: 1,
-      perPage: 1,
-    };
-  };
-
-  const loadStudentMetricCounts = async () => {
-    const requestId = ++latestMetricRequestId;
-    studentMetricsLoading.value = true;
-    const [
-      totalResult,
-      activeResult,
-      inactiveResult,
-      totalGenderResult,
-      activeGenderResult,
-      activityResult,
-    ] = await Promise.allSettled([
-      getStudents(getStudentMetricQuery()),
-      getStudents(getStudentMetricQuery({ status: "Active" })),
-      getStudents(getStudentMetricQuery({ status: "Inactive" })),
-      getStudentGenderDistribution(getStudentMetricFilters()),
-      getStudentGenderDistribution(
-        getStudentMetricFilters({ status: "Active" }),
-      ),
-      getStudentActivity(getStudentMetricFilters()),
-    ]);
-
-    if (requestId !== latestMetricRequestId) {
-      return;
-    }
-
-    if (totalResult.status === "fulfilled") {
-      totalStudentMetricTotal.value = totalResult.value.meta.total;
-    }
-
-    if (activeResult.status === "fulfilled") {
-      activeStudentTotal.value = activeResult.value.meta.total;
-    }
-
-    if (inactiveResult.status === "fulfilled") {
-      inactiveStudentTotal.value = inactiveResult.value.meta.total;
-    }
-
-    if (totalGenderResult.status === "fulfilled") {
-      totalStudentGenderDistribution.value = totalGenderResult.value;
-    }
-
-    if (activeGenderResult.status === "fulfilled") {
-      activeStudentGenderDistribution.value = activeGenderResult.value;
-    }
-
-    if (activityResult.status === "fulfilled") {
-      neverLoggedInStudentTotal.value =
-        activityResult.value.find(
-          (point) => point.loginStatus === "Never logged in",
-        )?.totalStudents ?? 0;
-    }
-
-    studentMetricsLoaded.value = [
-      totalResult,
-      activeResult,
-      inactiveResult,
-    ].some((result) => result.status === "fulfilled");
-    studentMetricsLoading.value = false;
-  };
-
   const loadLiveStudentCharts = async () => {
     const requestId = ++latestChartRequestId;
 
     liveIsLoading.value = true;
+    studentMetricsLoading.value = true;
     liveError.value = "";
     const chartFilters = getCurrentFilters();
 
-    const [
-      institutions,
-      departmentsData,
-      citiesData,
-      genderData,
-      metricCounts,
-    ] = await Promise.allSettled([
-      getStudentsByInstitution(chartFilters),
-      getStudentsByDepartment(chartFilters),
-      getStudentsByCity(chartFilters),
-      getStudentGenderDistribution(chartFilters),
-      loadStudentMetricCounts(),
-    ]);
+    try {
+      const data = await getStudentAnalyticsOverview(chartFilters);
 
-    if (requestId !== latestChartRequestId) {
-      return;
-    }
+      if (requestId !== latestChartRequestId) {
+        return;
+      }
 
-    if (institutions.status === "fulfilled") {
-      studentsByInstitution.value = institutions.value;
-    }
+      studentsByInstitution.value = data.distributions.institutions;
+      studentsByDepartment.value = data.distributions.departments;
+      studentsByCity.value = data.distributions.cities;
+      genderDistribution.value = data.distributions.gender;
+      totalStudentMetricTotal.value = data.metrics.totalStudents;
+      activeStudentTotal.value = data.metrics.activeStudents;
+      inactiveStudentTotal.value = data.metrics.inactiveStudents;
+      neverLoggedInStudentTotal.value = data.metrics.neverLoggedInStudents;
+      totalStudentGenderDistribution.value = data.gender.total;
+      activeStudentGenderDistribution.value = data.gender.active;
+      studentMetricsLoaded.value = true;
+    } catch {
+      if (requestId !== latestChartRequestId) {
+        return;
+      }
 
-    if (departmentsData.status === "fulfilled") {
-      studentsByDepartment.value = departmentsData.value;
-    }
-
-    if (citiesData.status === "fulfilled") {
-      studentsByCity.value = citiesData.value;
-    }
-
-    if (genderData.status === "fulfilled") {
-      genderDistribution.value = genderData.value;
-    }
-
-    const loadedCount = [
-      institutions,
-      departmentsData,
-      citiesData,
-      genderData,
-      metricCounts,
-    ].filter((result) => result.status === "fulfilled").length;
-
-    if (loadedCount === 0) {
       liveError.value = "Unable to load live student analytics.";
+      studentMetricsLoaded.value = false;
+    } finally {
+      if (requestId === latestChartRequestId) {
+        liveIsLoading.value = false;
+        studentMetricsLoading.value = false;
+        dependentFiltersLoading.value = false;
+      }
     }
-
-    liveIsLoading.value = false;
-    dependentFiltersLoading.value = false;
   };
 
   const loadStudentFilterOptions = async () => {

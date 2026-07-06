@@ -78,11 +78,8 @@ const { t } = useI18n();
               <AccountSettingsProfile
                 v-else-if="activeSection === 'profile'"
                 key="profile"
-                :avatar-src="avatarSrc"
-                :display-name="displayName"
                 :form-state="formState"
                 :role-meta="activeRoleMeta"
-                :user-initial="userInitial"
               />
               <AccountSettingsSecurity
                 v-else-if="activeSection === 'security'"

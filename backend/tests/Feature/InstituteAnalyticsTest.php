@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\Analytics\InstituteAnalyticsService;
+use App\Services\Analytics\StudentAnalyticsService;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Tests\TestCase;
@@ -86,5 +87,28 @@ class InstituteAnalyticsTest extends TestCase
 
         $this->getJson('/api/dashboard/institutes?dateFrom=2025-07-28&dateTo=2025-01-01')
             ->assertUnprocessable();
+    }
+
+    public function test_manager_can_request_student_analytics_overview(): void
+    {
+        Sanctum::actingAs(User::factory()->make([
+            'role' => 'manager',
+        ]));
+
+        $service = Mockery::mock(StudentAnalyticsService::class);
+        $service->shouldReceive('overview')
+            ->once()
+            ->with(Mockery::on(fn (array $filters) => $filters['institution'] === 'ITC'
+                && $filters['department'] === 'GCI'
+                && $filters['status'] === 'Active'))
+            ->andReturn([
+                'metrics' => ['totalStudents' => 12],
+                'distributions' => ['institutions' => []],
+            ]);
+        $this->app->instance(StudentAnalyticsService::class, $service);
+
+        $this->getJson('/api/dashboard/students/overview?institution=ITC&department=GCI&status=Active')
+            ->assertOk()
+            ->assertJsonPath('metrics.totalStudents', 12);
     }
 }

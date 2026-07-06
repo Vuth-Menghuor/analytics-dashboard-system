@@ -35,6 +35,13 @@ class DashboardAnalyticsController extends Controller
         );
     }
 
+    public function studentOverview(Request $request): JsonResponse
+    {
+        return response()->json(
+            $this->studentAnalytics->overview($this->analyticsFilters($request))
+        );
+    }
+
     public function students(Request $request): JsonResponse
     {
         $students = $this->studentAnalytics->students($request->validate([

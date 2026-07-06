@@ -32,11 +32,23 @@
   color: inherit !important;
 }
 
+.app-sidebar .router-link-active:not(.sidebar-brand) .sidebar-nav-badge,
+.app-sidebar [aria-current="page"]:not(.sidebar-brand) .sidebar-nav-badge {
+  background: var(--app-on-primary) !important;
+  color: var(--app-primary-hover) !important;
+}
+
 :root.dark .app-sidebar .router-link-active:not(.sidebar-brand),
 :root.dark .app-sidebar [aria-current="page"]:not(.sidebar-brand) {
   background: color-mix(in srgb, var(--app-primary) 10%, transparent) !important;
   color: var(--app-primary-hover) !important;
   box-shadow: none;
+}
+
+:root.dark .app-sidebar .router-link-active:not(.sidebar-brand) .sidebar-nav-badge,
+:root.dark .app-sidebar [aria-current="page"]:not(.sidebar-brand) .sidebar-nav-badge {
+  background: color-mix(in srgb, var(--app-primary) 18%, transparent) !important;
+  color: var(--app-primary-hover) !important;
 }
 
 .app-sidebar .sidebar-brand,

@@ -140,11 +140,8 @@ watch(
 
       <AccountSettingsProfile
         v-else-if="activeTab === 'profile'"
-        :avatar-src="avatarSrc"
-        :display-name="displayName"
         :form-state="formState"
         :role-meta="activeRoleMeta"
-        :user-initial="userInitial"
       />
 
       <AccountSettingsSecurity

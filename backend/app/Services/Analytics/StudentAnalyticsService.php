@@ -12,6 +12,27 @@ class StudentAnalyticsService
 {
     private const NOT_FILLED_LABEL = 'Not filled';
 
+    public function overview(array $filters = []): array
+    {
+        $metricFilters = $filters;
+        unset($metricFilters['status']);
+
+        return [
+            'metrics' => $this->studentMetricCounts($metricFilters),
+            'gender' => [
+                'total' => $this->studentGender($metricFilters),
+                'active' => $this->studentGender([...$metricFilters, 'status' => 'Active']),
+            ],
+            'activity' => $this->studentActivity($metricFilters),
+            'distributions' => [
+                'institutions' => $this->studentsByInstitution($filters),
+                'departments' => $this->studentsByDepartment($filters),
+                'cities' => $this->studentsByCity($filters),
+                'gender' => $this->studentGender($filters),
+            ],
+        ];
+    }
+
     public function studentsByInstitution(array $filters = []): Collection
     {
         return $this->applyStudentFilters(MoodleStudent::query(), $filters)
@@ -105,23 +126,18 @@ class StudentAnalyticsService
 
     public function studentsByCity(array $filters = []): Collection
     {
-        $totalStudents = (clone $this->applyStudentFilters(MoodleStudent::query(), $filters))
-            ->where('deleted', 0)
-            ->count();
-
         return $this->applyStudentFilters(MoodleStudent::query(), $filters)
-            ->select('city')
+            ->selectRaw("coalesce(nullif(trim(city), ''), '".self::NOT_FILLED_LABEL."') as city")
             ->selectRaw('count(*) as total_students')
+            ->selectRaw('sum(count(*)) over () as overall_total_students')
             ->where('deleted', 0)
-            ->whereNotNull('city')
-            ->whereRaw("trim(city) <> ''")
-            ->groupBy('city')
+            ->groupByRaw("coalesce(nullif(trim(city), ''), '".self::NOT_FILLED_LABEL."')")
             ->orderByDesc('total_students')
             ->get()
             ->map(fn ($row) => [
                 'city' => $row->city,
                 'totalStudents' => (int) $row->total_students,
-                'overallTotalStudents' => $totalStudents,
+                'overallTotalStudents' => (int) $row->overall_total_students,
             ]);
     }
 
@@ -129,7 +145,7 @@ class StudentAnalyticsService
     {
         return MoodleStudent::query()
             ->from('analytics_clean.students as s')
-            ->selectRaw("coalesce(s.gender, '".self::NOT_FILLED_LABEL."') as gender")
+            ->selectRaw("coalesce(nullif(trim(s.gender), ''), '".self::NOT_FILLED_LABEL."') as gender")
             ->selectRaw('count(distinct s.id) as total_students')
             ->selectRaw('round(count(distinct s.id) * 100.0 / nullif(sum(count(distinct s.id)) over (), 0), 2) as percentage')
             ->where('s.deleted', 0)
@@ -147,7 +163,7 @@ class StudentAnalyticsService
             ->when($filters['gender'] ?? null, fn ($query, string $gender) => $this->applyTextDimensionFilter($query, 's.gender', $gender))
             ->when(strtolower((string) ($filters['status'] ?? '')) === 'active', fn ($query) => $query->where('s.suspended', 0)->where('s.confirmed', 1))
             ->when(strtolower((string) ($filters['status'] ?? '')) === 'inactive', fn ($query) => $query->where(fn ($query) => $query->where('s.suspended', 1)->orWhere('s.confirmed', 0)))
-            ->groupByRaw("coalesce(s.gender, '".self::NOT_FILLED_LABEL."')")
+            ->groupByRaw("coalesce(nullif(trim(s.gender), ''), '".self::NOT_FILLED_LABEL."')")
             ->orderByDesc('total_students')
             ->get()
             ->map(fn ($row) => [
@@ -155,6 +171,24 @@ class StudentAnalyticsService
                 'totalStudents' => (int) $row->total_students,
                 'percentage' => (float) $row->percentage,
             ]);
+    }
+
+    private function studentMetricCounts(array $filters = []): array
+    {
+        $counts = $this->applyStudentFilters(MoodleStudent::query(), $filters)
+            ->where('deleted', 0)
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when suspended = 0 and confirmed = 1 then 1 else 0 end) as active')
+            ->selectRaw('sum(case when suspended = 1 or confirmed = 0 then 1 else 0 end) as inactive')
+            ->selectRaw('sum(case when lastlogin = 0 then 1 else 0 end) as never_logged_in')
+            ->first();
+
+        return [
+            'totalStudents' => (int) ($counts->total ?? 0),
+            'activeStudents' => (int) ($counts->active ?? 0),
+            'inactiveStudents' => (int) ($counts->inactive ?? 0),
+            'neverLoggedInStudents' => (int) ($counts->never_logged_in ?? 0),
+        ];
     }
 
     private function studentBaseQuery(?string $institution = null): Builder

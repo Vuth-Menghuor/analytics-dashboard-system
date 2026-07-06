@@ -71,40 +71,29 @@ const preferenceSummaryItems = computed(() => [
       class="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)] xl:items-start"
     >
       <div class="rounded-md border border-slate-200 bg-white p-5">
-        <div
-          class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
-        >
-          <div class="flex min-w-0 gap-4">
-            <span
-              class="grid size-14 shrink-0 place-items-center rounded-md bg-slate-50 ring-1 ring-slate-200"
-            >
-              <UAvatar
-                :src="avatarSrc ?? undefined"
-                :text="userInitial"
-                :alt="displayName"
-                class="size-12"
-              />
-            </span>
-            <div class="min-w-0">
-              <p
-                class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
-              >
-                {{ translateText("Signed in as") }}
-              </p>
-              <h4 class="mt-1 truncate text-lg font-bold text-slate-950">
-                {{ formState.displayName || displayName }}
-              </h4>
-              <p class="mt-1 truncate text-sm text-slate-500">
-                {{ formState.email || displayEmail }}
-              </p>
-            </div>
-          </div>
-
-          <div
-            class="flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700"
+        <div class="flex min-w-0 gap-4">
+          <span
+            class="grid size-14 shrink-0 place-items-center rounded-md bg-slate-50 ring-1 ring-slate-200"
           >
-            <span class="size-2 rounded-full bg-emerald-500" />
-            {{ translateText("Active account") }}
+            <UAvatar
+              :src="avatarSrc ?? undefined"
+              :text="userInitial"
+              :alt="displayName"
+              class="size-12"
+            />
+          </span>
+          <div class="min-w-0">
+            <p
+              class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500"
+            >
+              {{ translateText("Signed in as") }}
+            </p>
+            <h4 class="mt-1 truncate text-lg font-bold text-slate-950">
+              {{ formState.displayName || displayName }}
+            </h4>
+            <p class="mt-1 truncate text-sm text-slate-500">
+              {{ formState.email || displayEmail }}
+            </p>
           </div>
         </div>
 

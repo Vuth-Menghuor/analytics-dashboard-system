@@ -9,6 +9,7 @@ import type {
   InstituteAnalyticsResponse,
   PopularCourseApi,
   StudentCityDistributionApi,
+  StudentAnalyticsOverviewApi,
   StudentDepartmentDistributionApi,
   StudentGenderDistributionApi,
   StudentInstitutionDistributionApi,
@@ -143,6 +144,16 @@ export const getPublicStudentsByInstitution = async (
 ) => {
   const { data } = await api.get<StudentInstitutionDistributionApi[]>(
     "/public/dashboard/students/by-institution",
+    { params, ...analyticsChartRequestConfig },
+  );
+  return data;
+};
+
+export const getStudentAnalyticsOverview = async (
+  params: DashboardChartFilters = {},
+) => {
+  const { data } = await api.get<StudentAnalyticsOverviewApi>(
+    "/dashboard/students/overview",
     { params, ...analyticsChartRequestConfig },
   );
   return data;
