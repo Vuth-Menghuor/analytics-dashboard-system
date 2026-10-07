@@ -16,9 +16,12 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
+php artisan storage:link
 ```
 
-Update `.env` with the database connection used by the analytics tables/views.
+Update `.env` with the database connection used by the analytics tables/views. The
+`storage:link` command is required in every environment so uploaded profile photos
+are publicly available at `/storage/avatars/...`.
 
 ## Development
 

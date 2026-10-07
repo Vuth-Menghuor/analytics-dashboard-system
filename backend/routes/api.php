@@ -22,9 +22,15 @@ Route::prefix('public/dashboard')->group(function (): void {
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/user/avatar', [AuthController::class, 'updateAvatar']);
 
     Route::get('/user', function (Request $request) {
-        return $request->user()->only(['id', 'name', 'email', 'role', 'institution_name']);
+        $user = $request->user();
+
+        return [
+            ...$user->only(['id', 'name', 'email', 'role', 'institution_name']),
+            'avatar_url' => $user->avatar_path ? '/storage/'.ltrim($user->avatar_path, '/') : null,
+        ];
     });
 
     Route::middleware('role:manager')->prefix('admin')->group(function (): void {

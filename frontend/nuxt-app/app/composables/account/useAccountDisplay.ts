@@ -14,7 +14,11 @@ export const useAccountDisplay = (options: AccountDisplayOptions = {}) => {
     const apiAvatarUrl = auth.user?.avatarUrl || auth.user?.avatar_url;
 
     if (apiAvatarUrl) {
-      return apiAvatarUrl;
+      if (/^https?:\/\//.test(apiAvatarUrl)) {
+        return apiAvatarUrl;
+      }
+
+      return new URL(apiAvatarUrl, String(useRuntimeConfig().public.apiBaseUrl)).toString();
     }
 
     return undefined;

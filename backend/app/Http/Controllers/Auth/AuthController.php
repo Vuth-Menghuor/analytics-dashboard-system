@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -80,8 +81,30 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $path = $validated['avatar']->store('avatars', 'public');
+        $previousPath = $user->avatar_path;
+        $user->update(['avatar_path' => $path]);
+
+        if ($previousPath) {
+            Storage::disk('public')->delete($previousPath);
+        }
+
+        return response()->json([
+            'user' => $this->serializeUser($user->refresh()),
+        ]);
+    }
+
     /**
-     * @return array{id: int, name: string, email: string, role: string, institution_name: ?string}
+     * @return array{id: int, name: string, email: string, role: string, institution_name: ?string, avatar_url: ?string}
      */
     private function serializeUser(User $user): array
     {
@@ -91,6 +114,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'role' => $user->role,
             'institution_name' => $user->institution_name,
+            'avatar_url' => $user->avatar_path ? '/storage/'.ltrim($user->avatar_path, '/') : null,
         ];
     }
 
@@ -132,7 +156,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $googleAccount
+     * @param  array<string, mixed>  $googleAccount
      */
     private function googleDisplayName(array $googleAccount): string
     {

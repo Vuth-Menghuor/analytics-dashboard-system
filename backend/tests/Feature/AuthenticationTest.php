@@ -6,8 +6,10 @@ use App\Models\User;
 use App\Services\Analytics\StudentAnalyticsService;
 use App\Services\Analytics\SummaryAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Tests\TestCase;
@@ -157,6 +159,55 @@ class AuthenticationTest extends TestCase
 
         $this->getJson('/api/dashboard/students')
             ->assertForbidden();
+    }
+
+    public function test_authenticated_user_can_upload_an_avatar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $this->post('/api/user/avatar', [
+            'avatar' => UploadedFile::fake()->image('profile.png'),
+        ])
+            ->assertOk()
+            ->assertJsonPath('user.id', $user->id)
+            ->assertJsonPath('user.avatar_url', fn (string $url): bool => str_starts_with($url, '/storage/avatars/'));
+
+        $path = $user->refresh()->avatar_path;
+
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_avatar_upload_rejects_invalid_files(): void
+    {
+        Storage::fake('public');
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->post('/api/user/avatar', [
+            'avatar' => UploadedFile::fake()->create('profile.pdf', 20, 'application/pdf'),
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('avatar');
+    }
+
+    public function test_replacing_an_avatar_removes_the_previous_file(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('avatars/old-avatar.png', 'old image');
+        $user = User::factory()->create(['avatar_path' => 'avatars/old-avatar.png']);
+        Sanctum::actingAs($user);
+
+        $this->post('/api/user/avatar', [
+            'avatar' => UploadedFile::fake()->image('replacement.jpg'),
+        ])->assertOk();
+
+        $newPath = $user->refresh()->avatar_path;
+
+        $this->assertNotSame('avatars/old-avatar.png', $newPath);
+        Storage::disk('public')->assertMissing('avatars/old-avatar.png');
+        Storage::disk('public')->assertExists($newPath);
     }
 
     private function fakeVerifiedGoogleAccount(string $email, ?string $name = null): void
