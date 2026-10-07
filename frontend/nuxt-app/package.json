@@ -9,6 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
+    "test": "vitest run",
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
@@ -25,9 +26,12 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.111",
     "@types/node": "^25.7.0",
+    "@vue/test-utils": "^2.5.1",
     "autoprefixer": "^10.5.0",
+    "happy-dom": "^20.14.5",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
+    "vitest": "^5.0.3",
     "vue-tsc": "^3.2.8"
   }
 }

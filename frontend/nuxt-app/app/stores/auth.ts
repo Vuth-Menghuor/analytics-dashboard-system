@@ -1,26 +1,11 @@
 import { AxiosError } from "axios";
 import { api } from "~/services/api";
 import type { AuthUser } from "~/types/auth";
+import { dashboardPathFor } from "~/utils/authRouting";
 
 type LoginPayload = {
   email: string;
   password: string;
-};
-
-const getDashboardPath = (nextUser: AuthUser | null) => {
-  if (nextUser?.role === "manager") {
-    return "/manager/dashboard";
-  }
-
-  if (nextUser?.role === "partner") {
-    return "/partner/dashboard";
-  }
-
-  if (nextUser?.role === "visitor") {
-    return "/visitor/dashboard";
-  }
-
-  return "/login";
 };
 
 export const useAuthStore = defineStore("auth", () => {
@@ -40,7 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isAuthenticated = computed(() => Boolean(token.value && user.value));
 
-  const roleDashboardPath = computed(() => getDashboardPath(user.value));
+  const roleDashboardPath = computed(() => dashboardPathFor(user.value));
 
   const setSession = (nextToken: string, nextUser: AuthUser) => {
     token.value = nextToken;
@@ -137,7 +122,7 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   return {
-    dashboardPathFor: getDashboardPath,
+    dashboardPathFor,
     error,
     isAuthenticated,
     isLoading,

@@ -7,6 +7,7 @@ import AppInput from "~/components/common/AppInput.vue";
 import { useAccountDisplay } from "~/composables/account/useAccountDisplay";
 import { api } from "~/services/api";
 import { AxiosError } from "axios";
+import { avatarValidationError } from "~/utils/avatarUpload";
 
 defineProps<{
   formState: AccountSettingsFormState;
@@ -25,8 +26,10 @@ async function uploadAvatar(event: Event) {
 
   if (!file) return;
 
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
-    avatarError.value = "Choose a JPG, PNG, or WebP image no larger than 2 MB.";
+  const validationError = avatarValidationError(file);
+
+  if (validationError) {
+    avatarError.value = validationError;
     input.value = "";
     return;
   }

@@ -6,6 +6,20 @@ export type CsvColumn<TRow extends Record<string, CsvValue>> = {
   label: string;
 };
 
+export const serializeRowsAsCsv = <TRow extends Record<string, CsvValue>>(
+  columns: CsvColumn<TRow>[],
+  rows: TRow[],
+) => {
+  const header = columns
+    .map((column) => escapeCsvValue(column.label))
+    .join(",");
+  const body = rows.map((row) =>
+    columns.map((column) => escapeCsvValue(row[column.key])).join(","),
+  );
+
+  return [header, ...body].join("\n");
+};
+
 const escapeCsvValue = (value: CsvValue) => {
   if (value === null || value === undefined) {
     return "";
@@ -42,11 +56,7 @@ export const exportRowsToCsv = <TRow extends Record<string, CsvValue>>(
   columns: CsvColumn<TRow>[],
   rows: TRow[],
 ) => {
-  const header = columns.map((column) => escapeCsvValue(column.label)).join(",");
-  const body = rows.map((row) =>
-    columns.map((column) => escapeCsvValue(row[column.key])).join(","),
-  );
-  const csv = [header, ...body].join("\n");
+  const csv = serializeRowsAsCsv(columns, rows);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
 
   downloadBlob(filename, blob);
