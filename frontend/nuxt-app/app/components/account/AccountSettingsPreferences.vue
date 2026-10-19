@@ -2,11 +2,27 @@
 import type { AccountSettingsFormState } from "~/constants/accountSettings";
 
 const themeOptions = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
+  {
+    label: "System",
+    value: "system",
+    description: "Match your device setting",
+    icon: "i-lucide-monitor",
+  },
+  {
+    label: "Light",
+    value: "light",
+    description: "Bright and focused",
+    icon: "i-lucide-sun",
+  },
+  {
+    label: "Dark",
+    value: "dark",
+    description: "Easy on the eyes",
+    icon: "i-lucide-moon",
+  },
 ] as const;
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     description?: string;
     formState: AccountSettingsFormState;
@@ -20,77 +36,68 @@ withDefaults(
 );
 
 const { translateText } = useTranslateText();
+
 </script>
 
 <template>
-  <section class="grid gap-5 p-6">
-    <div>
-      <h3 class="text-xl font-bold text-slate-950">{{ translateText(heading) }}</h3>
-      <p class="mt-1 text-sm text-slate-500">
+  <section class="preferences-page">
+    <header class="preferences-heading">
+      <span class="preferences-heading-icon">
+        <UIcon name="i-lucide-sliders-horizontal" class="size-5" />
+      </span>
+      <div>
+        <h3>
+        {{ translateText(heading) }}
+        </h3>
+        <p>
         {{ translateText(description) }}
-      </p>
-    </div>
+        </p>
+      </div>
+    </header>
 
-    <div class="grid gap-5">
-      <div class="rounded-md border border-slate-200 bg-white p-5">
-        <h4 class="font-bold text-slate-950">{{ translateText("Appearance") }}</h4>
-
-        <div class="mt-5">
-          <div class="grid gap-3">
-            <div>
-              <p class="text-sm font-semibold text-slate-950">{{ translateText("Theme") }}</p>
-              <p class="mt-1 text-xs text-slate-500">
-                {{ translateText("Choose dashboard color mode.") }}
-              </p>
-            </div>
-            <div class="theme-preview-selector" role="radiogroup">
-              <button
-                v-for="option in themeOptions"
-                :key="option.value"
-                type="button"
-                class="theme-preview-option"
-                :class="[
-                  `theme-preview-option-${option.value}`,
-                  { 'is-active': formState.theme === option.value },
-                ]"
-                role="radio"
-                :aria-checked="formState.theme === option.value"
-                @click="formState.theme = option.value"
-              >
-                <span class="theme-preview-window" aria-hidden="true">
-                  <span class="theme-preview-toolbar">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                  <span class="theme-preview-body">
-                    <span class="theme-preview-sidebar">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                    <span class="theme-preview-content">
-                      <span class="theme-preview-avatar" />
-                      <span class="theme-preview-title" />
-                      <span class="theme-preview-line" />
-                      <span class="theme-preview-line" />
-                      <span class="theme-preview-line theme-preview-line-short" />
-                    </span>
-                  </span>
-                  <span
-                    v-if="formState.theme === option.value"
-                    class="theme-preview-check"
-                  >
-                    <UIcon name="i-lucide-check" />
-                  </span>
-                </span>
-                <span class="theme-preview-label">
-                  {{ translateText(option.label) }}
-                </span>
-              </button>
-            </div>
+    <div class="preferences-layout">
+      <div class="preferences-main-card">
+        <div class="preferences-card-header">
+          <div>
+            <h4>{{ translateText("Appearance") }}</h4>
+            <p>{{ translateText("Choose how the dashboard looks while you work.") }}</p>
           </div>
+        </div>
+
+        <div class="theme-setting-header">
+          <div>
+            <p class="theme-setting-title">{{ translateText("Theme preference") }}</p>
+            <p class="theme-setting-copy">{{ translateText("Select the color mode that feels best for your workspace.") }}</p>
+          </div>
+        </div>
+
+        <div class="theme-preview-selector" role="radiogroup" :aria-label="translateText('Theme preference')">
+          <button
+            v-for="option in themeOptions"
+            :key="option.value"
+            type="button"
+            class="theme-preview-option"
+            :class="[
+              `theme-preview-option-${option.value}`,
+              { 'is-active': formState.theme === option.value },
+            ]"
+            role="radio"
+            :aria-checked="formState.theme === option.value"
+            @click="formState.theme = option.value"
+          >
+            <span class="theme-preview-window" aria-hidden="true">
+              <span class="theme-preview-toolbar"><span /><span /><span /></span>
+              <span class="theme-preview-body">
+                <span class="theme-preview-sidebar"><span /><span /><span /><span /></span>
+                <span class="theme-preview-content"><span class="theme-preview-avatar" /><span class="theme-preview-title" /><span class="theme-preview-line" /><span class="theme-preview-line" /></span>
+              </span>
+              <span v-if="formState.theme === option.value" class="theme-preview-check"><UIcon name="i-lucide-check" /></span>
+            </span>
+            <span class="theme-option-copy">
+              <span class="theme-option-icon"><UIcon :name="option.icon" class="size-4" /></span>
+              <span><span class="theme-preview-label">{{ translateText(option.label) }}</span><span class="theme-preview-description">{{ translateText(option.description) }}</span></span>
+            </span>
+          </button>
         </div>
       </div>
     </div>
@@ -98,11 +105,23 @@ const { translateText } = useTranslateText();
 </template>
 
 <style scoped>
+.preferences-page { display: grid; gap: 24px; padding: 28px; }
+.preferences-heading { display: flex; align-items: center; gap: 13px; }
+.preferences-heading-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; background: var(--app-primary-soft); color: var(--app-primary); }
+.preferences-kicker { color: var(--app-primary); font-size: .7rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.preferences-heading h3 { margin: 2px 0 0; color: var(--app-heading); font-size: 1.25rem; font-weight: 750; line-height: 1.2; }
+.preferences-heading p:last-child { margin-top: 4px; color: var(--app-muted); font-size: .86rem; }
+.preferences-layout { display: grid; gap: 16px; max-width: 980px; }
+.preferences-main-card { padding: 22px; border: 1px solid var(--app-border); border-radius: 13px; background: var(--app-surface); }
+.preferences-card-header, .theme-setting-header { display: flex; align-items: flex-start; gap: 16px; }
+.preferences-card-header { padding-bottom: 19px; border-bottom: 1px solid var(--app-border); }
+.preferences-card-header h4, .theme-setting-title { margin: 0; color: var(--app-heading); font-size: .95rem; font-weight: 750; }
+.preferences-card-header p, .theme-setting-copy { margin-top: 4px; color: var(--app-muted); font-size: .78rem; line-height: 1.5; }
+.theme-setting-header { padding: 20px 0 15px; }
 .theme-preview-selector {
   display: grid;
-  gap: 16px;
-  max-width: 640px;
-  grid-template-columns: repeat(2, minmax(220px, 300px));
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .theme-preview-option {
@@ -116,8 +135,7 @@ const { translateText } = useTranslateText();
 
   display: grid;
   min-width: 0;
-  gap: 9px;
-  border: 0;
+  gap: 10px;
   padding: 0;
   background: transparent;
   color: var(--app-text);
@@ -130,9 +148,8 @@ const { translateText } = useTranslateText();
   display: block;
   overflow: hidden;
   width: 100%;
-  aspect-ratio: 1.55;
-  min-height: 92px;
-  max-height: 112px;
+  aspect-ratio: 1.7;
+  min-height: 96px;
   border: 1px solid var(--preview-border);
   border-radius: 8px;
   background: var(--preview-bg);
@@ -272,6 +289,11 @@ const { translateText } = useTranslateText();
   --preview-line: #475569;
   --preview-strong: #94a3b8;
 }
+.theme-preview-option-system .theme-preview-body { grid-template-columns: 50% 50%; }
+.theme-preview-option-system .theme-preview-sidebar { background: #f3f8fc; }
+.theme-preview-option-system .theme-preview-content { background: #0f172a; }
+.theme-preview-option-system .theme-preview-content .theme-preview-line { background: #475569; }
+.theme-preview-option-system .theme-preview-content .theme-preview-title { background: #94a3b8; }
 
 .theme-preview-check {
   position: absolute;
@@ -294,13 +316,20 @@ const { translateText } = useTranslateText();
 }
 
 .theme-preview-label {
+  display: block;
   color: var(--app-heading);
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 700;
   line-height: 1.3;
 }
+.theme-option-copy { display: flex; align-items: center; gap: 8px; }
+.theme-option-icon { display: grid; width: 29px; height: 29px; flex: none; place-items: center; border-radius: 8px; background: var(--app-surface-soft); color: var(--app-muted); }
+.theme-preview-option.is-active .theme-option-icon { background: var(--app-primary-soft); color: var(--app-primary); }
+.theme-preview-description { display: block; margin-top: 1px; color: var(--app-muted); font-size: .68rem; }
 
 @media (max-width: 760px) {
+  .preferences-page { padding: 20px; }
+  .preferences-card-header, .theme-setting-header { display: grid; }
   .theme-preview-selector {
     grid-template-columns: 1fr;
   }

@@ -276,17 +276,9 @@ export const accountDefaultFilterOptions: AccountSettingsOption[] = [
 
 export const accountOverviewDetailItems: AccountOverviewDetailItem[] = [
   { label: "Email", key: "email" },
-  { label: "Phone number", key: "phone" },
-  { label: "Password", value: "Enabled" },
-  { label: "Username", key: "username" },
-  { label: "Institution", key: "institution" },
 ];
 
 export const accountProfileFields: AccountSettingsFormField[] = [
   { label: "Display name", key: "displayName" },
   { label: "Email", key: "email", type: "email" },
-  { label: "Username", key: "username" },
-  { label: "Phone", key: "phone", type: "tel" },
-  { label: "Institution", key: "institution" },
-  { label: "Report signature", key: "reportSignature" },
 ];

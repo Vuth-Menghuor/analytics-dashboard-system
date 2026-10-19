@@ -174,7 +174,7 @@ $database->transaction(function () use ($backendPath, $database, $rows): void {
 
 $summary = $database->table('analytics_clean.course_mapping')
     ->selectRaw('count(*) as mappings')
-    ->selectRaw("count(*) filter (where display_name is not null) as active_display_fixes")
+    ->selectRaw('count(*) filter (where display_name is not null) as active_display_fixes')
     ->selectRaw("count(*) filter (where recommended_action = 'exclude_from_analytics') as exclusions")
     ->selectRaw("count(*) filter (where recommended_action = 'review_record') as review_records")
     ->first();

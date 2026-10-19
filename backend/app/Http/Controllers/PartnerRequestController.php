@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PartnerRequest;
-use App\Models\User;
 use App\Support\InstitutionNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

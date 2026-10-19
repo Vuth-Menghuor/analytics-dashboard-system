@@ -33,7 +33,7 @@ class InstituteAnalyticsService
         $enrollmentsByInstitute = $enrollmentRows->keyBy('institution');
 
         $institutes = $studentRows
-            ->map(function ($row) use ($enrollmentsByInstitute, $filters) {
+            ->map(function ($row) use ($enrollmentsByInstitute) {
                 $enrollment = $enrollmentsByInstitute->get($row->institution);
                 $students = (int) $row->students;
                 $activeStudents = (int) $row->active_students;

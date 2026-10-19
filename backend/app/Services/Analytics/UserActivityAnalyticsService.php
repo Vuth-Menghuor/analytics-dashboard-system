@@ -248,6 +248,7 @@ class UserActivityAnalyticsService
             if ((int) $row->is_total === 1) {
                 $summary['totalActivities'] = (int) $row->total;
                 $summary['activeUsers'] = (int) $row->active_users;
+
                 continue;
             }
 
@@ -624,13 +625,13 @@ class UserActivityAnalyticsService
                 where deleted = 0 and nullif(trim(city), '') is not null
                 order by city",
             ),
-            'courses' => collect(DB::connection('analytics')->select("
+            'courses' => collect(DB::connection('analytics')->select('
                 select id, fullname as name
                 from mdl_course
                 where id > 1
                 order by fullname
                 limit 500
-            "))->map(fn ($row) => [
+            '))->map(fn ($row) => [
                 'id' => (int) $row->id,
                 'name' => $row->name,
             ])->values()->all(),

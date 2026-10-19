@@ -7,6 +7,18 @@ export default defineNuxtConfig({
   icon: {
     clientBundle: {
       scan: true,
+      // Dynamic `:name` bindings cannot be discovered by static scanning.
+      icons: [
+        "lucide:layout-dashboard",
+        "lucide:palette",
+        "lucide:id-card",
+        "lucide:shield-check",
+        "lucide:school",
+        "lucide:eye",
+        "lucide:monitor",
+        "lucide:sun",
+        "lucide:moon",
+      ],
     },
     serverBundle: {
       collections: ["lucide"],
