@@ -17,7 +17,8 @@ COPY . .
 RUN composer dump-autoload --no-dev --optimize \
     && chown -R www-data:www-data storage bootstrap/cache \
     && cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak \
-    && sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf
+    && sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf \
+    && sed -ri '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 COPY docker/start-container.sh /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container

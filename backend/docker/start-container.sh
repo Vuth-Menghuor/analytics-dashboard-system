@@ -8,6 +8,8 @@ sed -i "s/^Listen .*/Listen ${PORT}/" /etc/apache2/ports.conf
 sed "s/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/" \
   /etc/apache2/sites-available/000-default.conf.bak \
   > /etc/apache2/sites-available/000-default.conf
+sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' \
+  /etc/apache2/sites-available/000-default.conf
 
 php artisan migrate --force
 php artisan storage:link || true
