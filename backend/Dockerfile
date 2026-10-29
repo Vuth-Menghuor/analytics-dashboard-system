@@ -11,10 +11,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-scripts
 
 COPY . .
-RUN chown -R www-data:www-data storage bootstrap/cache \
+RUN composer dump-autoload --no-dev --optimize \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak \
     && sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf
 
