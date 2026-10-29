@@ -12,6 +12,7 @@ sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' \
   /etc/apache2/sites-available/000-default.conf
 
 php artisan migrate --force
+php artisan db:seed --force
 php artisan storage:link || true
 php artisan config:cache
 php artisan route:cache
