@@ -1,6 +1,11 @@
 import { accessRoleCards, loginRoleConfigByValue } from "~/constants/auth";
 import type { LoginRole } from "~/types/auth";
 
+const managerDemoCredentials = {
+  email: "manager@example.com",
+  password: "password",
+};
+
 export const useLoginForm = () => {
   const auth = useAuthStore();
   const route = useRoute();
@@ -35,6 +40,15 @@ export const useLoginForm = () => {
   const selectRole = (role: LoginRole) => {
     selectedRole.value = role;
     auth.error = "";
+
+    if (role === "manager") {
+      form.email = managerDemoCredentials.email;
+      form.password = managerDemoCredentials.password;
+      return;
+    }
+
+    form.email = "";
+    form.password = "";
   };
 
   watch(
