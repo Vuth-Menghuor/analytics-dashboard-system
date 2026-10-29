@@ -1,0 +1,79 @@
+# Render Blueprint for CCUN Insights.
+# Create the Blueprint from this repository in the Render dashboard. Render will
+# ask for values marked `sync: false`; do not commit real credentials here.
+services:
+  - type: web
+    name: ccun-insights-api
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: ccun-insights-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: ANALYTICS_DB_CONNECTION
+        value: pgsql
+      - key: ANALYTICS_DB_HOST
+        sync: false
+      - key: ANALYTICS_DB_PORT
+        value: "5432"
+      - key: ANALYTICS_DB_DATABASE
+        sync: false
+      - key: ANALYTICS_DB_USERNAME
+        sync: false
+      - key: ANALYTICS_DB_PASSWORD
+        sync: false
+      - key: ANALYTICS_DB_SSLMODE
+        value: require
+
+  - type: web
+    name: ccun-insights-web
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: frontend/nuxt-app
+    buildCommand: npm ci && npm run build
+    startCommand: node .output/server/index.mjs
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: NUXT_PUBLIC_API_BASE_URL
+        sync: false
+      - key: NUXT_PUBLIC_GOOGLE_CLIENT_ID
+        sync: false
+
+databases:
+  - name: ccun-insights-db
+    region: singapore
+    plan: free
+    databaseName: ccun_insights
+    user: ccun_insights
