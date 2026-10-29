@@ -1,10 +1,11 @@
 # Deploy CCUN Insights on Render
 
-This repository contains a `render.yaml` Blueprint that creates three resources:
+This repository contains a `render.yaml` Blueprint that creates two resources:
 
 - `ccun-insights-web`: Nuxt frontend
 - `ccun-insights-api`: Laravel API
-- `ccun-insights-db`: application PostgreSQL database
+
+The application PostgreSQL database is supplied through the `DB_URL` environment variable. This supports Neon, Supabase, or another managed PostgreSQL provider without requiring a second Render database.
 
 The Moodle analytics database is deliberately **not** created by this Blueprint. It contains the project's source analytics data and must be migrated to, or made reachable from, Render separately.
 
@@ -18,6 +19,7 @@ The Moodle analytics database is deliberately **not** created by this Blueprint.
 | --- | --- | --- |
 | API | `APP_URL` | API URL, e.g. `https://ccun-insights-api.onrender.com` |
 | API | `CORS_ALLOWED_ORIGINS` | Frontend URL, e.g. `https://ccun-insights-web.onrender.com` |
+| API | `DB_URL` | PostgreSQL connection string from Neon, e.g. `postgresql://user:password@host/database?sslmode=require` |
 | API | `GOOGLE_CLIENT_ID` | Your Google OAuth web-client ID; leave empty only if registration with Google is disabled |
 | API | `ANALYTICS_DB_*` | Host, database, username, password, and port for the Moodle analytics PostgreSQL database |
 | Web | `NUXT_PUBLIC_API_BASE_URL` | API URL ending in `/api`, e.g. `https://ccun-insights-api.onrender.com/api` |
@@ -29,6 +31,6 @@ The Moodle analytics database is deliberately **not** created by this Blueprint.
 ## Important production notes
 
 - The API runs database migrations automatically on startup. Keep it at one instance unless migrations are moved to Render's pre-deploy command.
-- The Render application database holds Laravel users, sessions, cache, jobs, and application migrations. It is separate from `ANALYTICS_DB_*`.
+- The database set in `DB_URL` holds Laravel users, sessions, cache, jobs, and application migrations. It is separate from `ANALYTICS_DB_*`.
 - Avatar uploads use local storage by default. Render service filesystems are ephemeral, so uploaded avatars can disappear after a redeploy. Attach a persistent disk or switch the `public` disk to S3-compatible object storage before using uploads in production.
 - Free services can spin down when idle and are unsuitable for a production school system. Use paid plans and database backups for a reliable deployment.
